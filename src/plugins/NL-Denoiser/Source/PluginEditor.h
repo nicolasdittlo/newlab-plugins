@@ -35,6 +35,7 @@ private:
     
     std::unique_ptr<RotarySliderWithValue> ratioSlider;
     std::unique_ptr<RotarySliderWithValue> thresholdSlider;
+    std::unique_ptr<RotarySliderWithValue> transBoostSlider;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

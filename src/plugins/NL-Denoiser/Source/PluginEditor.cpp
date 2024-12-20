@@ -24,6 +24,14 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // Add the rotary slider to the editor
     addAndMakeVisible(*thresholdSlider);
 
+    // Configure the transient boost slider with units
+    transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    transBoostSlider->setRange(0.0, 100.0, 0.0);
+    transBoostSlider->setDefaultValue(0.1);
+
+    // Add the rotary slider to the editor
+    addAndMakeVisible(*transBoostSlider);
+    
     // Set the editor's size
     setSize(464, 464);
 }
@@ -55,4 +63,9 @@ void NLDenoiserAudioProcessorEditor::resized()
                                316,
                                smallSliderWidth,
                                smallSliderHeight);
+
+    transBoostSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
+                                218,
+                                smallSliderWidth,
+                                smallSliderHeight);
 }
