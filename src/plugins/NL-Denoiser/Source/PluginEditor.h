@@ -11,7 +11,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-#include <RotarySliderWithLabel.h>
+#include <RotarySliderWithValue.h>
 
 //==============================================================================
 /**
@@ -33,7 +33,7 @@ private:
 
     juce::Image backgroundImage;
     
-    std::unique_ptr<RotarySliderWithLabel> ratioSlider;
+    std::unique_ptr<RotarySliderWithValue> ratioSlider;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

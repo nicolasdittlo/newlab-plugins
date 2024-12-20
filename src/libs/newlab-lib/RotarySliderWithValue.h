@@ -24,11 +24,11 @@ public:
 
         if (knobDrawable)
         {
-            // Calculate rotation
-            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), 0.0, juce::MathConstants<double>::twoPi);
+            // Calculate rotation from -135 to 135 degrees
+            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -juce::MathConstants<double>::pi * 3.0 / 4.0, juce::MathConstants<double>::pi * 3.0 / 4.0);
 
             // Draw rotated SVG
-            auto bounds = getLocalBounds().toFloat().reduced(10.0f);
+            auto bounds = getLocalBounds().toFloat(); // Use full bounds for drawing
             auto center = bounds.getCentre();
 
             g.addTransform(juce::AffineTransform::rotation(rotation, center.x, center.y));
@@ -36,16 +36,20 @@ public:
         }
     }
 
+    void resized() override
+    {
+        setSize(72, 72); // Ensure the size is fixed to 72x72 pixels
+    }
+
 private:
     std::unique_ptr<juce::Drawable> knobDrawable;
 };
 
-class RotarySliderWithLabel : public juce::Component
+class RotarySliderWithValue : public juce::Component
 {
 public:
-    RotarySliderWithLabel(const juce::String& sliderTitle, const juce::String& units)
-        : titleLabel("TitleLabel", sliderTitle),
-          valueLabel("ValueLabel", "")
+    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units)
+        : valueLabel("ValueLabel", "")
     {
         // Slider setup
         slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -53,12 +57,10 @@ public:
         slider.onValueChange = [this]() { updateValueLabel(); };
         addAndMakeVisible(slider);
 
-        // Title label setup
-        titleLabel.setJustificationType(juce::Justification::centred);
-        addAndMakeVisible(titleLabel);
-
         // Value label setup
         valueLabel.setEditable(true);
+        valueLabel.setFont(juce::Font(14.0f, juce::Font::bold));
+        valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         valueLabel.setJustificationType(juce::Justification::centred);
         valueLabel.onTextChange = [this]() { updateSliderFromLabel(); };
         addAndMakeVisible(valueLabel);
@@ -69,12 +71,14 @@ public:
 
     void resized() override
     {
-        auto area = getLocalBounds();
+        // Define fixed bounds for the slider within this component
+        auto sliderX = (getWidth() - 72) / 2; // Center the slider horizontally
+        auto sliderY = 0; // Start at the top of the component
+        slider.setBounds(sliderX, sliderY, 72, 72);
 
-        // Layout
-        slider.setBounds(area.removeFromTop(area.getHeight() - 40).reduced(10));
-        titleLabel.setBounds(area.removeFromTop(20));
-        valueLabel.setBounds(area);
+        // Position the value label 30 pixels below the bottom of the slider
+        auto valueLabelArea = juce::Rectangle<int>(sliderX, slider.getBottom() + 30, 72, 20);
+        valueLabel.setBounds(valueLabelArea);
     }
 
     void setRange(double min, double max, double interval)
@@ -120,7 +124,6 @@ private:
     }
 
     CustomRotarySlider slider;
-    juce::Label titleLabel;
     juce::Label valueLabel;
     juce::String units;
     double defaultValue = 0.0; // Default value for the slider
