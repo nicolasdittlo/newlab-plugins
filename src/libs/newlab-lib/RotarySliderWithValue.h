@@ -2,10 +2,17 @@
 
 #include <JuceHeader.h>
 
+enum class SliderSize
+{
+    SmallSlider,
+    BigSlider
+};
+
 class CustomRotarySlider : public juce::Slider
 {
 public:
-    CustomRotarySlider()
+    CustomRotarySlider(SliderSize size)
+        : sliderSize(size)
     {
         // Load SVG from resources
         auto svgData = BinaryData::knob_svg;
@@ -38,18 +45,20 @@ public:
 
     void resized() override
     {
-        setSize(72, 72); // Ensure the size is fixed to 72x72 pixels
+        int size = (sliderSize == SliderSize::BigSlider) ? 72 : 36;
+        setSize(size, size); // Ensure the size matches the specified size
     }
 
 private:
+    SliderSize sliderSize;
     std::unique_ptr<juce::Drawable> knobDrawable;
 };
 
 class RotarySliderWithValue : public juce::Component
 {
 public:
-    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units)
-        : valueLabel("ValueLabel", "")
+    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size)
+        : valueLabel("ValueLabel", ""), slider(size), sliderSize(size)
     {
         // Slider setup
         slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -71,13 +80,15 @@ public:
 
     void resized() override
     {
+        int sliderDimension = (sliderSize == SliderSize::BigSlider) ? 72 : 36;
         // Define fixed bounds for the slider within this component
-        auto sliderX = (getWidth() - 72) / 2; // Center the slider horizontally
+        auto sliderX = (getWidth() - sliderDimension) / 2; // Center the slider horizontally
         auto sliderY = 0; // Start at the top of the component
-        slider.setBounds(sliderX, sliderY, 72, 72);
+        slider.setBounds(sliderX, sliderY, sliderDimension, sliderDimension);
 
-        // Position the value label 30 pixels below the bottom of the slider
-        auto valueLabelArea = juce::Rectangle<int>(sliderX, slider.getBottom() + 25, 72, 20);
+        // Position the value label below the slider
+        int labelWidth = (sliderSize == SliderSize::BigSlider) ? sliderDimension : 60; // Avoid stretching for small sliders
+        auto valueLabelArea = juce::Rectangle<int>(sliderX + (sliderDimension - labelWidth) / 2, slider.getBottom() + 25, labelWidth, 20);
         valueLabel.setBounds(valueLabelArea);
     }
 
@@ -125,6 +136,7 @@ private:
 
     CustomRotarySlider slider;
     juce::Label valueLabel;
+    SliderSize sliderSize;
     juce::String units;
     double defaultValue = 0.0; // Default value for the slider
 };
