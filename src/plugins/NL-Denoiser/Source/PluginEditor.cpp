@@ -1,7 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
@@ -30,7 +29,6 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioP
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor() = default;
 
-//==============================================================================
 void NLDenoiserAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // Clear the background with a default color
@@ -51,9 +49,10 @@ void NLDenoiserAudioProcessorEditor::resized()
                            bigSliderWidth,
                            bigSliderHeight);
 
-    auto smallSliderWidth = 36;
+    auto smallSliderWidth = 50; // Adjusted label width for small sliders to avoid cropping
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
-    thresholdSlider->setBounds(281, 316,
+    thresholdSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
+                               316,
                                smallSliderWidth,
                                smallSliderHeight);
 }
