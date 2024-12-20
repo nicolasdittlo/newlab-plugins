@@ -85,15 +85,13 @@ public:
         auto sliderX = (getWidth() - sliderDimension) / 2; // Center the slider horizontally
         auto sliderY = 0; // Start at the top of the component
         slider.setBounds(sliderX, sliderY, sliderDimension, sliderDimension);
-        
+
         // Position the value label below the slider
-        int labelWidth = (sliderSize == SliderSize::BigSlider) ? sliderDimension : 70; // Wider for small sliders
-        auto valueLabelX = sliderX + (sliderDimension - labelWidth) / 2; // Center under slider
-        auto valueLabelY = slider.getBottom() + 25;
-        auto valueLabelArea = juce::Rectangle<int>(valueLabelX, valueLabelY, labelWidth, 20);
+        int labelWidth = (sliderSize == SliderSize::BigSlider) ? sliderDimension : 72; // Allow label to exceed for small sliders // Avoid stretching for small sliders
+        auto valueLabelArea = juce::Rectangle<int>(sliderX - (labelWidth - sliderDimension) / 2, slider.getBottom() + 25, labelWidth, 20);
         valueLabel.setBounds(valueLabelArea);
     }
-    
+
     void setRange(double min, double max, double interval)
     {
         slider.setRange(min, max, interval);

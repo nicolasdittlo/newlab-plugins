@@ -1,8 +1,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+//==============================================================================
+NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
+    : AudioProcessorEditor(&p), audioProcessor(p)
 {
     // Load the background image from binary resources
     backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
@@ -14,7 +15,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioP
 
     // Add the rotary slider to the editor
     addAndMakeVisible(*ratioSlider);
-    
+
     // Configure the threshold slider with units
     thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
     thresholdSlider->setRange(0.0, 100.0, 0.01);
@@ -22,14 +23,15 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioP
 
     // Add the rotary slider to the editor
     addAndMakeVisible(*thresholdSlider);
-    
+
     // Set the editor's size
-    setSize (464, 464);
+    setSize(464, 464);
 }
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor() = default;
 
-void NLDenoiserAudioProcessorEditor::paint (juce::Graphics& g)
+//==============================================================================
+void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Clear the background with a default color
     g.fillAll(juce::Colours::black);
@@ -45,11 +47,9 @@ void NLDenoiserAudioProcessorEditor::resized()
 {
     auto bigSliderWidth = 72;
     auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
-    ratioSlider->setBounds(172, 282,
-                           bigSliderWidth,
-                           bigSliderHeight);
+    ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
 
-    auto smallSliderWidth = 50; // Adjusted label width for small sliders to avoid cropping
+    auto smallSliderWidth = 72; // Updated width to match the label width for small sliders
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
     thresholdSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
                                316,
