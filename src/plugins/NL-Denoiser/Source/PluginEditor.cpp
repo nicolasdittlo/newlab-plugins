@@ -13,9 +13,21 @@
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor (NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    // Load the background image from binary resources
+    backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
+    
+    // Configure the ratio slider with title and units
+    ratioSlider = std::make_unique<RotarySliderWithLabel>("RATIO", "%");
+    ratioSlider->setRange(0.0, 100.0, 0.1);
+    ratioSlider->setDefaultValue(100.0);
+    
+    // Add the rotary slider to the editor
+    addAndMakeVisible(*ratioSlider);
+
+        
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (464, 464);
 }
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
@@ -25,16 +37,17 @@ NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
 //==============================================================================
 void NLDenoiserAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    // Clear the background with a default color
+    g.fillAll(juce::Colours::black);
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (15.0f));
-    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    // Draw the background image
+    if (backgroundImage.isValid())
+    {
+        g.drawImageAt(backgroundImage, 0, 0);
+    }
 }
 
 void NLDenoiserAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    ratioSlider->setBounds(getLocalBounds().reduced(20));
 }

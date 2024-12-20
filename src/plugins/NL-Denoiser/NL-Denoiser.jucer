@@ -7,8 +7,16 @@
               pluginFormats="buildAAX,buildAU,buildVST,buildVST3" pluginCharacteristicsValue="pluginAAXDisableBypass,pluginAAXDisableMultiMono"
               pluginDesc="Noise removal plugin" pluginManufacturerCode="Nlpl"
               pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
-              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0">
+              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib">
   <MAINGROUP id="LE9YKO" name="NL-Denoiser">
+    <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
+      <FILE id="ceVi8O" name="background.png" compile="0" resource="1" file="Resources/background.png"/>
+      <FILE id="UyAmww" name="knob.svg" compile="0" resource="1" file="Resources/knob.svg"/>
+    </GROUP>
+    <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
+      <FILE id="jqrsw5" name="RotarySliderWithLabel.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/RotarySliderWithLabel.h"/>
+    </GROUP>
     <GROUP id="{AECB34A8-0352-31FF-AFC7-C2B6F6F36B15}" name="Source">
       <FILE id="bEh6n8" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

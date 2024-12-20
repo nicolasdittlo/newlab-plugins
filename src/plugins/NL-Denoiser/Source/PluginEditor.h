@@ -11,6 +11,8 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
+#include <RotarySliderWithLabel.h>
+
 //==============================================================================
 /**
 */
@@ -29,5 +31,9 @@ private:
     // access the processor object that created it.
     NLDenoiserAudioProcessor& audioProcessor;
 
+    juce::Image backgroundImage;
+    
+    std::unique_ptr<RotarySliderWithLabel> ratioSlider;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };
