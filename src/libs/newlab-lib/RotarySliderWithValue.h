@@ -25,17 +25,27 @@ public:
             knobDrawable = std::unique_ptr<juce::Drawable>(svgDrawable.release());
         }
     }
-public:
-    CustomRotarySlider(SliderSize size)
-        : sliderSize(size)
+
+    void setRange(double min, double max, double interval)
     {
-        // Load SVG from resources
-        auto svgData = BinaryData::knob_svg;
-        auto svgSize = BinaryData::knob_svgSize;
-        auto svgDrawable = juce::Drawable::createFromImageData(svgData, svgSize);
-        if (svgDrawable)
+        juce::Slider::setRange(min, max, interval);
+    }
+
+    void setDefaultValue(double value)
+    {
+        defaultValue = value;
+    }
+
+    double getDefaultValue() const
+    {
+        return defaultValue;
+    }
+
+    void mouseDoubleClick(const juce::MouseEvent& event) override
+    {
+        if (isEnabled())
         {
-            knobDrawable = std::unique_ptr<juce::Drawable>(svgDrawable.release());
+            setValue(defaultValue, juce::sendNotificationSync);
         }
     }
 
@@ -66,6 +76,7 @@ public:
 
 private:
     SliderSize sliderSize;
+    double defaultValue = 0.0; // Default value for the slider
     std::unique_ptr<juce::Drawable> knobDrawable;
 };
 
@@ -83,7 +94,7 @@ public:
 
         // Value label setup
         valueLabel.setEditable(true);
-        valueLabel.setFont(juce::Font(14.0f, juce::Font::bold));
+        valueLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
         valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         valueLabel.setJustificationType(juce::Justification::centred);
         valueLabel.onTextChange = [this]() { updateSliderFromLabel(); };
@@ -102,7 +113,7 @@ public:
         slider.setBounds(sliderX, sliderY, sliderDimension, sliderDimension);
 
         // Position the value label below the slider
-        int labelWidth = (sliderSize == SliderSize::BigSlider) ? sliderDimension : 72; // Allow label to exceed for small sliders // Avoid stretching for small sliders
+        int labelWidth = (sliderSize == SliderSize::BigSlider) ? sliderDimension : 72; // Allow label to exceed for small sliders
         auto valueLabelArea = juce::Rectangle<int>(sliderX - (labelWidth - sliderDimension) / 2, slider.getBottom() + 25, labelWidth, 20);
         valueLabel.setBounds(valueLabelArea);
     }
@@ -114,8 +125,8 @@ public:
 
     void setDefaultValue(double value)
     {
-        defaultValue = value;
-        slider.setValue(value); // Set the initial value to default
+        slider.setDefaultValue(value); // Forward to CustomRotarySlider
+        defaultValue = value; // Keep for internal tracking
     }
 
     void setValue(double value)
@@ -130,10 +141,7 @@ public:
 
     void mouseDoubleClick(const juce::MouseEvent& event) override
     {
-        if (event.eventComponent == &slider)
-        {
-            slider.setValue(defaultValue);
-        }
+        slider.mouseDoubleClick(event);
     }
 
 private:
