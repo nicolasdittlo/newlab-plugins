@@ -77,7 +77,7 @@ public:
         slider.setBounds(sliderX, sliderY, 72, 72);
 
         // Position the value label 30 pixels below the bottom of the slider
-        auto valueLabelArea = juce::Rectangle<int>(sliderX, slider.getBottom() + 30, 72, 20);
+        auto valueLabelArea = juce::Rectangle<int>(sliderX, slider.getBottom() + 25, 72, 20);
         valueLabel.setBounds(valueLabelArea);
     }
 
