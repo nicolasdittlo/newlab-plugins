@@ -1,7 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
@@ -17,7 +16,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     addAndMakeVisible(*ratioSlider);
 
     // Configure the threshold slider with units
-    thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider, 0.25);
     thresholdSlider->setRange(0.0, 100.0, 0.01);
     thresholdSlider->setDefaultValue(0.1);
 
@@ -26,11 +25,19 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Configure the transient boost slider with units
     transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    transBoostSlider->setRange(0.0, 100.0, 0.0);
-    transBoostSlider->setDefaultValue(0.1);
+    transBoostSlider->setRange(0.0, 100.0, 0.1);
+    transBoostSlider->setDefaultValue(0.0);
 
     // Add the rotary slider to the editor
     addAndMakeVisible(*transBoostSlider);
+
+    // Configure the residual noise threshold slider with units
+    resNoiseThrsSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
+    resNoiseThrsSlider->setDefaultValue(0.0);
+
+    // Add the rotary slider to the editor
+    addAndMakeVisible(*resNoiseThrsSlider);
     
     // Set the editor's size
     setSize(464, 464);
@@ -38,7 +45,6 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor() = default;
 
-//==============================================================================
 void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // Clear the background with a default color
@@ -68,4 +74,9 @@ void NLDenoiserAudioProcessorEditor::resized()
                                 218,
                                 smallSliderWidth,
                                 smallSliderHeight);
+
+    resNoiseThrsSlider->setBounds(372 - (smallSliderWidth - 36) / 2, // Center the slider
+                                  316,
+                                  smallSliderWidth,
+                                  smallSliderHeight);
 }

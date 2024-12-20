@@ -11,6 +11,21 @@ enum class SliderSize
 class CustomRotarySlider : public juce::Slider
 {
 public:
+    CustomRotarySlider(SliderSize size, double skewFactor = 1.0)
+        : sliderSize(size)
+    {
+        setSkewFactor(skewFactor); // Apply the skew factor
+
+        // Load SVG from resources
+        auto svgData = BinaryData::knob_svg;
+        auto svgSize = BinaryData::knob_svgSize;
+        auto svgDrawable = juce::Drawable::createFromImageData(svgData, svgSize);
+        if (svgDrawable)
+        {
+            knobDrawable = std::unique_ptr<juce::Drawable>(svgDrawable.release());
+        }
+    }
+public:
     CustomRotarySlider(SliderSize size)
         : sliderSize(size)
     {
@@ -57,8 +72,8 @@ private:
 class RotarySliderWithValue : public juce::Component
 {
 public:
-    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size)
-        : valueLabel("ValueLabel", ""), slider(size), sliderSize(size)
+    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size, double skewFactor = 1.0)
+        : valueLabel("ValueLabel", ""), slider(size, skewFactor), sliderSize(size)
     {
         // Slider setup
         slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
