@@ -41,7 +41,10 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Add the learn check box to the editor
     addAndMakeVisible(learnCheckBox);
-        
+
+    // Add the noise only check box to the editor
+    addAndMakeVisible(noiseOnlyCheckBox);
+    
     // Set the editor's size
     setSize(464, 464);
 }
@@ -84,4 +87,6 @@ void NLDenoiserAudioProcessorEditor::resized()
                                   smallSliderHeight);
 
     learnCheckBox.setBounds(32, 234, 20, 20);
+
+    noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
 }

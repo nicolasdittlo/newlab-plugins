@@ -36,6 +36,7 @@ private:
     std::unique_ptr<RotarySliderWithValue> resNoiseThrsSlider;
 
     BitmapCheckBox learnCheckBox;
+    BitmapCheckBox noiseOnlyCheckBox;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };
