@@ -8,10 +8,10 @@ public:
         // Customize ComboBox properties
         setJustificationType(juce::Justification::centred);
         setColour(juce::ComboBox::textColourId, juce::Colour(0xff939393)); // Text color
-        setColour(juce::ComboBox::arrowColourId, juce::Colours::white); // Arrow color
+        setColour(juce::ComboBox::arrowColourId, juce::Colour(0xffd1d8df)); // Arrow color
         setColour(juce::ComboBox::backgroundColourId, juce::Colours::black); // Background color
 
-        setLookAndFeel(&popupLookAndFeel);
+        setLookAndFeel(&_lookAndFeel);
     }
 
     void paint(juce::Graphics& g) override
@@ -20,11 +20,6 @@ public:
         auto bounds = getLocalBounds();
         g.setColour(juce::Colours::black);
         g.fillRect(bounds);
-
-        // Draw the text
-        g.setColour(findColour(juce::ComboBox::textColourId));
-        g.setFont(juce::FontOptions(getHeight() * 0.5f, juce::Font::bold));
-        g.drawText(getText(), bounds.reduced(5), juce::Justification::centredLeft, true);
 
         // Draw the arrow
         g.setColour(findColour(juce::ComboBox::arrowColourId));
@@ -37,7 +32,7 @@ public:
     }
 
 private:
-    class PopupLookAndFeel : public juce::LookAndFeel_V4
+    class LookAndFeel : public juce::LookAndFeel_V4
     {
     public:
         void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
@@ -45,7 +40,7 @@ private:
             g.setColour(juce::Colour(0xff181838));
             g.fillRect(0, 0, width, height);
 
-            g.setColour(juce::Colour(0xffffffff));
+            g.setColour(juce::Colour(0xffd1d8df));
             g.drawRect(0, 0, width, height);
         }
 
@@ -77,13 +72,12 @@ private:
 
             if (isTicked)
             {
-                juce::Path tick;
                 auto tickBounds = r.removeFromRight(r.getHeight()).reduced(4);
-                tick.startNewSubPath(tickBounds.getX(), tickBounds.getCentreY());
-                tick.lineTo(tickBounds.getCentreX(), tickBounds.getBottom());
-                tick.lineTo(tickBounds.getRight(), tickBounds.getY());
+                auto tickRadius = std::min(tickBounds.getWidth(), tickBounds.getHeight()) / 2.0f;
                 g.setColour(juce::Colours::white);
-                g.strokePath(tick, juce::PathStrokeType(2.0f));
+                g.fillEllipse(tickBounds.getCentreX() - tickRadius, 
+                              tickBounds.getCentreY() - tickRadius, 
+                              2 * tickRadius, 2 * tickRadius);
             }
 
             if (hasSubMenu)
@@ -97,7 +91,16 @@ private:
                 g.fillPath(subMenuArrow);
             }
         }
+
+        void positionComboBoxText (juce::ComboBox& box, juce::Label& label) override
+        {
+            label.setBounds (15, 1,
+                             box.getWidth() - 30,
+                             box.getHeight() - 2);
+
+            label.setFont (getComboBoxFont (box));
+        }
     };
 
-    PopupLookAndFeel popupLookAndFeel;
+    LookAndFeel _lookAndFeel;
 };
