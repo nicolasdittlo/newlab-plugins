@@ -83,7 +83,11 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     setSize(464, 464);
 }
 
-NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor() = default;
+NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
+{
+    // Reset the LookAndFeel to avoid dangling references
+    juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+}
 
 void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 {
