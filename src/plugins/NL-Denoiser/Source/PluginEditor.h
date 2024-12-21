@@ -41,6 +41,8 @@ private:
     BitmapCheckBox _autoResNoiseCheckBox;
 
     std::unique_ptr<CustomComboBox> _qualityComboBox;
+
+    std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

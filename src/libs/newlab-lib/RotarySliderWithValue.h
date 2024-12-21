@@ -80,7 +80,7 @@ private:
     std::unique_ptr<juce::Drawable> _knobDrawable;
 };
 
-class RotarySliderWithValue : public juce::Component
+class RotarySliderWithValue : public juce::Component, public juce::SettableTooltipClient
 {
 public:
     RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size, double skewFactor = 1.0)
@@ -144,6 +144,12 @@ public:
         _slider.mouseDoubleClick(event);
     }
 
+    void setTooltip (const juce::String& newTooltip) override
+    {
+        SettableTooltipClient::setTooltip(newTooltip);
+        _slider.setTooltip(newTooltip);
+    }
+    
 private:
     void updateValueLabel()
     {

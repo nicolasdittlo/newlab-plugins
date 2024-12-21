@@ -11,7 +11,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _ratioSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
     _ratioSlider->setRange(0.0, 100.0, 0.1);
     _ratioSlider->setDefaultValue(100.0);
-
+    _ratioSlider->setTooltip("Ratio - Noise suppression ratio");
+    
     // Add the rotary slider to the editor
     addAndMakeVisible(*_ratioSlider);
 
@@ -19,7 +20,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider, 0.25);
     _thresholdSlider->setRange(0.0, 100.0, 0.01);
     _thresholdSlider->setDefaultValue(0.1);
-
+    _thresholdSlider->setTooltip("Threshold - Noise suppression threshold");
+    
     // Add the rotary slider to the editor
     addAndMakeVisible(*_thresholdSlider);
 
@@ -27,7 +29,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
     _transBoostSlider->setRange(0.0, 100.0, 0.1);
     _transBoostSlider->setDefaultValue(0.0);
-
+    _transBoostSlider->setTooltip("Transient Boost - Boost output transients");
+    
     // Add the rotary slider to the editor
     addAndMakeVisible(*_transBoostSlider);
 
@@ -35,26 +38,42 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _resNoiseThrsSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
     _resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
     _resNoiseThrsSlider->setDefaultValue(0.0);
-
+    _resNoiseThrsSlider->setTooltip("Residual Noise - Residual denoise threshold");
+    
     // Add the rotary slider to the editor
     addAndMakeVisible(*_resNoiseThrsSlider);
 
+    // learn check box
+    _learnCheckBox.setTooltip("Learn Mode - Learn the noise profile");
+    
     // Add the learn check box to the editor
     addAndMakeVisible(_learnCheckBox);
 
+    // noise only check box
+    _noiseOnlyCheckBox.setTooltip("Noise Only - Output the suppressed noise instead of the signal");
+    
     // Add the noise only check box to the editor
     addAndMakeVisible(_noiseOnlyCheckBox);
 
+    // soft denoise checkbox
+    _autoResNoiseCheckBox.setTooltip("Soft Denoise - Automatically remove residual noise");
+        
     // Add the soft denoise check box to the editor
     addAndMakeVisible(_autoResNoiseCheckBox);
 
+    // quality combo box
     _qualityComboBox = std::make_unique<CustomComboBox>();
     _qualityComboBox->addItem("1 - Fast", 1);
     _qualityComboBox->addItem("2", 2);
     _qualityComboBox->addItem("3", 3);
     _qualityComboBox->addItem("4 - Best", 4);
 
+    _qualityComboBox->setTooltip("Quality - Processing quality");
+        
     addAndMakeVisible(*_qualityComboBox);
+
+    // Tooltip window
+    _tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);
     
     // Set the editor's size
     setSize(464, 464);

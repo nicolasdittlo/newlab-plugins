@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 
-class BitmapCheckBox : public juce::Component
+class BitmapCheckBox : public juce::Component, public juce::SettableTooltipClient
 {
 public:
     BitmapCheckBox()
