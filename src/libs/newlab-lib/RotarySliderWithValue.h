@@ -57,7 +57,7 @@ public:
         if (_knobDrawable)
         {
             // Calculate rotation from -135 to 135 degrees
-            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -juce::MathConstants<double>::pi * 3.0 / 4.0, juce::MathConstants<double>::pi * 3.0 / 4.0);
+            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -130.0*juce::MathConstants<double>::pi / 180.0, 130.0*juce::MathConstants<double>::pi / 180.0);
 
             // Draw rotated SVG
             auto bounds = getLocalBounds().toFloat(); // Use full bounds for drawing
