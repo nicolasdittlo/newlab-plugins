@@ -42,8 +42,11 @@ private:
     public:
         void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
         {
-            g.setColour(juce::Colours::darkgrey);
-            g.fillRoundedRectangle(0, 0, (float)width, (float)height, 10.0f);
+            g.setColour(juce::Colour(0xff181838));
+            g.fillRect(0, 0, width, height);
+
+            g.setColour(juce::Colour(0xffffffff));
+            g.drawRect(0, 0, width, height);
         }
 
         void drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area,
@@ -60,12 +63,12 @@ private:
                 return;
             }
 
-            auto r = area.reduced(4);
+            auto r = area.reduced(4, 0);
 
             if (isHighlighted)
             {
-                g.setColour(juce::Colours::orange);
-                g.fillRoundedRectangle(r.toFloat(), 5.0f);
+                g.setColour(juce::Colour(0xff6666f5));
+                g.fillRect(r);
             }
 
             g.setColour(isHighlighted ? juce::Colours::black : juce::Colours::white);
@@ -79,7 +82,7 @@ private:
                 tick.startNewSubPath(tickBounds.getX(), tickBounds.getCentreY());
                 tick.lineTo(tickBounds.getCentreX(), tickBounds.getBottom());
                 tick.lineTo(tickBounds.getRight(), tickBounds.getY());
-                g.setColour(juce::Colours::green);
+                g.setColour(juce::Colours::white);
                 g.strokePath(tick, juce::PathStrokeType(2.0f));
             }
 
