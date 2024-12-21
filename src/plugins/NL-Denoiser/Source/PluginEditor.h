@@ -13,6 +13,7 @@
 
 #include <RotarySliderWithValue.h>
 #include <BitmapCheckBox.h>
+#include <CustomComboBox.h>
 
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -38,6 +39,8 @@ private:
     BitmapCheckBox _learnCheckBox;
     BitmapCheckBox _noiseOnlyCheckBox;
     BitmapCheckBox _autoResNoiseCheckBox;
+
+    std::unique_ptr<CustomComboBox> _qualityComboBox;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

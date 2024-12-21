@@ -47,6 +47,14 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Add the soft denoise check box to the editor
     addAndMakeVisible(_autoResNoiseCheckBox);
+
+    _qualityComboBox = std::make_unique<CustomComboBox>();
+    _qualityComboBox->addItem("1 - Fast", 1);
+    _qualityComboBox->addItem("2", 2);
+    _qualityComboBox->addItem("3", 3);
+    _qualityComboBox->addItem("4 - Best", 4);
+
+    addAndMakeVisible(*_qualityComboBox);
     
     // Set the editor's size
     setSize(464, 464);
@@ -94,4 +102,6 @@ void NLDenoiserAudioProcessorEditor::resized()
     _noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
 
     _autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
+
+    _qualityComboBox->setBounds(348, 255, 90, 20);
 }
