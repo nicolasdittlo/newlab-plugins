@@ -12,17 +12,14 @@
 #include "PluginProcessor.h"
 
 #include <RotarySliderWithValue.h>
+#include <BitmapCheckBox.h>
 
-//==============================================================================
-/**
-*/
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     NLDenoiserAudioProcessorEditor (NLDenoiserAudioProcessor&);
     ~NLDenoiserAudioProcessorEditor() override;
 
-    //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
 
@@ -37,6 +34,8 @@ private:
     std::unique_ptr<RotarySliderWithValue> thresholdSlider;
     std::unique_ptr<RotarySliderWithValue> transBoostSlider;
     std::unique_ptr<RotarySliderWithValue> resNoiseThrsSlider;
+
+    BitmapCheckBox learnCheckBox;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

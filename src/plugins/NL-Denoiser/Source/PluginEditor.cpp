@@ -38,7 +38,10 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Add the rotary slider to the editor
     addAndMakeVisible(*resNoiseThrsSlider);
-    
+
+    // Add the learn check box to the editor
+    addAndMakeVisible(learnCheckBox);
+        
     // Set the editor's size
     setSize(464, 464);
 }
@@ -79,4 +82,6 @@ void NLDenoiserAudioProcessorEditor::resized()
                                   316,
                                   smallSliderWidth,
                                   smallSliderHeight);
+
+    learnCheckBox.setBounds(32, 234, 20, 20);
 }
