@@ -8,12 +8,12 @@ public:
     BitmapCheckBox()
     {
         // Load the images from BinaryData
-        uncheckedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_unchecked_png, BinaryData::checkbox_unchecked_pngSize);
-        checkedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_checked_png, BinaryData::checkbox_checked_pngSize);
+        _uncheckedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_unchecked_png, BinaryData::checkbox_unchecked_pngSize);
+        _checkedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_checked_png, BinaryData::checkbox_checked_pngSize);
 
         // Ensure the images loaded successfully
-        jassert(uncheckedBitmap.isValid());
-        jassert(checkedBitmap.isValid());
+        jassert(_uncheckedBitmap.isValid());
+        jassert(_checkedBitmap.isValid());
 
         // Ensure the component is set to be clickable
         setInterceptsMouseClicks(true, true);
@@ -22,43 +22,43 @@ public:
     void paint(juce::Graphics& g) override
     {
         // Draw the appropriate bitmap depending on the state
-        if (isChecked)
-            g.drawImage(checkedBitmap, getLocalBounds().toFloat());
+        if (_isChecked)
+            g.drawImage(_checkedBitmap, getLocalBounds().toFloat());
         else
-            g.drawImage(uncheckedBitmap, getLocalBounds().toFloat());
+            g.drawImage(_uncheckedBitmap, getLocalBounds().toFloat());
     }
 
     void mouseUp(const juce::MouseEvent& event) override
     {
         // Toggle the state when the user clicks
-        isChecked = !isChecked;
+        _isChecked = !_isChecked;
         repaint();
 
         // Notify listeners of the change
         if (onStateChange)
-            onStateChange(isChecked);
+            onStateChange(_isChecked);
     }
 
     // Set whether the checkbox is checked or unchecked
     void setChecked(bool shouldBeChecked)
     {
-        if (isChecked != shouldBeChecked)
+        if (_isChecked != shouldBeChecked)
         {
-            isChecked = shouldBeChecked;
+            _isChecked = shouldBeChecked;
             repaint();
         }
     }
 
     // Get the current state of the checkbox
-    bool getChecked() const { return isChecked; }
+    bool getChecked() const { return _isChecked; }
 
     // Set a callback to be triggered when the state changes
     std::function<void(bool)> onStateChange;
 
 private:
-    juce::Image uncheckedBitmap;
-    juce::Image checkedBitmap;
-    bool isChecked = false;
+    juce::Image _uncheckedBitmap;
+    juce::Image _checkedBitmap;
+    bool _isChecked = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BitmapCheckBox)
 };

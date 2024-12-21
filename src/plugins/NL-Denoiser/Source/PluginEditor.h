@@ -26,18 +26,18 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    NLDenoiserAudioProcessor& audioProcessor;
+    NLDenoiserAudioProcessor& _audioProcessor;
 
-    juce::Image backgroundImage;
+    juce::Image _backgroundImage;
     
-    std::unique_ptr<RotarySliderWithValue> ratioSlider;
-    std::unique_ptr<RotarySliderWithValue> thresholdSlider;
-    std::unique_ptr<RotarySliderWithValue> transBoostSlider;
-    std::unique_ptr<RotarySliderWithValue> resNoiseThrsSlider;
+    std::unique_ptr<RotarySliderWithValue> _ratioSlider;
+    std::unique_ptr<RotarySliderWithValue> _thresholdSlider;
+    std::unique_ptr<RotarySliderWithValue> _transBoostSlider;
+    std::unique_ptr<RotarySliderWithValue> _resNoiseThrsSlider;
 
-    BitmapCheckBox learnCheckBox;
-    BitmapCheckBox noiseOnlyCheckBox;
-    BitmapCheckBox autoResNoiseCheckBox;
+    BitmapCheckBox _learnCheckBox;
+    BitmapCheckBox _noiseOnlyCheckBox;
+    BitmapCheckBox _autoResNoiseCheckBox;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

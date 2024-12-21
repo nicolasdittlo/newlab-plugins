@@ -1,24 +1,15 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
+#endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
+#endif
                        )
 #endif
 {
@@ -28,7 +19,6 @@ NLDenoiserAudioProcessor::~NLDenoiserAudioProcessor()
 {
 }
 
-//==============================================================================
 const juce::String NLDenoiserAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -36,29 +26,29 @@ const juce::String NLDenoiserAudioProcessor::getName() const
 
 bool NLDenoiserAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool NLDenoiserAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool NLDenoiserAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 double NLDenoiserAudioProcessor::getTailLengthSeconds() const
@@ -90,7 +80,6 @@ void NLDenoiserAudioProcessor::changeProgramName (int index, const juce::String&
 {
 }
 
-//==============================================================================
 void NLDenoiserAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
@@ -106,26 +95,26 @@ void NLDenoiserAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool NLDenoiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
     return true;
-  #else
+#else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
     // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
-
+    
     // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
+#if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
-   #endif
-
+#endif
+    
     return true;
-  #endif
+#endif
 }
 #endif
 
@@ -158,7 +147,6 @@ void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     }
 }
 
-//==============================================================================
 bool NLDenoiserAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
@@ -169,7 +157,6 @@ juce::AudioProcessorEditor* NLDenoiserAudioProcessor::createEditor()
     return new NLDenoiserAudioProcessorEditor (*this);
 }
 
-//==============================================================================
 void NLDenoiserAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
@@ -183,7 +170,6 @@ void NLDenoiserAudioProcessor::setStateInformation (const void* data, int sizeIn
     // whose contents will have been created by the getStateInformation() call.
 }
 
-//==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {

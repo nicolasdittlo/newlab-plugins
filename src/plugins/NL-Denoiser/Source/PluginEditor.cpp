@@ -2,51 +2,51 @@
 #include "PluginEditor.h"
 
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p)
+    : AudioProcessorEditor(&p), _audioProcessor(p)
 {
     // Load the background image from binary resources
-    backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
+    _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
 
     // Configure the ratio slider with units
-    ratioSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
-    ratioSlider->setRange(0.0, 100.0, 0.1);
-    ratioSlider->setDefaultValue(100.0);
+    _ratioSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
+    _ratioSlider->setRange(0.0, 100.0, 0.1);
+    _ratioSlider->setDefaultValue(100.0);
 
     // Add the rotary slider to the editor
-    addAndMakeVisible(*ratioSlider);
+    addAndMakeVisible(*_ratioSlider);
 
     // Configure the threshold slider with units
-    thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider, 0.25);
-    thresholdSlider->setRange(0.0, 100.0, 0.01);
-    thresholdSlider->setDefaultValue(0.1);
+    _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider, 0.25);
+    _thresholdSlider->setRange(0.0, 100.0, 0.01);
+    _thresholdSlider->setDefaultValue(0.1);
 
     // Add the rotary slider to the editor
-    addAndMakeVisible(*thresholdSlider);
+    addAndMakeVisible(*_thresholdSlider);
 
     // Configure the transient boost slider with units
-    transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    transBoostSlider->setRange(0.0, 100.0, 0.1);
-    transBoostSlider->setDefaultValue(0.0);
+    _transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    _transBoostSlider->setRange(0.0, 100.0, 0.1);
+    _transBoostSlider->setDefaultValue(0.0);
 
     // Add the rotary slider to the editor
-    addAndMakeVisible(*transBoostSlider);
+    addAndMakeVisible(*_transBoostSlider);
 
     // Configure the residual noise threshold slider with units
-    resNoiseThrsSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
-    resNoiseThrsSlider->setDefaultValue(0.0);
+    _resNoiseThrsSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    _resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
+    _resNoiseThrsSlider->setDefaultValue(0.0);
 
     // Add the rotary slider to the editor
-    addAndMakeVisible(*resNoiseThrsSlider);
+    addAndMakeVisible(*_resNoiseThrsSlider);
 
     // Add the learn check box to the editor
-    addAndMakeVisible(learnCheckBox);
+    addAndMakeVisible(_learnCheckBox);
 
     // Add the noise only check box to the editor
-    addAndMakeVisible(noiseOnlyCheckBox);
+    addAndMakeVisible(_noiseOnlyCheckBox);
 
     // Add the soft denoise check box to the editor
-    addAndMakeVisible(autoResNoiseCheckBox);
+    addAndMakeVisible(_autoResNoiseCheckBox);
     
     // Set the editor's size
     setSize(464, 464);
@@ -60,9 +60,9 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
     g.fillAll(juce::Colours::black);
 
     // Draw the background image
-    if (backgroundImage.isValid())
+    if (_backgroundImage.isValid())
     {
-        g.drawImageAt(backgroundImage, 0, 0);
+        g.drawImageAt(_backgroundImage, 0, 0);
     }
 }
 
@@ -70,28 +70,28 @@ void NLDenoiserAudioProcessorEditor::resized()
 {
     auto bigSliderWidth = 72;
     auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
-    ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
+    _ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
 
     auto smallSliderWidth = 72; // Updated width to match the label width for small sliders
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
-    thresholdSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
-                               316,
-                               smallSliderWidth,
-                               smallSliderHeight);
-
-    transBoostSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
-                                218,
+    _thresholdSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
+                                316,
                                 smallSliderWidth,
                                 smallSliderHeight);
 
-    resNoiseThrsSlider->setBounds(372 - (smallSliderWidth - 36) / 2, // Center the slider
-                                  316,
-                                  smallSliderWidth,
-                                  smallSliderHeight);
+    _transBoostSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
+                                 218,
+                                 smallSliderWidth,
+                                 smallSliderHeight);
 
-    learnCheckBox.setBounds(32, 234, 20, 20);
+    _resNoiseThrsSlider->setBounds(372 - (smallSliderWidth - 36) / 2, // Center the slider
+                                   316,
+                                   smallSliderWidth,
+                                   smallSliderHeight);
 
-    noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
+    _learnCheckBox.setBounds(32, 234, 20, 20);
 
-    autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
+    _noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
+
+    _autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
 }
