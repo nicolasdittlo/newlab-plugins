@@ -44,6 +44,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Add the noise only check box to the editor
     addAndMakeVisible(noiseOnlyCheckBox);
+
+    // Add the soft denoise check box to the editor
+    addAndMakeVisible(autoResNoiseCheckBox);
     
     // Set the editor's size
     setSize(464, 464);
@@ -89,4 +92,6 @@ void NLDenoiserAudioProcessorEditor::resized()
     learnCheckBox.setBounds(32, 234, 20, 20);
 
     noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
+
+    autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
 }
