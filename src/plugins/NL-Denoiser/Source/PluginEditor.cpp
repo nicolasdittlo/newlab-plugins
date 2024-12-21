@@ -1,9 +1,13 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "CustomLookAndFeel.h"
 
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
 {
+    // Set the custom look and feel
+    juce::LookAndFeel::setDefaultLookAndFeel(new CustomLookAndFeel());
+ 
     // Load the background image from binary resources
     _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
 
