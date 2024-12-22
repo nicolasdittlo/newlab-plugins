@@ -68,6 +68,11 @@ public:
             g.addTransform(juce::AffineTransform::rotation(rotation, center.x, center.y));
             _knobDrawable->drawWithin(g, bounds, juce::RectanglePlacement::centred, 1.0f);
         }
+
+        if (!isEnabled())
+        {
+            g.fillAll(juce::Colour(0xbb000000));
+        }
     }
 
     void resized() override

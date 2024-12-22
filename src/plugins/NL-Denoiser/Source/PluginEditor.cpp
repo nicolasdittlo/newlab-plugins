@@ -84,6 +84,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     _autoResNoiseCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
         _audioProcessor.parameters, "softDenoiseParamID", _autoResNoiseCheckBox);
+
+    // Grey out the res noise threshold slider if we use auto residual denoise
+    _autoResNoiseCheckBox.onStateChange = [this] (bool checked) { _resNoiseThrsSlider->setEnabled(!checked); };
     
     // Add the soft denoise check box to the editor
     addAndMakeVisible(_autoResNoiseCheckBox);
