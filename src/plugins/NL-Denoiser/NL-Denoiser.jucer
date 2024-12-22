@@ -15,7 +15,13 @@
             file="Resources/checkbox_checked.png"/>
       <FILE id="TVT6Ao" name="checkbox_unchecked.png" compile="0" resource="1"
             file="Resources/checkbox_unchecked.png"/>
+      <FILE id="F3mH2x" name="font-bold.ttf" compile="0" resource="1" file="Resources/font-bold.ttf"/>
+      <FILE id="FaKSRn" name="font-regular.ttf" compile="0" resource="1"
+            file="Resources/font-regular.ttf"/>
       <FILE id="UyAmww" name="knob.svg" compile="0" resource="1" file="Resources/knob.svg"/>
+      <FILE id="atEK2e" name="OpenSans-ExtraBold.ttf" compile="0" resource="1"
+            file="Resources/OpenSans-ExtraBold.ttf"/>
+      <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
       <FILE id="ofQqTx" name="BitmapCheckBox.h" compile="0" resource="0"

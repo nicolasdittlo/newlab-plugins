@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include "FontManager.h"
+
 enum class SliderSize
 {
     SmallSlider,
@@ -94,7 +96,8 @@ public:
 
         // Value label setup
         _valueLabel.setEditable(true);
-        _valueLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
+        //_valueLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
+        _valueLabel.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 19.0f));
         _valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         _valueLabel.setJustificationType(juce::Justification::centred);
         _valueLabel.onTextChange = [this]() { updateSliderFromLabel(); };

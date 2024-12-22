@@ -1,5 +1,7 @@
 #include <JuceHeader.h>
 
+#include "FontManager.h"
+
 class CustomComboBox : public juce::ComboBox
 {
 public:
@@ -35,6 +37,11 @@ private:
     class LookAndFeel : public juce::LookAndFeel_V4
     {
     public:
+        juce::Font getComboBoxFont(ComboBox& box) override
+        {
+            return FontManager::getInstance().getFont("Roboto-Bold", 16.0);
+        }
+        
         void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
         {
             g.setColour(juce::Colour(0xff181838));
@@ -67,7 +74,7 @@ private:
             }
 
             g.setColour(isHighlighted ? juce::Colours::black : juce::Colours::white);
-            g.setFont(juce::FontOptions(16.0f));
+            g.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 16.0));
             g.drawFittedText(text, r, juce::Justification::centredLeft, 1);
 
             if (isTicked)
