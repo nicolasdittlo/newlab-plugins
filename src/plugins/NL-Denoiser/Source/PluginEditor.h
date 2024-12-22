@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
@@ -26,6 +18,8 @@ public:
     void resized() override;
 
 private:
+    void drawVersionText(juce::Graphics& g);
+        
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     NLDenoiserAudioProcessor& _audioProcessor;

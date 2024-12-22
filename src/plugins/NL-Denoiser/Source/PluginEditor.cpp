@@ -1,6 +1,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "CustomLookAndFeel.h"
+#include "VersionTextDrawer.h"
+
+#define VERSION_STR "7.0.0"
 
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
@@ -103,6 +106,9 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
     {
         g.drawImageAt(_backgroundImage, 0, 0);
     }
+
+    // Call the function to draw the version text
+    VersionTextDrawer::drawVersionText(*this, g, VERSION_STR);
 }
 
 void NLDenoiserAudioProcessorEditor::resized()
