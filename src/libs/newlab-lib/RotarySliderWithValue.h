@@ -59,7 +59,7 @@ public:
         if (_knobDrawable)
         {
             // Calculate rotation from -135 to 135 degrees
-            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -130.0*juce::MathConstants<double>::pi / 180.0, 130.0*juce::MathConstants<double>::pi / 180.0);
+            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -130.0 * juce::MathConstants<double>::pi / 180.0, 130.0 * juce::MathConstants<double>::pi / 180.0);
 
             // Draw rotated SVG
             auto bounds = getLocalBounds().toFloat(); // Use full bounds for drawing
@@ -96,7 +96,6 @@ public:
 
         // Value label setup
         _valueLabel.setEditable(true);
-        //_valueLabel.setFont(juce::FontOptions(14.0f, juce::Font::bold));
         _valueLabel.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 19.0f));
         _valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         _valueLabel.setJustificationType(juce::Justification::centred);
@@ -105,6 +104,11 @@ public:
 
         this->_units = units;
         updateValueLabel();
+    }
+
+    CustomRotarySlider& getSlider()
+    {
+        return _slider;
     }
 
     void resized() override
@@ -147,12 +151,12 @@ public:
         _slider.mouseDoubleClick(event);
     }
 
-    void setTooltip (const juce::String& newTooltip) override
+    void setTooltip(const juce::String& newTooltip) override
     {
         SettableTooltipClient::setTooltip(newTooltip);
         _slider.setTooltip(newTooltip);
     }
-    
+
 private:
     void updateValueLabel()
     {

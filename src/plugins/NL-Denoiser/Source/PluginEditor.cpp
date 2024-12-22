@@ -19,6 +19,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _ratioSlider->setRange(0.0, 100.0, 0.1);
     _ratioSlider->setDefaultValue(100.0);
     _ratioSlider->setTooltip("Ratio - Noise suppression ratio");
+    _ratioAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        _audioProcessor.parameters, "ratio", _ratioSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_ratioSlider);
@@ -28,6 +30,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _thresholdSlider->setRange(0.0, 100.0, 0.01);
     _thresholdSlider->setDefaultValue(0.1);
     _thresholdSlider->setTooltip("Threshold - Noise suppression threshold");
+    _thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        _audioProcessor.parameters, "threshold", _thresholdSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_thresholdSlider);
@@ -37,6 +41,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _transBoostSlider->setRange(0.0, 100.0, 0.1);
     _transBoostSlider->setDefaultValue(0.0);
     _transBoostSlider->setTooltip("Transient Boost - Boost output transients");
+    _transBoostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        _audioProcessor.parameters, "transientBoost", _transBoostSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_transBoostSlider);
@@ -46,6 +52,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
     _resNoiseThrsSlider->setDefaultValue(0.0);
     _resNoiseThrsSlider->setTooltip("Residual Noise - Residual denoise threshold");
+    _resNoiseThrsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        _audioProcessor.parameters, "residualNoise", _resNoiseThrsSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_resNoiseThrsSlider);

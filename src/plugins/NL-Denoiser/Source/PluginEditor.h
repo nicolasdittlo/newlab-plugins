@@ -43,6 +43,11 @@ private:
     std::unique_ptr<PlugNameComponent> _plugNameComponent;
 
     std::unique_ptr<HelpButton> _helpButton;
+
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _ratioAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _thresholdAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _transBoostAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _resNoiseThrsAttachment;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

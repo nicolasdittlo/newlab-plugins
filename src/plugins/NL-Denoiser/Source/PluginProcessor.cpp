@@ -10,7 +10,14 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
 #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-                       )
+                       ),
+      parameters(*this, nullptr, "PARAMETERS",
+                 {
+                     std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", 0.0f, 100.0f, 100.0f),
+                     std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", 0.0f, 100.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("transientBoost", "Transient Boost", 0.0f, 100.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterFloat>("residualNoise", "Residual Noise", 0.0f, 100.0f, 0.0f)
+                 })
 #endif
 {
 }
@@ -133,12 +140,13 @@ void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
+    // Retrieve parameter values
+    auto ratio = parameters.getRawParameterValue("ratio")->load();
+    auto threshold = parameters.getRawParameterValue("threshold")->load();
+    auto transientBoost = parameters.getRawParameterValue("transientBoost")->load();
+    auto residualNoise = parameters.getRawParameterValue("residualNoise")->load();
+
+    // Use these values in your processing algorithm...
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
@@ -159,15 +167,14 @@ juce::AudioProcessorEditor* NLDenoiserAudioProcessor::createEditor()
 
 void NLDenoiserAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    juce::MemoryOutputStream stream(destData, true);
+    parameters.state.writeToStream(stream);
 }
 
 void NLDenoiserAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
+    parameters.state = juce::ValueTree::readFromStream(stream);
 }
 
 // This creates new instances of the plugin..
