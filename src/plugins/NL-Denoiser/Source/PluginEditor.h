@@ -11,9 +11,10 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-#include <RotarySliderWithValue.h>
-#include <BitmapCheckBox.h>
-#include <CustomComboBox.h>
+#include "RotarySliderWithValue.h"
+#include "BitmapCheckBox.h"
+#include "CustomComboBox.h"
+#include "PlugNameComponent.h"
 
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -39,10 +40,12 @@ private:
     BitmapCheckBox _learnCheckBox;
     BitmapCheckBox _noiseOnlyCheckBox;
     BitmapCheckBox _autoResNoiseCheckBox;
-
+    
     std::unique_ptr<CustomComboBox> _qualityComboBox;
-
+    
     std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
+
+    std::unique_ptr<PlugNameComponent> _plugNameComponent;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

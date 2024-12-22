@@ -78,7 +78,11 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Tooltip window
     _tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);
-    
+
+    // Plugin name
+    _plugNameComponent = std::make_unique<PlugNameComponent>();
+    addAndMakeVisible(*_plugNameComponent);
+        
     // Set the editor's size
     setSize(464, 464);
 }
@@ -131,4 +135,9 @@ void NLDenoiserAudioProcessorEditor::resized()
     _autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
 
     _qualityComboBox->setBounds(348, 255, 90, 20);
+
+    _plugNameComponent->setBounds(getWidth()/2 - _plugNameComponent->getWidth()/2,
+                                  getHeight() - _plugNameComponent->getHeight() - 15.0,
+                                  _plugNameComponent->getWidth(),
+                                  _plugNameComponent->getHeight());
 }
