@@ -2,6 +2,7 @@
 #define OVERLAP_ADD_H
 
 #include "CircularBuffer.h"
+#include <juce_dsp/juce_dsp.h>
 
 class OverlapAddProcessor
 {
@@ -56,4 +57,9 @@ protected:
     vector<float> _synthWin;
 
     vector<float> _outSamples;
+
+    juce::dsp::FFT _forwardFFT;
+    juce::dsp::FFT _backwardFFT;
 };
+
+#endif // OVERLAP_ADD_H
