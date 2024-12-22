@@ -60,12 +60,12 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // learn check box
     _learnCheckBox.setTooltip("Learn Mode - Learn the noise profile");
-    
-    // Add the learn check box to the editor
-    addAndMakeVisible(_learnCheckBox);
 
     _learnCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
         _audioProcessor.parameters, "learnModeParamID", _learnCheckBox);
+
+    // Add the learn check box to the editor
+    addAndMakeVisible(_learnCheckBox);
     
     // noise only check box
     _noiseOnlyCheckBox.setTooltip("Noise Only - Output the suppressed noise instead of the signal");
@@ -73,7 +73,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
      _noiseOnlyCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
         _audioProcessor.parameters, "noiseOnlyParamID", _noiseOnlyCheckBox);
      
-    // Add the noise only check box to the editor
+     // Add the noise only check box to the editor
     addAndMakeVisible(_noiseOnlyCheckBox);
 
     // soft denoise checkbox
@@ -93,7 +93,10 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _qualityComboBox->addItem("4 - Best", 4);
 
     _qualityComboBox->setTooltip("Quality - Processing quality");
-        
+
+    _qualityComboBoxAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        _audioProcessor.parameters, "quality", *_qualityComboBox);
+    
     addAndMakeVisible(*_qualityComboBox);
 
     // Tooltip window

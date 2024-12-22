@@ -28,30 +28,34 @@ private:
     juce::Image _backgroundImage;
     
     std::unique_ptr<RotarySliderWithValue> _ratioSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _ratioAttachment;
+    
     std::unique_ptr<RotarySliderWithValue> _thresholdSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _thresholdAttachment;
+    
     std::unique_ptr<RotarySliderWithValue> _transBoostSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _transBoostAttachment;
+    
     std::unique_ptr<RotarySliderWithValue> _resNoiseThrsSlider;
-
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _resNoiseThrsAttachment;
+    
     BitmapCheckBox _learnCheckBox;
-    BitmapCheckBox _noiseOnlyCheckBox;
-    BitmapCheckBox _autoResNoiseCheckBox;
-
     std::unique_ptr<BitmapCheckBoxAttachment> _learnCheckBoxAttachment;
+    
+    BitmapCheckBox _noiseOnlyCheckBox;
     std::unique_ptr<BitmapCheckBoxAttachment> _noiseOnlyCheckBoxAttachment;
+    
+    BitmapCheckBox _autoResNoiseCheckBox;
     std::unique_ptr<BitmapCheckBoxAttachment> _autoResNoiseCheckBoxAttachment;
     
     std::unique_ptr<CustomComboBox> _qualityComboBox;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> _qualityComboBoxAttachment;
     
     std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
 
     std::unique_ptr<PlugNameComponent> _plugNameComponent;
 
     std::unique_ptr<HelpButton> _helpButton;
-
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _ratioAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _thresholdAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _transBoostAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _resNoiseThrsAttachment;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };
