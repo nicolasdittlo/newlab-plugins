@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include "CustomLookAndFeel.h"
 #include "VersionTextDrawer.h"
+#include "ManualPdfViewer.h"
 
 #define VERSION_STR "7.0.0"
 
@@ -108,6 +109,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Help button
     _helpButton = std::make_unique<HelpButton>();
+    _helpButton->onStateChange = [] () { ManualPdfViewer::openEmbeddedPdf(); };
     addAndMakeVisible(*_helpButton);
     
     // Set the editor's size
