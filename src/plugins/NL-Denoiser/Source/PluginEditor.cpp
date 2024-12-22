@@ -1,8 +1,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "Config.h"
 #include "CustomLookAndFeel.h"
 #include "VersionTextDrawer.h"
 #include "ManualPdfViewer.h"
+#include "DemoTextDrawer.h"
 
 #define VERSION_STR "7.0.0"
 
@@ -135,6 +137,11 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 
     // Call the function to draw the version text
     VersionTextDrawer::drawVersionText(*this, g, VERSION_STR);
+
+    // Please be kind, do not modify this code and share binaries
+#if DEMO_VERSION
+    DemoTextDrawer::drawDemoText(*this, g, "DEMO");
+#endif
 }
 
 void NLDenoiserAudioProcessorEditor::resized()
