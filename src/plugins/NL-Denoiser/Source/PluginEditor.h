@@ -35,6 +35,10 @@ private:
     BitmapCheckBox _learnCheckBox;
     BitmapCheckBox _noiseOnlyCheckBox;
     BitmapCheckBox _autoResNoiseCheckBox;
+
+    std::unique_ptr<BitmapCheckBoxAttachment> _learnCheckBoxAttachment;
+    std::unique_ptr<BitmapCheckBoxAttachment> _noiseOnlyCheckBoxAttachment;
+    std::unique_ptr<BitmapCheckBoxAttachment> _autoResNoiseCheckBoxAttachment;
     
     std::unique_ptr<CustomComboBox> _qualityComboBox;
     

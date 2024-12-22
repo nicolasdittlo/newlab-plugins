@@ -16,7 +16,10 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
                      std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", 0.0f, 100.0f, 100.0f),
                      std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", 0.0f, 100.0f, 0.1f),
                      std::make_unique<juce::AudioParameterFloat>("transientBoost", "Transient Boost", 0.0f, 100.0f, 0.0f),
-                     std::make_unique<juce::AudioParameterFloat>("residualNoise", "Residual Noise", 0.0f, 100.0f, 0.0f)
+                     std::make_unique<juce::AudioParameterFloat>("residualNoise", "Residual Noise", 0.0f, 100.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterBool>("learnModeParamID", "Learn Mode", false),
+                     std::make_unique<juce::AudioParameterBool>("noiseOnlyParamID", "Noise Only", false),
+                     std::make_unique<juce::AudioParameterBool>("softDenoiseParamID", "Soft Denoise", false)
                  })
 #endif
 {
@@ -145,6 +148,9 @@ void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto threshold = parameters.getRawParameterValue("threshold")->load();
     auto transientBoost = parameters.getRawParameterValue("transientBoost")->load();
     auto residualNoise = parameters.getRawParameterValue("residualNoise")->load();
+    auto learnMode = parameters.getRawParameterValue("learnModeParamID")->load();
+    auto noiseOnly = parameters.getRawParameterValue("noiseOnlyParamID")->load();
+    auto softDenoise = parameters.getRawParameterValue("softDenoiseParamID")->load();
 
     // Use these values in your processing algorithm...
     for (int channel = 0; channel < totalNumInputChannels; ++channel)

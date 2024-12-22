@@ -62,3 +62,47 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BitmapCheckBox)
 };
+
+class BitmapCheckBoxAttachment : public juce::AudioProcessorValueTreeState::Listener
+{
+public:
+    BitmapCheckBoxAttachment(juce::AudioProcessorValueTreeState& stateToUse, 
+                             const juce::String& parameterID, 
+                             BitmapCheckBox& checkBox)
+        : _apvts(stateToUse), _paramID(parameterID), _checkBox(checkBox)
+    {
+        auto* parameter = _apvts.getParameter(_paramID);
+        jassert(parameter != nullptr);
+
+        // Add listener for parameter changes
+        _apvts.addParameterListener(_paramID, this);
+
+        // Initialize checkbox state based on parameter
+        auto initialValue = parameter->getValue();
+        _checkBox.setChecked(initialValue > 0.5f);
+
+        // Register for checkbox state changes
+        _checkBox.onStateChange = [this](bool isChecked) {
+            if (auto* parameter = _apvts.getParameter(_paramID))
+                parameter->setValueNotifyingHost(isChecked ? 1.0f : 0.0f);
+        };
+    }
+
+    ~BitmapCheckBoxAttachment()
+    {
+        _apvts.removeParameterListener(_paramID, this);
+    }
+
+    void parameterChanged(const juce::String& parameterID, float newValue) override
+    {
+        if (parameterID == _paramID)
+        {
+            _checkBox.setChecked(newValue > 0.5f);
+        }
+    }
+
+private:
+    juce::AudioProcessorValueTreeState& _apvts;
+    juce::String _paramID;
+    BitmapCheckBox& _checkBox;
+};

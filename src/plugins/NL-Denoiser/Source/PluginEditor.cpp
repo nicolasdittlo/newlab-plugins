@@ -64,15 +64,24 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // Add the learn check box to the editor
     addAndMakeVisible(_learnCheckBox);
 
+    _learnCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
+        _audioProcessor.parameters, "learnModeParamID", _learnCheckBox);
+    
     // noise only check box
     _noiseOnlyCheckBox.setTooltip("Noise Only - Output the suppressed noise instead of the signal");
-    
+
+     _noiseOnlyCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
+        _audioProcessor.parameters, "noiseOnlyParamID", _noiseOnlyCheckBox);
+     
     // Add the noise only check box to the editor
     addAndMakeVisible(_noiseOnlyCheckBox);
 
     // soft denoise checkbox
     _autoResNoiseCheckBox.setTooltip("Soft Denoise - Automatically remove residual noise");
-        
+
+    _autoResNoiseCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
+        _audioProcessor.parameters, "softDenoiseParamID", _autoResNoiseCheckBox);
+    
     // Add the soft denoise check box to the editor
     addAndMakeVisible(_autoResNoiseCheckBox);
 
