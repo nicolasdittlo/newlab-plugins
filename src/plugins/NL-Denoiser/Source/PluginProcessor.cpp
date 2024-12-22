@@ -11,7 +11,7 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
 #endif
                        ),
-      parameters(*this, nullptr, "PARAMETERS",
+      _parameters(*this, nullptr, "PARAMETERS",
                  {
                      std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", 0.0f, 100.0f, 100.0f),
                      std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", 0.0f, 100.0f, 0.1f),
@@ -145,14 +145,14 @@ void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         buffer.clear (i, 0, buffer.getNumSamples());
 
     // Retrieve parameter values
-    auto ratio = parameters.getRawParameterValue("ratio")->load();
-    auto threshold = parameters.getRawParameterValue("threshold")->load();
-    auto transientBoost = parameters.getRawParameterValue("transientBoost")->load();
-    auto residualNoise = parameters.getRawParameterValue("residualNoise")->load();
-    auto learnMode = parameters.getRawParameterValue("learnModeParamID")->load();
-    auto noiseOnly = parameters.getRawParameterValue("noiseOnlyParamID")->load();
-    auto softDenoise = parameters.getRawParameterValue("softDenoiseParamID")->load();
-    auto quality = parameters.getRawParameterValue("quality")->load();
+    auto ratio = _parameters.getRawParameterValue("ratio")->load();
+    auto threshold = _parameters.getRawParameterValue("threshold")->load();
+    auto transientBoost = _parameters.getRawParameterValue("transientBoost")->load();
+    auto residualNoise = _parameters.getRawParameterValue("residualNoise")->load();
+    auto learnMode = _parameters.getRawParameterValue("learnModeParamID")->load();
+    auto noiseOnly = _parameters.getRawParameterValue("noiseOnlyParamID")->load();
+    auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
+    auto quality = _parameters.getRawParameterValue("quality")->load();
 
     // Use these values in your processing algorithm...
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
@@ -176,13 +176,13 @@ juce::AudioProcessorEditor* NLDenoiserAudioProcessor::createEditor()
 void NLDenoiserAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     juce::MemoryOutputStream stream(destData, true);
-    parameters.state.writeToStream(stream);
+    _parameters.state.writeToStream(stream);
 }
 
 void NLDenoiserAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
-    parameters.state = juce::ValueTree::readFromStream(stream);
+    _parameters.state = juce::ValueTree::readFromStream(stream);
 }
 
 // This creates new instances of the plugin..

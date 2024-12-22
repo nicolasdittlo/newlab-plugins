@@ -22,8 +22,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _ratioSlider->setRange(0.0, 100.0, 0.1);
     _ratioSlider->setDefaultValue(100.0);
     _ratioSlider->setTooltip("Ratio - Noise suppression ratio");
-    _ratioAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        _audioProcessor.parameters, "ratio", _ratioSlider->getSlider());
+    _ratioAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "ratio", _ratioSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_ratioSlider);
@@ -33,8 +33,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _thresholdSlider->setRange(0.0, 100.0, 0.01);
     _thresholdSlider->setDefaultValue(0.1);
     _thresholdSlider->setTooltip("Threshold - Noise suppression threshold");
-    _thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        _audioProcessor.parameters, "threshold", _thresholdSlider->getSlider());
+    _thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "threshold", _thresholdSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_thresholdSlider);
@@ -44,8 +44,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _transBoostSlider->setRange(0.0, 100.0, 0.1);
     _transBoostSlider->setDefaultValue(0.0);
     _transBoostSlider->setTooltip("Transient Boost - Boost output transients");
-    _transBoostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        _audioProcessor.parameters, "transientBoost", _transBoostSlider->getSlider());
+    _transBoostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "transientBoost", _transBoostSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_transBoostSlider);
@@ -55,8 +55,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
     _resNoiseThrsSlider->setDefaultValue(0.0);
     _resNoiseThrsSlider->setTooltip("Residual Noise - Residual denoise threshold");
-    _resNoiseThrsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        _audioProcessor.parameters, "residualNoise", _resNoiseThrsSlider->getSlider());
+    _resNoiseThrsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "residualNoise", _resNoiseThrsSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_resNoiseThrsSlider);
@@ -64,8 +64,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // learn check box
     _learnCheckBox.setTooltip("Learn Mode - Learn the noise profile");
 
-    _learnCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
-        _audioProcessor.parameters, "learnModeParamID", _learnCheckBox);
+    _learnCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
+        (_audioProcessor._parameters, "learnModeParamID", _learnCheckBox);
 
     // Add the learn check box to the editor
     addAndMakeVisible(_learnCheckBox);
@@ -73,8 +73,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // noise only check box
     _noiseOnlyCheckBox.setTooltip("Noise Only - Output the suppressed noise instead of the signal");
 
-     _noiseOnlyCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
-        _audioProcessor.parameters, "noiseOnlyParamID", _noiseOnlyCheckBox);
+     _noiseOnlyCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
+         (_audioProcessor._parameters, "noiseOnlyParamID", _noiseOnlyCheckBox);
      
      // Add the noise only check box to the editor
     addAndMakeVisible(_noiseOnlyCheckBox);
@@ -82,11 +82,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // soft denoise checkbox
     _autoResNoiseCheckBox.setTooltip("Soft Denoise - Automatically remove residual noise");
 
-    _autoResNoiseCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>(
-        _audioProcessor.parameters, "softDenoiseParamID", _autoResNoiseCheckBox);
-
-    // Grey out the res noise threshold slider if we use auto residual denoise
-    _autoResNoiseCheckBox.onStateChange = [this] (bool checked) { _resNoiseThrsSlider->setEnabled(!checked); };
+    _autoResNoiseCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
+        (_audioProcessor._parameters, "softDenoiseParamID", _autoResNoiseCheckBox);
     
     // Add the soft denoise check box to the editor
     addAndMakeVisible(_autoResNoiseCheckBox);
@@ -100,8 +97,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     _qualityComboBox->setTooltip("Quality - Processing quality");
 
-    _qualityComboBoxAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        _audioProcessor.parameters, "quality", *_qualityComboBox);
+    _qualityComboBoxAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>
+        (_audioProcessor._parameters, "quality", *_qualityComboBox);
     
     addAndMakeVisible(*_qualityComboBox);
 
@@ -145,6 +142,15 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 #if DEMO_VERSION
     DemoTextDrawer::drawDemoText(*this, g, "DEMO");
 #endif
+
+    // Grey out the res noise threshold slider if we use auto residual denoise
+    auto* autoResNoiseValue = _audioProcessor._parameters.getRawParameterValue("softDenoiseParamID");
+    if (autoResNoiseValue != nullptr)
+    {
+        float paramValue = autoResNoiseValue->load(); // Read the parameter value
+
+        _resNoiseThrsSlider->setEnabled(paramValue < 0.5);
+    }
 }
 
 void NLDenoiserAudioProcessorEditor::resized()
