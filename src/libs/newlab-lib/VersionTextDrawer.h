@@ -29,7 +29,7 @@ class VersionTextDrawer
 
         // Calculate the position for bottom-right alignment
         auto x = width - textWidth - 48;
-        auto y = height - textHeight - 8;
+        auto y = height - textHeight - 7;
 
         // Draw the text layout
         textLayout.draw(g, juce::Rectangle<float>(x, y, textWidth, textHeight));

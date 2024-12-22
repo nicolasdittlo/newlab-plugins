@@ -85,7 +85,11 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     // Plugin name
     _plugNameComponent = std::make_unique<PlugNameComponent>();
     addAndMakeVisible(*_plugNameComponent);
-        
+
+    // Help button
+    _helpButton = std::make_unique<HelpButton>();
+    addAndMakeVisible(*_helpButton);
+    
     // Set the editor's size
     setSize(464, 464);
 }
@@ -146,4 +150,6 @@ void NLDenoiserAudioProcessorEditor::resized()
                                   getHeight() - _plugNameComponent->getHeight() - 15.0,
                                   _plugNameComponent->getWidth(),
                                   _plugNameComponent->getHeight());
+
+    _helpButton->setBounds(getWidth() - 20 - 14, getHeight() - 20 - 10, 20, 20);
 }

@@ -7,6 +7,7 @@
 #include "BitmapCheckBox.h"
 #include "CustomComboBox.h"
 #include "PlugNameComponent.h"
+#include "HelpButton.h"
 
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -40,6 +41,8 @@ private:
     std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
 
     std::unique_ptr<PlugNameComponent> _plugNameComponent;
+
+    std::unique_ptr<HelpButton> _helpButton;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };
