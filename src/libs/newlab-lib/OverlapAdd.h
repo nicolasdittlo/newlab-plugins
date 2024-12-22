@@ -8,15 +8,9 @@ class OverlapAddProcessor
 public:
     OverlapAddProcessor();
     virtual ~OverlapAddProcessor();
-
-    virtual OverlapAddProcessor *Clone() { return NULL; };
     
     virtual void ProcessFFT(vector<float> *compBuf, int chanNum);
     virtual void ProcessOutSamples(vector<float> *buff, int chanNum);
-
-    virtual void SetSpectroColNum(double colNum) {};
-    virtual void SetSelFreq(double selFreq[2]) {};
-    virtual void SetTimeStretch(double timeStretch) {};
 };
 
 class OverlapAdd
@@ -24,8 +18,6 @@ class OverlapAdd
 public:
     OverlapAdd(int fftSize, int overlap, bool fft, bool ifft);
     virtual ~OverlapAdd();
-
-    void SetSynthTimeStretch(double timeStretch);
     
     void AddProcessor(OverlapAddProcessor *processor);
     
@@ -49,8 +41,6 @@ protected:
 
     bool _fftFlag;
     bool _ifftFlag;
-
-    double _synthTimeStretch;
     
     CircularBuffer<float> _circSampBufsIn[2];
     CircularBuffer<float> _circSampBufsOut[2];
@@ -64,9 +54,6 @@ protected:
     
     vector<float> _anaWin;
     vector<float> _synthWin;
-
-    kiss_fft_cfg _forwardFFT;
-    kiss_fft_cfg _backwardFFT;
 
     vector<float> _outSamples;
 };

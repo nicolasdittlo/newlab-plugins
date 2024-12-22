@@ -25,8 +25,6 @@ OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
 
     _fftFlag = fft;
     _ifftFlag = ifft;
-
-    _synthTimeStretch = 1.0;
     
     vector<float> zeros;
     zeros.resize(_fftSize*2);
@@ -65,12 +63,6 @@ OverlapAdd::~OverlapAdd()
 }
 
 void
-OverlapAdd::SetSynthTimeStretch(double timeStretch)
-{
-    _synthTimeStretch = timeStretch;
-}
-
-void
 OverlapAdd::AddProcessor(OverlapAddProcessor *processor)
 {
     _processors.push_back(processor);
@@ -79,7 +71,7 @@ OverlapAdd::AddProcessor(OverlapAddProcessor *processor)
 void
 OverlapAdd::Feed(const vector<float> &samples, int blockSize, int nChan)
 {    
-    int synthShift = (_fftSize/_overlap)*_synthTimeStretch;
+    int synthShift = _fftSize/_overlap;
     _tmpSynthZeroBuf.resize(synthShift);
     memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size()*sizeof(float));
     
