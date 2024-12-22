@@ -16,6 +16,11 @@ public:
         setLookAndFeel(&_lookAndFeel);
     }
 
+    ~CustomComboBox()
+    {
+        setLookAndFeel(nullptr);
+    }
+    
     void paint(juce::Graphics& g) override
     {
         // Draw a black background when the ComboBox is not opened
