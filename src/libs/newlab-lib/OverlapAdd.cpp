@@ -1,6 +1,7 @@
 #include <math.h>
 #include <juce_dsp/juce_dsp.h>
 
+#include "Window.h"
 #include "OverlapAdd.h"
 
 #ifndef M_PI
@@ -13,10 +14,10 @@ OverlapAddProcessor::OverlapAddProcessor() {}
 OverlapAddProcessor::~OverlapAddProcessor() {}
 
 void
-OverlapAddProcessor::processFFT(vector<complex> *compBuf, int chanNum) {}
+OverlapAddProcessor::processFFT(vector<complex> *compBuf) {}
 
 void
-OverlapAddProcessor::processOutSamples(vector<float> *buff, int chanNum) {}
+OverlapAddProcessor::processOutSamples(vector<float> *buff) {}
 
 // OverlapAdd
 OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
@@ -57,10 +58,10 @@ OverlapAdd::setFftSize(int fftSize)
     _tmpCompBufOut.resize(_fftSize/2 + 1);
 
     _anaWin.resize(_fftSize);
-    MakeWindow(&_anaWin);
+    Window::makeWindowHan(&_anaWin);
 
     _synthWin.resize(_fftSize);
-    MakeWindow(&_synthWin);
+    Window::makeWindowHan(&_synthWin);
 }
 
 void
@@ -185,34 +186,25 @@ OverlapAdd::flushOutSamples(int numToFlush)
 }
 
 void
-OverlapAdd::processFFT(vector<float> *compBuf, int chanNum)
+OverlapAdd::processFFT(vector<float> *compBuf)
 {
     for (int i = 0; i < _processors.size(); i++)
     {
         OverlapAddProcessor *processor = _processors[i];
-        processor->ProcessFFT(compBuf, chanNum);
+        processor->ProcessFFT(compBuf);
     }
 }
 
 void
-OverlapAdd::processOutSamples(vector<float> *buff, int chanNum)
+OverlapAdd::processOutSamples(vector<float> *buff)
 {
     for (int i = 0; i < _processors.size(); i++)
     {
         OverlapAddProcessor *processor = _processors[i];
-        processor->ProcessOutSamples(buff, chanNum);
+        processor->ProcessOutSamples(buff);
     }
 
     int size = _outSamples.size();
     _outSamples.resize(size + _fftSize / _overlap);
     memcpy(&_outSamples.data()[size], buff->data(), (_fftSize / _overlap) * sizeof(float));
-}
-
-void
-OverlapAdd::makeWindow(vector<float> *win)
-{
-    // Hann
-    for (int i = 0; i < win->size(); i++)
-        (*win)[i] = 0.5 * (1.0 - cos(2.0 * M_PI *
-                                     ((double)i) / (win->size() - 1)));
 }

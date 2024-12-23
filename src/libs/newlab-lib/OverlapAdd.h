@@ -10,8 +10,8 @@ public:
     OverlapAddProcessor();
     virtual ~OverlapAddProcessor();
     
-    virtual void processFFT(vector<complex> *compBuf, int chanNum);
-    virtual void processOutSamples(vector<float> *buff, int chanNum);
+    virtual void processFFT(vector<complex> *compBuf);
+    virtual void processOutSamples(vector<float> *buff);
 };
 
 class OverlapAdd
@@ -31,11 +31,8 @@ public:
     void flushOutSamples(int numToFlush);
     
 protected:
-    virtual void processFFT(vector<complex> *compBuf, int chanNum);
-    virtual void processOutSamples(vector<float> *buff, int chanNum);
-
-    // win must have been resized before
-    virtual void makeWindow(vector<float> *win);
+    virtual void processFFT(vector<complex> *compBuf);
+    virtual void processOutSamples(vector<float> *buff);
 
     vector<OverlapAddProcessor *> _processors;
     

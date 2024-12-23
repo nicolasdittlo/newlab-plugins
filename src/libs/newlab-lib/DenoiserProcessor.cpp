@@ -1,17 +1,8 @@
-#include <SoftMaskingComp4.h>
-#include <SmoothAvgHistogram.h>
-
-#include <BLUtils.h>
-#include <BLUtilsComp.h>
-#include <BLUtilsFft.h>
-#include <BLUtilsMath.h>
-#include <BLUtilsPlug.h>
-
-#include <BLDebug.h>
-
-#include <Window.h>
-
+#include "WienerSoftMasking.h"
+#include "Utils.h"
 #include "DenoiserProcessor.h"
+
+#define USE_RESIDUAL_DENOISE 1
 
 #define RESIDUAL_DENOISE_EPS 1e-15
 
@@ -30,163 +21,91 @@
 // 8 gives more gating, but less musical noise remaining
 #define SOFT_MASKING_HISTO_SIZE 8
 
-#define FIX_RES_NOISE_LATENCY_SYNCHRO 1
-
-#define LATENCY_AUTO_RES_NOISE_OPTIM 1
-
-#define FIX_RES_NOISE_KERNEL 1
-
-// Apply soft masking on extracted noise too?
-// (or simply compute the difference at the end?)
-#define AUTO_RES_NOISE_SOFT_MASK_NOISE 0
-
 #define THRESHOLD_COEFF 1000.0
 
-// Avoid computing everything when auto res noise is disabled.
-// In this case, we only need the history, not computing expectation
-// each time
-#define OPTIM_COMP_MASK_BYPASS 1
-
-#define DENOISER_BUFFER_SIZE 2048
-
-DenoiserObj::DenoiserObj(Plugin *iPlug,
-                         int bufferSize, int overlapping, int freqRes,
-                         BL_FLOAT threshold, bool processNoise)
-: ProcessObj(bufferSize),
-  mPlug(iPlug), mThreshold(threshold), mProcessNoise(processNoise)
+DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshold)
+  _threshold(threshold)
 {
-    mOverlapping = overlapping;
-    
-    mTwinNoiseObj = NULL;
-    
-    mAvgHistoNoisePattern = NULL;
+    _bufferSize = bufferSize;
+    _overlap = overlap;
     
 #if USE_AUTO_RES_NOISE
-    for (int i = 0; i < 2; i++)
-        mSoftMaskingComps[i] = NULL;
+    _softMasking = NULL;
 #endif
     
-    if (mProcessNoise)
-        return;
-    
-    mResNoiseThrs = 0.0;
+    _resNoiseThrs = 0.0;
 #if USE_AUTO_RES_NOISE
-    mAutoResNoise = true;
+    _autoResNoise = true;
 #endif
     
     // Noise capture
-    mIsBuildingNoiseStatistics = false;
-    mNumNoiseStatistics = 0;
-    
-    // Must set a big coeff to be very smooth !
-    mAvgHistoNoisePattern = new SmoothAvgHistogram(bufferSize/2,
-                                                   NOISE_PATTERN_SMOOTH_COEFF,
-                                                   DEFAULT_VALUE_SIGNAL);
+    _isBuildingNoiseStatistics = false;
     
 #if USE_AUTO_RES_NOISE
-    for (int i = 0; i < 2; i++)
-        mSoftMaskingComps[i] = new SoftMaskingComp4(bufferSize, overlapping,
-                                                    SOFT_MASKING_HISTO_SIZE);
+    _softMasking = new WienerSoftMasking(bufferSize, overlap,
+                                         SOFT_MASKING_HISTO_SIZE);
 #endif
     
     ResetResNoiseHistory();
 }
 
-DenoiserObj::~DenoiserObj()
+DenoiserProcessor::~DenoiserProcessor()
 {
-    if (mAvgHistoNoisePattern != NULL)
-        delete mAvgHistoNoisePattern;
-    
 #if USE_AUTO_RES_NOISE
-    for (int i = 0; i < 2; i++)
-    {
-        if (mSoftMaskingComps[i] != NULL)
-            delete mSoftMaskingComps[i];
-    }
+    if (_softMasking != NULL)
+        delete _softMasking;
 #endif
 }
 
 void
-DenoiserObj::Reset(int bufferSize, int overlapping,
-                   int freqRes, BL_FLOAT sampleRate)
+DenoiserProcessor::Reset(int bufferSize, int overlapping, float sampleRate)
 {
-    ProcessObj::Reset(bufferSize, overlapping, freqRes, sampleRate);
+    _bufferSize = bufferSize;
+    _overlap = overlapping;
+    _sampleRate = sampleRate;
     
-    if (mProcessNoise)
-        return;
-    
-#if USE_VARIABLE_BUFFER_SIZE
-    // Re-create the noise profile smoother,
-    // because the buffer size may have changed
-    if (mAvgHistoNoisePattern != NULL)
-        delete mAvgHistoNoisePattern;
-    mAvgHistoNoisePattern = new SmoothAvgHistogram(bufferSize/2,
-                                                   NOISE_PATTERN_SMOOTH_COEFF,
-                                                   DEFAULT_VALUE_SIGNAL);
     ResampleNoisePattern();
-#endif
     
     ResetResNoiseHistory();
     
 #if USE_AUTO_RES_NOISE
-    for (int i = 0; i < 2; i++)
-        mSoftMaskingComps[i]->Reset(bufferSize, overlapping);
+    _softMasking->Reset(bufferSize, overlapping);
 #endif
 }
 
 void
-DenoiserObj::SetThreshold(BL_FLOAT threshold)
+DenoiserProcessor::SetThreshold(float threshold)
 {
-    if (mProcessNoise)
-        return;
-    
-    mThreshold = threshold;
+    _threshold = threshold;
 }
 
 void
-DenoiserObj::ProcessFftBuffer(WDL_TypedBuf<WDL_FFT_COMPLEX> *ioBuffer0,
-                              const WDL_TypedBuf<WDL_FFT_COMPLEX> *scBuffer)
+DenoiserProcessor::processFft(vector<complex> *ioBuffer)
 {
-    if (mProcessNoise)
-        // This is a twin noise obj
-    {
-        WDL_TypedBuf<WDL_FFT_COMPLEX> &ioBuffer = mTmpBuf20;
-        BLUtils::TakeHalf(*ioBuffer0, &ioBuffer);
-        
-        BLUtilsComp::MagnPhaseToComplex(&ioBuffer, mNoiseBuf, mNoiseBufPhases);
-        
-        BLUtilsFft::FillSecondFftHalf(ioBuffer, ioBuffer0);
-        
-        return;
-    }
-
-    WDL_TypedBuf<WDL_FFT_COMPLEX> &ioBuffer = mTmpBuf21;
-    BLUtils::TakeHalf(*ioBuffer0, &ioBuffer);
-    
     // Add noise statistics
-    if (mIsBuildingNoiseStatistics)
+    if (_isBuildingNoiseStatistics)
         AddNoiseStatistics(ioBuffer);
     
-    WDL_TypedBuf<BL_FLOAT> &sigMagns = mTmpBuf0;
-    WDL_TypedBuf<BL_FLOAT> &sigPhases = mTmpBuf1;
-    BLUtilsComp::ComplexToMagnPhase(&sigMagns, &sigPhases, ioBuffer);
+    vector<float> &sigMagns = _tmpBuf0;
+    vector<float> &sigPhases = _tmpBuf1;
+    Utils::complexToMagnPhase(&sigMagns, &sigPhases, ioBuffer);
     
-    mSignalBuf = sigMagns;
+    _signalBuf = sigMagns;
     
-    WDL_TypedBuf<BL_FLOAT> &noiseMagns = mTmpBuf2;
-    noiseMagns = mNoisePattern;
+    vector<float> &noiseMagns = _tmpBuf2;
+    noiseMagns = _noisePattern;
 
-    if (noiseMagns.GetSize() != sigMagns.GetSize())
+    if (noiseMagns.size() != sigMagns.size())
         // We havn't defined a noise pattern yet
     {
         // Define noise magns as 0, but with the good size
         // So they won't have size == 0 (to avoid crash)
-        noiseMagns.Resize(sigMagns.GetSize());
-        BLUtils::FillAllZero(&noiseMagns);
+        noiseMagns.Resize(sigMagns.size());
+        Utils::fillZero(&noiseMagns);
     }
     
-    if (!mIsBuildingNoiseStatistics &&
-        (mNoisePattern.GetSize() == ioBuffer.GetSize()))
+    if (!_isBuildingNoiseStatistics &&
+        (_noisePattern.size() == ioBuffer.size()))
     {
         Threshold(&sigMagns, &noiseMagns);
     }
@@ -194,334 +113,253 @@ DenoiserObj::ProcessFftBuffer(WDL_TypedBuf<WDL_FFT_COMPLEX> *ioBuffer0,
 #if USE_RESIDUAL_DENOISE
     // Keep the possibility to not residual denoise
     // (because it is time consumming and sometime useless)
-    //if (mResNoiseThrs > RESIDUAL_DENOISE_EPS) // Do not test here (to get constant latency)
+    //if (_resNoiseThrs > RESIDUAL_DENOISE_EPS) // Do not test here (to get constant latency)
     //{
 
     // ResidualDenoise introduces a latency, so we must make the noise signal pass
     // there, to keep the synchronization
     // Otherwise, when we re-inject noise in the final signal, there will be an offset when earing
-    if (!mIsBuildingNoiseStatistics)
+    if (!_isBuildingNoiseStatistics)
         // To eliminate residual noise
         ResidualDenoise(&sigMagns, &noiseMagns, &sigPhases);
 #endif
     
-    WDL_TypedBuf<BL_FLOAT> &noisePhases = mTmpBuf3;
+    vector<float> &noisePhases = _tmpBuf3;
     noisePhases = sigPhases;
     
 #if USE_AUTO_RES_NOISE
-    if (!mIsBuildingNoiseStatistics)
-        AutoResidualDenoise(&sigMagns, &noiseMagns,
-                            &sigPhases, &noisePhases);
+    if (!_isBuildingNoiseStatistics)
+        AutoResidualDenoise(&sigMagns, &sigPhases);
 #endif
+       
+    BLUtils::magnPhaseToComplex(&ioBuffer, sigMagns, sigPhases);
     
-    if (!mProcessNoise)
-    {
-        BLUtilsComp::MagnPhaseToComplex(&ioBuffer, sigMagns, sigPhases);
-    }
-    else
-    {
-        BLUtilsComp::MagnPhaseToComplex(&ioBuffer, noiseMagns, noisePhases);
-    }
-    
-    mNoiseBuf = noiseMagns;
-    
-    if (mTwinNoiseObj != NULL)
-    {
-        mTwinNoiseObj->SetTwinNoiseBuf(noiseMagns, noisePhases);
-    }
-    
-    BLUtilsFft::FillSecondFftHalf(ioBuffer, ioBuffer0);
+    _noiseBuf = noiseMagns;
 }
 
 void
-DenoiserObj::GetSignalBuffer(WDL_TypedBuf<BL_FLOAT> *ioBuffer)
+DenoiserProcessor::GetSignalBuffer(vector<float> *ioBuffer)
 {
-    if (mProcessNoise)
-        return;
-    
-    *ioBuffer = mSignalBuf;
+    *ioBuffer = _signalBuf;
 }
 
 void
-DenoiserObj::GetNoiseBuffer(WDL_TypedBuf<BL_FLOAT> *ioBuffer)
+DenoiserProcessor::GetNoiseBuffer(vector<float> *ioBuffer)
 {
-    *ioBuffer = mNoiseBuf;
+    *ioBuffer = _noiseBuf;
 }
 
 void
-DenoiserObj::SetBuildingNoiseStatistics(bool flag)
+DenoiserProcessor::SetBuildingNoiseStatistics(bool flag)
 {
-    if (mProcessNoise)
-        return;
-    
-    mIsBuildingNoiseStatistics = flag;
+    _isBuildingNoiseStatistics = flag;
     
     if (flag)
     {
-        mNoisePattern.Resize(0);
+        _noisePattern.resize(_bufferSize);
+        for (int i = 0; i < _noisePattern.size(); i++)
+            _noisePattern[i] = DEFAULT_VALUE_SIGNAL;
     }
 }
 
 void
-DenoiserObj::AddNoiseStatistics(const WDL_TypedBuf<WDL_FFT_COMPLEX> &buf)
+DenoiserProcessor::AddNoiseStatistics(const vector<complex> &buf)
 {
-    if (mProcessNoise)
-        return;
-    
     // Add the sample to temp noise pattern
-    WDL_TypedBuf<BL_FLOAT> &noisePattern = mTmpBuf4;
-    noisePattern.Resize(buf.GetSize());
+    vector<float> &noisePattern = _tmpBuf4;
+    noisePattern.Resize(buf.size());
     
     // Only half of the buffer is useful
-    for (int i = 0; i < buf.GetSize(); i++)
+    for (int i = 0; i < buf.size(); i++)
     {
-        BL_FLOAT magn = COMP_MAGN(buf.Get()[i]);
+        float magn = COMP_MAGN(buf[i]);
         
-        noisePattern.Get()[i] = magn;
+        noisePattern[i] = magn;
     }
+
+    for (int i = 0; i < _noisePattern.size(); i++)
+        _noisePattern[i] =
+            NOISE_PATTERN_SMOOTH_COEFF*_noisePattern[i] + (1.0 - NOISE_PATTERN_SMOOTH_COEFF)*noisePattern[i];
     
-    mAvgHistoNoisePattern->AddValues(noisePattern);
-    mAvgHistoNoisePattern->GetValues(&mNoisePattern);
-    
-#if USE_VARIABLE_BUFFER_SIZE
-    mNativeNoisePattern = mNoisePattern;
-#endif
+    _nativeNoisePattern = _noisePattern;
 }
 
 void
-DenoiserObj::GetNoisePattern(WDL_TypedBuf<BL_FLOAT> *noisePattern)
+DenoiserProcessor::GetNoisePattern(vector<float> *noisePattern)
 {
-    if (mProcessNoise)
-        return;
-    
-    *noisePattern = mNoisePattern;
+    *noisePattern = _noisePattern;
 }
 
 void
-DenoiserObj::SetNoisePattern(const WDL_TypedBuf<BL_FLOAT> &noisePattern)
+DenoiserProcessor::SetNoisePattern(const vector<float> &noisePattern)
 {
-    if (mProcessNoise)
-        return;
-    
-    mNoisePattern = noisePattern;
-}
-
-#if USE_VARIABLE_BUFFER_SIZE
-void
-DenoiserObj::GetNativeNoisePattern(WDL_TypedBuf<BL_FLOAT> *noisePattern)
-{
-    if (mProcessNoise)
-        return;
-    
-    *noisePattern = mNativeNoisePattern;
+    _noisePattern = noisePattern;
 }
 
 void
-DenoiserObj::SetNativeNoisePattern(const WDL_TypedBuf<BL_FLOAT> &noisePattern)
+DenoiserProcessor::GetNativeNoisePattern(vector<float> *noisePattern)
 {
-    if (mProcessNoise)
-        return;
-    
-    mNativeNoisePattern = noisePattern;
+    *noisePattern = _nativeNoisePattern;
+}
+
+void
+DenoiserProcessor::SetNativeNoisePattern(const vector<float> &noisePattern)
+{
+    _nativeNoisePattern = noisePattern;
     
     ResampleNoisePattern();
 }
-#endif
 
 void
-DenoiserObj::SetResNoiseThrs(BL_FLOAT threshold)
+DenoiserProcessor::SetResNoiseThrs(float threshold)
 {
-    mResNoiseThrs = threshold;
+    _resNoiseThrs = threshold;
 }
 
 #if USE_AUTO_RES_NOISE
 void
-DenoiserObj::SetAutoResNoise(bool autoResNoiseFlag)
+DenoiserProcessor::SetAutoResNoise(bool autoResNoiseFlag)
 {   
-    mAutoResNoise = autoResNoiseFlag;
+    _autoResNoise = autoResNoiseFlag;
     
-#if OPTIM_COMP_MASK_BYPASS
-    for (int i = 0; i < 2; i++)
-    {
-        if (mSoftMaskingComps[i] != NULL)
-        {
-            mSoftMaskingComps[i]->SetProcessingEnabled(mAutoResNoise);
-        }
-    }
-#endif
+    if (_softMasking != NULL)
+        _softMasking->SetProcessingEnabled(_autoResNoise);
 }
 #endif
-
-void
-DenoiserObj::SetTwinNoiseObj(DenoiserObj *twinObj)
-{
-    mTwinNoiseObj = twinObj;
-}
 
 int
-DenoiserObj::GetLatency()
+DenoiserProcessor::GetLatency()
 {
     int latency = 0;
 
-    // Warning: with the actual code, tha latencies doesn't seem to
-    // sum to the final latency.
-    // Instead, take one or the other latency
-
     // Soft masking
-    if (mAutoResNoise)
+    if (_autoResNoise)
     {
-        if (mSoftMaskingComps[0] != NULL)
-            latency = mSoftMaskingComps[0]->GetLatency();
+        if (_softMasking != NULL)
+            latency = _softMasking->GetLatency();
     }
     else // Res noise
     {
-        latency = RES_NOISE_LINE_NUM*mBufferSize/mOverlapping;
+        latency = RES_NOISE_LINE_NUM*(_bufferSize - 1)*2/_overlap;
     }
     
     return latency;
 }
 
 void
-DenoiserObj::SetTwinNoiseBuf(const WDL_TypedBuf<BL_FLOAT> &noiseBuf,
-                             const WDL_TypedBuf<BL_FLOAT> &noiseBufPhases)
+DenoiserProcessor::ResetResNoiseHistory()
 {
-    mNoiseBuf = noiseBuf;
-    mNoiseBufPhases = noiseBufPhases;
-}
+    _historyFftBufs.unfreeze();
+    _historyFftBufs.clear();
 
-void
-DenoiserObj::ResetResNoiseHistory()
-{
-    if (mProcessNoise)
-        return;
+    _historyFftNoiseBufs.unfreeze();
+    _historyFftNoiseBufs.clear();
 
-    mHistoryFftBufs.unfreeze();
-    mHistoryFftBufs.clear();
-
-    mHistoryFftNoiseBufs.unfreeze();
-    mHistoryFftNoiseBufs.clear();
-
-    mHistoryPhases.unfreeze();
-    mHistoryPhases.clear();
+    _historyPhases.unfreeze();
+    _historyPhases.clear();
     
-    WDL_TypedBuf<BL_FLOAT> &zeroBuf = mTmpBuf5;
-    zeroBuf.Resize(mBufferSize/2);
-    BLUtils::FillAllZero(&zeroBuf);
+    vector<float> &zeroBuf = _tmpBuf5;
+    zeroBuf.Resize(_bufferSize);
+    Utils::fillZero(&zeroBuf);
     
     for (int i = 0; i < RES_NOISE_HISTORY_SIZE; i++)
     {
-        mHistoryFftBufs.push_back(zeroBuf);
-        mHistoryFftNoiseBufs.push_back(zeroBuf);
-        mHistoryPhases.push_back(zeroBuf);
+        _historyFftBufs.push_back(zeroBuf);
+        _historyFftNoiseBufs.push_back(zeroBuf);
+        _historyPhases.push_back(zeroBuf);
     }
 }
 
 void
-DenoiserObj::ResidualDenoise(WDL_TypedBuf<BL_FLOAT> *signalBuffer,
-                             WDL_TypedBuf<BL_FLOAT> *noiseBuffer,
-                             WDL_TypedBuf<BL_FLOAT> *phases)
+DenoiserProcessor::ResidualDenoise(vector<float> *signalBuffer,
+                                   vector<float> *noiseBuffer,
+                                   vector<float> *phases)
 {
-    if (mProcessNoise)
-        return;
-    
     // Make an history which represents the spectrum of the signal
     // Then filter noise by a simple 2d filter, to suppress the residual noise
     
     // Fill the queue with signal buffer
-    if (mHistoryFftBufs.size() != RES_NOISE_HISTORY_SIZE)
+    if (_historyFftBufs.size() != RES_NOISE_HISTORY_SIZE)
     {
-        //mHistoryFftBufs.push_front(*signalBuffer);
-        mHistoryFftBufs.push_back(*signalBuffer);
-        if (mHistoryFftBufs.size() > RES_NOISE_HISTORY_SIZE)
-            //mHistoryFftBufs.pop_back();
-            mHistoryFftBufs.pop_front();
-        if (mHistoryFftBufs.size() < RES_NOISE_HISTORY_SIZE)
+        //_historyFftBufs.push_front(*signalBuffer);
+        _historyFftBufs.push_back(*signalBuffer);
+        if (_historyFftBufs.size() > RES_NOISE_HISTORY_SIZE)
+            //_historyFftBufs.pop_back();
+            _historyFftBufs.pop_front();
+        if (_historyFftBufs.size() < RES_NOISE_HISTORY_SIZE)
             return;
     }
     else
     {
-        mHistoryFftBufs.freeze();
-        mHistoryFftBufs.push_pop(*signalBuffer);
+        _historyFftBufs.freeze();
+        _historyFftBufs.push_pop(*signalBuffer);
     }
     
     // Fill the queue with noise buffer
-    if (mHistoryFftNoiseBufs.size() != RES_NOISE_HISTORY_SIZE)
+    if (_historyFftNoiseBufs.size() != RES_NOISE_HISTORY_SIZE)
     {
-        mHistoryFftNoiseBufs.push_back(*noiseBuffer);
-        if (mHistoryFftNoiseBufs.size() > RES_NOISE_HISTORY_SIZE)
-            mHistoryFftNoiseBufs.pop_front();
-        if (mHistoryFftNoiseBufs.size() < RES_NOISE_HISTORY_SIZE)
+        _historyFftNoiseBufs.push_back(*noiseBuffer);
+        if (_historyFftNoiseBufs.size() > RES_NOISE_HISTORY_SIZE)
+            _historyFftNoiseBufs.pop_front();
+        if (_historyFftNoiseBufs.size() < RES_NOISE_HISTORY_SIZE)
             return;
     }
     else
     {
-        mHistoryFftNoiseBufs.freeze();
-        mHistoryFftNoiseBufs.push_pop(*noiseBuffer);
+        _historyFftNoiseBufs.freeze();
+        _historyFftNoiseBufs.push_pop(*noiseBuffer);
     }
     
     // Fill the queue with signal buffer
-    if (mHistoryPhases.size() != RES_NOISE_HISTORY_SIZE)
+    if (_historyPhases.size() != RES_NOISE_HISTORY_SIZE)
     {
-        mHistoryPhases.push_back(*phases);
-        if (mHistoryPhases.size() > RES_NOISE_HISTORY_SIZE)
-            mHistoryPhases.pop_front();
-        if (mHistoryPhases.size() < RES_NOISE_HISTORY_SIZE)
+        _historyPhases.push_back(*phases);
+        if (_historyPhases.size() > RES_NOISE_HISTORY_SIZE)
+            _historyPhases.pop_front();
+        if (_historyPhases.size() < RES_NOISE_HISTORY_SIZE)
             return;
     }
     else
     {
-        mHistoryPhases.freeze();
-        mHistoryPhases.push_pop(*phases);
+        _historyPhases.freeze();
+        _historyPhases.push_pop(*phases);
     }
     
     // For FftObj and latency
-    if ((mResNoiseThrs < RESIDUAL_DENOISE_EPS) && !mAutoResNoise)
+    if ((_resNoiseThrs < RESIDUAL_DENOISE_EPS) && !_autoResNoise)
     {
-        *signalBuffer = mHistoryFftBufs[RES_NOISE_LINE_NUM];
-        *phases = mHistoryPhases[RES_NOISE_LINE_NUM];
+        *signalBuffer = _historyFftBufs[RES_NOISE_LINE_NUM];
+        *phases = _historyPhases[RES_NOISE_LINE_NUM];
         
-#if FIX_RES_NOISE_LATENCY_SYNCHRO
-        *noiseBuffer = mHistoryFftNoiseBufs[RES_NOISE_LINE_NUM];
-#endif
+        *noiseBuffer = _historyFftNoiseBufs[RES_NOISE_LINE_NUM];
         
         return;
     }
     
 #if USE_AUTO_RES_NOISE
     // If auto res noise, keep spectrogram history, but do not process
-    if (mAutoResNoise)
-    {
-#if !LATENCY_AUTO_RES_NOISE_OPTIM
-        *signalBuffer = mHistoryFftBufs[RES_NOISE_LINE_NUM];
-        *phases = mHistoryPhases[RES_NOISE_LINE_NUM];
-        
-#if FIX_RES_NOISE_LATENCY_SYNCHRO
-        *noiseBuffer = mHistoryFftNoiseBufs[RES_NOISE_LINE_NUM];
-#endif
-#endif
-        
+    if (_autoResNoise)        
         return;
     }
-#endif
     
     // Prepare for non filtering
-    int width = signalBuffer->GetSize();
+    int width = signalBuffer->size();
     
     // In the history, we will take half of the values at each pass
     // This is to avoid shifts due to overlap that is 1/2
     int height = RES_NOISE_HISTORY_SIZE;
     
-    SamplesHistoryToImage(&mHistoryFftBufs, &mInputImageFilterChunk);
+    SamplesHistoryToImage(&_historyFftBufs, &_inputImageFilterChunk);
     
     // Process the signal each time
     // Either we will keep the signal, or the noise at the end
     
     // Prepare the output buffer
-    if (mOutputImageFilterChunk.GetSize() != width*height)
-        mOutputImageFilterChunk.Resize(width*height);
+    if (_outputImageFilterChunk.size() != width*height)
+        _outputImageFilterChunk.Resize(width*height);
     
-    BL_FLOAT *input = mInputImageFilterChunk.Get();
-    BL_FLOAT *output = mOutputImageFilterChunk.Get();
+    float *input = _inputImageFilterChunk;
+    float *output = _outputImageFilterChunk;
     
     // Just in case
     for (int i = 0; i < width*height; i++)
@@ -531,29 +369,23 @@ DenoiserObj::ResidualDenoise(WDL_TypedBuf<BL_FLOAT> *signalBuffer,
     
     int winSize = 5;
     
-    if (mHanningKernel.GetSize() != winSize*winSize)
-    {
-#if !FIX_RES_NOISE_KERNEL
-        Window::MakeHanningKernel(winSize, &mHanningKernel);
-#else
-        Window::MakeHanningKernel2(winSize, &mHanningKernel);
-#endif
-    }
+    if (_hanningKernel.size() != winSize*winSize)
+        MakeHanningKernel2D(winSize, &_hanningKernel);
     
-    NoiseFilter(input, output, width, height, winSize, &mHanningKernel,
-                RES_NOISE_LINE_NUM, mResNoiseThrs);
+    NoiseFilter(input, output, width, height, winSize, &_hanningKernel,
+                RES_NOISE_LINE_NUM, _resNoiseThrs);
     
-    ImageLineToSamples(&mOutputImageFilterChunk, width, height, RES_NOISE_LINE_NUM,
-                       &mHistoryFftBufs, &mHistoryPhases,
+    ImageLineToSamples(&_outputImageFilterChunk, width, height, RES_NOISE_LINE_NUM,
+                       &_historyFftBufs, &_historyPhases,
                        signalBuffer, phases);
     
     // Compute the noise part after residual denoise
-    WDL_TypedBuf<BL_FLOAT> &histSignal = mHistoryFftBufs[RES_NOISE_LINE_NUM];
-    const WDL_TypedBuf<BL_FLOAT> &histNoise =
-        mHistoryFftNoiseBufs[RES_NOISE_LINE_NUM];
+    vector<float> &histSignal = _historyFftBufs[RES_NOISE_LINE_NUM];
+    const vector<float> &histNoise =
+        _historyFftNoiseBufs[RES_NOISE_LINE_NUM];
     
     // NEW: addee when Fft15 and latency
-    *phases = mHistoryPhases[RES_NOISE_LINE_NUM];
+    *phases = _historyPhases[RES_NOISE_LINE_NUM];
     
     *noiseBuffer = histNoise;
     
@@ -561,14 +393,9 @@ DenoiserObj::ResidualDenoise(WDL_TypedBuf<BL_FLOAT> *signalBuffer,
 }
 
 void
-DenoiserObj::AutoResidualDenoise(WDL_TypedBuf<BL_FLOAT> *ioSignalMagns,
-                                 WDL_TypedBuf<BL_FLOAT> *ioNoiseMagns,
-                                 WDL_TypedBuf<BL_FLOAT> *ioSignalPhases,
-                                 WDL_TypedBuf<BL_FLOAT> *ioNoisePhases)
+DenoiserProcessor::AutoResidualDenoise(vector<float> *ioSignalMagns,
+                                       vector<float> *ioSignalPhases)
 {    
-    if (mProcessNoise)
-        return;
-    
     // Recompute the complex buffer here
     // This is more safe than using the original comp buffer,
     // because some other operations may have delayed magna and phases
@@ -576,78 +403,62 @@ DenoiserObj::AutoResidualDenoise(WDL_TypedBuf<BL_FLOAT> *ioSignalMagns,
     // and phases.
     
     // Reconstruct the original signal (magns)
-    WDL_TypedBuf<BL_FLOAT> &originMagns = mTmpBuf6;
+    vector<float> &originMagns = _tmpBuf6;
     originMagns = *ioSignalMagns;
-    BLUtils::AddValues(&originMagns, *ioNoiseMagns);
+    Utils::addBuffer(&originMagns, *ioNoiseMagns);
     
     // Get the original complex buffer
-    WDL_TypedBuf<WDL_FFT_COMPLEX> &compBufferOrig = mTmpBuf7;
-    BLUtilsComp::MagnPhaseToComplex(&compBufferOrig, originMagns, *ioSignalPhases);
+    vector<complex> &compBufferOrig = _tmpBuf7;
+    Utils::magnPhaseToComplex(&compBufferOrig, originMagns, *ioSignalPhases);
     
     // Compute hard masks
 
     // Signal hard mask
-    WDL_TypedBuf<BL_FLOAT> &signalMask = mTmpBuf10;
-    signalMask.Resize(ioSignalMagns->GetSize());
+    vector<float> &signalMask = _tmpBuf10;
+    signalMask.Resize(ioSignalMagns->size());
 
-    int signalMaskSize = signalMask.GetSize();
-    BL_FLOAT *ioSignalMagnsData = ioSignalMagns->Get();
-    BL_FLOAT *ioNoiseMagnsData = ioNoiseMagns->Get();
-    BL_FLOAT *signalMaskData = signalMask.Get();
+    int signalMaskSize = signalMask.size();
+    float *ioSignalMagnsData = ioSignalMagns->data();
+    float *ioNoiseMagnsData = ioNoiseMagns->data();
+    float *signalMaskData = signalMask;
     
     for (int i = 0; i < signalMaskSize; i++)
     {
-        BL_FLOAT resSig = ioSignalMagnsData[i];
-        BL_FLOAT resNoise = ioNoiseMagnsData[i];
+        float resSig = ioSignalMagnsData[i];
+        float resNoise = ioNoiseMagnsData[i];
         
-        BL_FLOAT sum = resSig + resNoise;
-        BL_FLOAT coeff = 0.0;
-        if (sum > BL_EPS)
+        float sum = resSig + resNoise;
+        float coeff = 0.0;
+        if (sum > 1e-15)
             coeff = resSig/sum;
         
         signalMaskData[i] = coeff;
     }
 
     // Noise hard mask
-    WDL_TypedBuf<BL_FLOAT> &noiseMask = mTmpBuf9;
+    vector<float> &noiseMask = _tmpBuf9;
     noiseMask = signalMask;
-    BLUtils::ComputeOpposite(&noiseMask);
+    Utils::computeNormOpposite(&noiseMask);
 
     // Keep a copy, because ProcessCentered() modifies the input
-    WDL_TypedBuf<WDL_FFT_COMPLEX> &compBufferOrigCopy = mTmpBuf12;
+    vector<complex> &compBufferOrigCopy = _tmpBuf12;
     compBufferOrigCopy = compBufferOrig;
     
     // Signal soft masking
-    WDL_TypedBuf<WDL_FFT_COMPLEX> &softMaskedSignal = mTmpBuf22;
-    mSoftMaskingComps[0]->ProcessCentered(&compBufferOrig,
-                                          signalMask,
-                                          &softMaskedSignal);
+    vector<complex> &softMaskedSignal = _tmpBuf22;
+    _softMasking->ProcessCentered(&compBufferOrig,
+                                  signalMask,
+                                  &softMaskedSignal);
 
-    // Noise soft masking
-    // Use buffer copy, to avoid shifting 2 times
-    WDL_TypedBuf<WDL_FFT_COMPLEX> &softMaskedNoise = mTmpBuf23;
-    mSoftMaskingComps[1]->ProcessCentered(&compBufferOrigCopy,
-                                          noiseMask,
-                                          &softMaskedNoise);
-    
-    if (!mAutoResNoise)
+    if (!_autoResNoise)
         // Do not process result, but update SoftMaskingComp obj
-    {
-#if !LATENCY_AUTO_RES_NOISE_OPTIM
-        // Update, for latency
-        BLUtils::ComplexToMagnPhase(ioSignalMagns, ioSignalPhases, signalBufferComp);
-        BLUtils::ComplexToMagnPhase(ioNoiseMagns, ioNoisePhases, noiseBufferComp);
-#endif
-        
+    {        
         return;
     }
     
     // Recompute the result signal magns and noise magns
-    WDL_TypedBuf<BL_FLOAT> &signalPhases = mTmpBuf16;
-    BLUtilsComp::ComplexToMagnPhase(ioSignalMagns, &signalPhases, softMaskedSignal);
-    
-    WDL_TypedBuf<BL_FLOAT> &noisePhases = mTmpBuf18;
-    BLUtilsComp::ComplexToMagnPhase(ioNoiseMagns, &noisePhases, softMaskedNoise);
+    vector<float> &signalPhases = _tmpBuf16;
+    Utils::complexToMagnPhase(ioSignalMagns, &signalPhases, softMaskedSignal);
     
     *ioSignalPhases = signalPhases;
     *ioNoisePhases = noisePhases;
@@ -655,37 +466,33 @@ DenoiserObj::AutoResidualDenoise(WDL_TypedBuf<BL_FLOAT> *ioSignalMagns,
 #endif
 
 void
-DenoiserObj::NoiseFilter(BL_FLOAT *input, BL_FLOAT *output, int width, int height,
-                         int winSize, WDL_TypedBuf<BL_FLOAT> *kernel, int lineNum,
-                         BL_FLOAT threshold)
+DenoiserProcessor::NoiseFilter(float *input, float *output, int width, int height,
+                               int winSize, vector<float> *kernel, int lineNum,
+                               float threshold)
 {
-    if (mProcessNoise)
-        return;
-    
 #define MIN_THRESHOLD -200.0
 #define MAX_THRESHOLD 0.0
 
     // Optimization: precompute db
-    WDL_TypedBuf<BL_FLOAT> &inputDB = mTmpBuf24;
+    vector<float> &inputDB = _tmpBuf24;
     inputDB.Resize(width*height);
-    BLUtils::AmpToDB(inputDB.Get(), input, inputDB.GetSize(),
-                     (BL_FLOAT)BL_EPS, (BL_FLOAT)DENOISER_MIN_DB);
-    BL_FLOAT *inputDBData = inputDB.Get();
+    Utils::ampToDB(inputDB, input, inputDB.size(), 1e-15, (float)DENOISER_MIN_DB);
+    float *inputDBData = inputDB;
     
     // Process only one line (for optimization)
     for (int j = lineNum; j < lineNum + 1; j++)
     {
         for (int i = 0; i < width; i++)
         {
-            BL_FLOAT avg = 0.0;
-            BL_FLOAT sum = 0.0;
+            float avg = 0.0;
+            float sum = 0.0;
             
             // By default, copy the input
             int index0 = i + j*width;
             
             output[index0] = input[index0];
             
-            BL_FLOAT centerVal = input[index0];
+            float centerVal = input[index0];
             
             if (centerVal == 0.0)
                 // Nothing to test, the value is already 0
@@ -711,13 +518,11 @@ DenoiserObj::NoiseFilter(BL_FLOAT *input, BL_FLOAT *output, int width, int heigh
                         continue;
 
                     // Use precomputed db values
-                    BL_FLOAT val = inputDBData[x + y*width];
+                    float val = inputDBData[x + y*width];
                     
-                    BL_FLOAT kernelVal = 1.0;
+                    float kernelVal = 1.0;
                     if (kernel != NULL)
-                    {
-                        kernelVal = kernel->Get()[(wi + halfWinSize) + (wj + halfWinSize)*winSize];
-                    }
+                        kernelVal = (*kernel)[(wi + halfWinSize) + (wj + halfWinSize)*winSize];
                     
                     avg += val*kernelVal;
                     sum += kernelVal;
@@ -727,7 +532,7 @@ DenoiserObj::NoiseFilter(BL_FLOAT *input, BL_FLOAT *output, int width, int heigh
             if (sum > 0.0)
                 avg /= sum;
             
-            BL_FLOAT thrs = threshold*(MAX_THRESHOLD - MIN_THRESHOLD) + MIN_THRESHOLD;
+            float thrs = threshold*(MAX_THRESHOLD - MIN_THRESHOLD) + MIN_THRESHOLD;
             
             if (avg < thrs)
                 output[index0] = 0.0;
@@ -736,12 +541,9 @@ DenoiserObj::NoiseFilter(BL_FLOAT *input, BL_FLOAT *output, int width, int heigh
 }
 
 void
-DenoiserObj::SamplesHistoryToImage(const bl_queue<WDL_TypedBuf<BL_FLOAT> > *hist,
-                                   WDL_TypedBuf<BL_FLOAT> *imageChunk)
+DenoiserProcessor::SamplesHistoryToImage(const bl_queue<vector<float> > *hist,
+                                         vector<float> *imageChunk)
 {
-    if (mProcessNoise)
-        return;
-    
     // Get the image dimensions
     int height = (int)hist->size();
     if (height < 1)
@@ -751,27 +553,27 @@ DenoiserObj::SamplesHistoryToImage(const bl_queue<WDL_TypedBuf<BL_FLOAT> > *hist
         return;
     }
     
-    const WDL_TypedBuf<BL_FLOAT> &hist0 = (*hist)[0];
-    int width = hist0.GetSize();
+    const vector<float> &hist0 = (*hist)[0];
+    int width = hist0.size();
     
     imageChunk->Resize(width*height);
     
     // Get the image buffer
-    BL_FLOAT *imageBuf = imageChunk->Get();
+    float *imageBuf = imageChunk->data();
     
     // Fill the image
     for (int j = 0; j < height; j++)
         // Time
     {
-        const WDL_TypedBuf<BL_FLOAT> &histBuf = (*hist)[j];
+        const vector<float> &histBuf = (*hist)[j];
         
         for (int i = 0; i < width; i++)
             // Bins
         {
-            BL_FLOAT magn = histBuf.Get()[i];
+            float magn = histBuf[i];
             
             // Take appropriate scale
-            BL_FLOAT logMagn = std::log(1.0 + magn);
+            float logMagn = std::log(1.0 + magn);
             
             imageBuf[i + j*width] = logMagn;
         }
@@ -779,26 +581,23 @@ DenoiserObj::SamplesHistoryToImage(const bl_queue<WDL_TypedBuf<BL_FLOAT> > *hist
 }
 
 void
-DenoiserObj::ImageLineToSamples(const WDL_TypedBuf<BL_FLOAT> *image,
-                                int width,
-                                int height,
-                                int lineNum,
-                                const bl_queue<WDL_TypedBuf<BL_FLOAT> > *hist,
-                                const bl_queue<WDL_TypedBuf<BL_FLOAT> > *phaseHist,
-                                WDL_TypedBuf<BL_FLOAT> *resultBuf,
-                                WDL_TypedBuf<BL_FLOAT> *resultPhases)
+DenoiserProcessor::ImageLineToSamples(const vector<float> *image,
+                                      int width,
+                                      int height,
+                                      int lineNum,
+                                      const bl_queue<vector<float> > *hist,
+                                      const bl_queue<vector<float> > *phaseHist,
+                                      vector<float> *resultBuf,
+                                      vector<float> *resultPhases)
 {
-    if (mProcessNoise)
-        return;
-    
     if (lineNum >= height)
         return;
     
-    if (lineNum >= resultBuf->GetSize())
+    if (lineNum >= resultBuf->size())
         return;
     
-    const WDL_TypedBuf<BL_FLOAT> &histLine = (*hist)[lineNum];
-    const WDL_TypedBuf<BL_FLOAT> &phaseLine = (*phaseHist)[lineNum];
+    const vector<float> &histLine = (*hist)[lineNum];
+    const vector<float> &phaseLine = (*phaseHist)[lineNum];
     
     *resultBuf = histLine;
     *resultPhases = phaseLine;
@@ -807,111 +606,113 @@ DenoiserObj::ImageLineToSamples(const WDL_TypedBuf<BL_FLOAT> *image,
     for (int i = 0; i < width; i++)
     {
         // Take the most recent
-        BL_FLOAT logMagn = image->Get()[i + width*lineNum];
+        float logMagn = (*image)[i + width*lineNum];
         
-        BL_FLOAT newMagn = std::exp(logMagn) - 1.0;
+        float newMagn = std::exp(logMagn) - 1.0;
         if (newMagn < 0.0)
             newMagn = 0.0;
         
-        resultBuf->Get()[i] = newMagn;
+        (*resultBuf)[i] = newMagn;
     }
 }
 
 void
-DenoiserObj::ExtractResidualNoise(const WDL_TypedBuf<BL_FLOAT> *prevSignal,
-                                  const WDL_TypedBuf<BL_FLOAT> *signal,
-                                  WDL_TypedBuf<BL_FLOAT> *ioNoise)
+DenoiserProcessor::ExtractResidualNoise(const vector<float> *prevSignal,
+                                        const vector<float> *signal,
+                                        vector<float> *ioNoise)
 {
-    if (mProcessNoise)
-        return;
-    
-    for (int i = 0; i < ioNoise->GetSize(); i++)
+    for (int i = 0; i < ioNoise->size(); i++)
     {
-        BL_FLOAT prevMagn = prevSignal->Get()[i];
-        BL_FLOAT magn = signal->Get()[i];
-        BL_FLOAT noiseMagn = ioNoise->Get()[i];
+        float prevMagn = (*prevSignal)[i];
+        float magn = (*signal)[i];
+        float noiseMagn = (*ioNoise)[i];
         
         // Positive difference
-        BL_FLOAT newMagn = noiseMagn + (prevMagn - magn);
+        float newMagn = noiseMagn + (prevMagn - magn);
         if (noiseMagn < 0.0)
             noiseMagn = 0.0;
         
-        ioNoise->Get()[i] = newMagn;
+        (*ioNoise)[i] = newMagn;
     }
 }
 
 // See: http://home.mit.bme.hu/~bako/zaozeng/chapter4.htm
 void
-DenoiserObj::Threshold(WDL_TypedBuf<BL_FLOAT> *ioSigMagns,
-                       WDL_TypedBuf<BL_FLOAT> *ioNoiseMagns)
+DenoiserProcessor::Threshold(vector<float> *ioSigMagns,
+                             vector<float> *ioNoiseMagns)
 {
-    if (mProcessNoise)
+    if (ioSigMagns->size() != ioNoiseMagns->size())
         return;
     
-    if (ioSigMagns->GetSize() != ioNoiseMagns->GetSize())
-        return;
-    
-    WDL_TypedBuf<BL_FLOAT> &thrsNoiseMagns = mTmpBuf19;
+    vector<float> &thrsNoiseMagns = _tmpBuf19;
     thrsNoiseMagns = *ioNoiseMagns;
     
-    DenoiserObj::ApplyThresholdToNoiseCurve(&thrsNoiseMagns, mThreshold); // TODO DENOISER OPTIM this consumes a lot
+    DenoiserProcessor::ApplyThresholdToNoiseCurve(&thrsNoiseMagns, _threshold);
     
     // Threshold, soft elbow
-    for (int i = 0; i < ioSigMagns->GetSize(); i++)
+    for (int i = 0; i < ioSigMagns->size(); i++)
     {
-        BL_FLOAT magn = ioSigMagns->Get()[i];
-        BL_FLOAT noise = thrsNoiseMagns.Get()[i];
+        float magn = (*ioSigMagns)[i];
+        float noise = thrsNoiseMagns[i];
         
-        BL_FLOAT newMagn = (magn + 1.0)/(noise + 1.0) - 1.0;
+        float newMagn = (magn + 1.0)/(noise + 1.0) - 1.0;
         if (newMagn < 0.0)
             newMagn = 0.0;
         
-        ioSigMagns->Get()[i] = newMagn;
+        (*ioSigMagns)[i] = newMagn;
         
-        BL_FLOAT newNoise = magn - newMagn;
+        float newNoise = magn - newMagn;
         if (newNoise < 0.0)
             newNoise = 0.0;
         
-        ioNoiseMagns->Get()[i] = newNoise;
+        (*ioNoiseMagns)[i] = newNoise;
     }
 }
 
 void
-DenoiserObj::ApplyThresholdToNoiseCurve(WDL_TypedBuf<BL_FLOAT> *ioNoiseCurve,
-                                        BL_FLOAT threshold)
+DenoiserProcessor::ApplyThresholdToNoiseCurve(vector<float> *ioNoiseCurve,
+                                              float threshold)
 {
     // Apply threshold not in dB
-    BL_FLOAT thrs0 = threshold*THRESHOLD_COEFF;
-    for (int i = 0; i < ioNoiseCurve->GetSize(); i++)
+    float thrs0 = threshold*THRESHOLD_COEFF;
+    for (int i = 0; i < ioNoiseCurve->size(); i++)
     {
-        BL_FLOAT sample = ioNoiseCurve->Get()[i];
+        float sample = (*ioNoiseCurve)[i];
         
         // NOTE: We don't have the problem of the flat curve at
         // the end of the graph with high sample rates
         
         sample *= thrs0;
         
-        ioNoiseCurve->Get()[i] = sample;
+        (*ioNoiseCurve)[i] = sample;
     }
 }
 
-#if USE_VARIABLE_BUFFER_SIZE
 void
-DenoiserObj::ResampleNoisePattern()
+DenoiserProcessor::ResampleNoisePattern()
 {
-    if (mProcessNoise)
-        return;
+    _noisePattern = _nativeNoisePattern;
     
-    int bufferSize = BLUtilsPlug::PlugComputeBufferSize(DENOISER_BUFFER_SIZE,
-                                                        mSampleRate);
-    int currentNoisePatternSize = bufferSize/2;
-    
-    // Explanation: 1 fft bin has the same value for 44100Hz + buffer size 2048
-    // as with 88200Hz + buffersize 4096 !
-    // At 88200Hz, we can got to a frequency of 44100Hz at the maximum
-    // (comparead to maximum 22050Hz at 44100Hz)
-    mNoisePattern = mNativeNoisePattern;
-    
-    BLUtils::ResizeFillZeros(&mNoisePattern, currentNoisePatternSize);
+    Utils::resizeFillZeros(&_noisePattern, _bufferSize);
 }
-#endif
+
+void
+DenoiserProcessor::MakeHanningKernel2D(int size, vector<float> *result)
+{
+    result->resize(size*size);
+    
+    float *hanning = result->data();
+    
+	float maxDist = size/2 + 1;
+    
+    for (int j = -size/2; j <= size/2; j++)
+        for (int i = -size/2; i <= size/2; i++)
+        {
+            float dist = std::sqrt((float)(i*i + j*j));
+            if (dist > maxDist)
+                continue;
+            
+            float val = std::cos((float)(0.5*M_PI * dist/maxDist));
+            hanning[(i + size/2) + (j + size/2)*size] = val;
+        }
+}

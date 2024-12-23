@@ -19,34 +19,34 @@
 class WienerSoftMasking
 {
 public:
-    WienerSoftMasking(int bufferSize, int overlapping, int historySize);
+    WienerSoftMasking(int bufferSize, int overlap, int historySize);
     
     virtual ~WienerSoftMasking();
 
-    void Reset();
+    void reset();
     
-    void Reset(int bufferSize, int overlapping);
+    void reset(int bufferSize, int overlapping);
     
-    void SetHistorySize(int size);
+    void setHistorySize(int size);
     
-    int GetHistorySize();
+    int getHistorySize();
     
-    void SetProcessingEnabled(bool flag);
-    bool IsProcessingEnabled();
+    void setProcessingEnabled(bool flag);
+    bool isProcessingEnabled();
 
-    int GetLatency();
+    int getLatency();
     
     // Returns the centered data value in ioSum
     // Returns the centered masked data in ioMaskedResult0
     // Return sum - maskedResult0 in  ioMaskedResult1 if required
-    void ProcessCentered(WDL_TypedBuf<WDL_FFT_COMPLEX> *ioSum,
-                         const WDL_TypedBuf<BL_FLOAT> &mask,
-                         WDL_TypedBuf<WDL_FFT_COMPLEX> *ioMaskedResult0,
-                         WDL_TypedBuf<WDL_FFT_COMPLEX> *ioMaskedResult1 = NULL);
+    void processCentered(vector<complex> *ioSum,
+                         const vector<float> &mask,
+                         vector<complex> *ioMaskedResult0,
+                         vector<complex> *ioMaskedResult1 = NULL);
                
 protected:
-    void ComputeSigma2(WDL_TypedBuf<WDL_FFT_COMPLEX> *outSigma2Mask0,
-                       WDL_TypedBuf<WDL_FFT_COMPLEX> *outSigma2Mask1);
+    void computeSigma2(vector<complex> *outSigma2Mask0,
+                       vector<complex> *outSigma2Mask1);
                        
     //
     class HistoryLine
@@ -57,42 +57,41 @@ protected:
 
         virtual ~HistoryLine();
 
-        void Resize(int size);
-        int GetSize();
+        void resize(int size);
+        int getSize();
         
     public:
-        WDL_TypedBuf<WDL_FFT_COMPLEX> mSum;
+        vector<complex> mSum;
         
-        WDL_TypedBuf<WDL_FFT_COMPLEX> mMasked0Square;
-        WDL_TypedBuf<WDL_FFT_COMPLEX> mMasked1Square;
+        vector<complex> mMasked0Square;
+        vector<complex> mMasked1Square;
 
     protected:
-        int mSize;
+        int _size;
     };
 
     //
-    int mBufferSize;
-    int mOverlapping;
+    int _bufferSize;
+    int _overlap;
     
-    int mHistorySize;
+    int _historySize;
     
-    bl_queue<HistoryLine> mHistory;
+    bl_queue<HistoryLine> _history;
     
-    //
-    WDL_TypedBuf<BL_FLOAT> mWindow;
+    vector<float> _window;
     
-    bool mProcessingEnabled;
+    bool _processingEnabled;
 
 private:
-    HistoryLine mTmpHistoryLine;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf0;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf1;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf2;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf3;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf4;
-    WDL_TypedBuf<WDL_FFT_COMPLEX> mTmpBuf5;
-    WDL_TypedBuf<BL_FLOAT> mTmpBuf6;
-    WDL_TypedBuf<BL_FLOAT> mTmpBuf7;
+    HistoryLine _tmpHistoryLine;
+    vector<complex> _tmpBuf0;
+    vector<complex> _tmpBuf1;
+    vector<complex> _tmpBuf2;
+    vector<complex> _tmpBuf3;
+    vector<complex> _tmpBuf4;
+    vector<complex> _tmpBuf5;
+    vector<float> _tmpBuf6;
+    vector<float> _tmpBuf7;
 };
 
 #endif
