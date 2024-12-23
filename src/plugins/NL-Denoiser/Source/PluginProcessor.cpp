@@ -1,6 +1,13 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#define OVERLAP_0 4
+#define OVERLAP_1 8
+#define OVERLAP_2 16
+#define OVERLAP_3 32
+
+#define FFT_SIZE_COEFF 23
+
 NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -28,6 +35,11 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
 
 NLDenoiserAudioProcessor::~NLDenoiserAudioProcessor()
 {
+    for (int i = 0; i < _overlapAdds.size(); i++)
+        delete _overlapAdds[i];
+
+    for (int i = 0; i < _processors.size(); i++)
+        delete _processors[i];
 }
 
 const juce::String NLDenoiserAudioProcessor::getName() const
@@ -78,23 +90,60 @@ int NLDenoiserAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void NLDenoiserAudioProcessor::setCurrentProgram (int index)
+void NLDenoiserAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String NLDenoiserAudioProcessor::getProgramName (int index)
+const juce::String NLDenoiserAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void NLDenoiserAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void NLDenoiserAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
-void NLDenoiserAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    int numInputChannels = getTotalNumInputChannels();
+    
+    int fftSize = juce::nextPowerOfTwo(sampleRate*FFT_SIZE_COEFF);
+
+    auto quality = _parameters.getRawParameterValue("quality")->load();
+    int overlap = getOverlap(quality);
+
+    auto threshold = _parameters.getRawParameterValue("threshold")->load();
+    
+    if (_overlapAdds.size() != numInputChannels)
+    {
+        for (int i = 0; i < _overlapAdds.size(); i++)
+            delete _overlapAdds[i];
+
+        for (int i = 0; i < _processors.size(); i++)
+            delete _processors[i];
+
+        _overlapAdds.resize(numInputChannels);
+        _processors.resize(numInputChannels);
+
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            DenoiserProcessor *processor = new DenoiserProcessor(fftSize/2 + 1, overlap, threshold);
+            _processors->push_back(processor);
+            
+            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
+            overlapAdd->addProcessor(processor);
+            _overlapAdds->push_back(overlapAdd);
+        }
+    }
+
+    for (int i = 0; i < _overlapAdds.size(); i++)
+    {
+        _overlapAdds[i]->setFftSize(fftSize);
+        _overlapAdds[i]->setOverlap(overlap);
+    }
+
+    for (int i = 0; i < _processors.size(); i++)
+        _processors[i]->reset(fftSize/2 + 1, overlap, sampleRate);
 }
 
 void NLDenoiserAudioProcessor::releaseResources()
@@ -104,7 +153,7 @@ void NLDenoiserAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool NLDenoiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool NLDenoiserAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -128,8 +177,8 @@ bool NLDenoiserAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 #endif
 }
 #endif
-
-void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+    
+void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -154,12 +203,41 @@ void NLDenoiserAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
     auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
     auto quality = _parameters.getRawParameterValue("quality")->load();
 
-    // Use these values in your processing algorithm...
+    // Set parameters
+    for (int i = 0; i < _processors.size(); i++)
+    {
+        _processors[i]->setThreshold(threshold);
+        _processors[i]->setResNoiseThrs(residualNoise);
+        _processors[i]->setBuildingNoiseStatistics(learnMode);
+        _processors[i]->setAutoResNoise(softDenoise);
+
+        if (quality != _prevQualityParam)
+        {
+            _prevQualityParam = quality;
+            
+            int overlap = getOverlap(quality);
+
+            _processors[i]->setOverlap(overlap);
+            _overlapAdds[i]->setOverlap(overlap);
+        }
+    }
+    
+    // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
+        vector<float> vecBuf;
+        vecBuf.resize(buffer.getNumOfSamples());
+        memcpy(vecBuf.data(), buffer.getNumOfSamples()*sizeof(float));
+        
+        _overlapAdds[channel]->feed(vecBuf);
+
+        vector<float> resBuf;
+        _overlapAdds[channel]->getOutSamples(&resBuf);
+        _overlapAdds[channel]->flushOutSamples(resBuf.size());
+
+        memcpy(channelData, resBuf.data(), buffer.getNumOfSamples()*sizeof(float));
     }
 }
 
@@ -173,16 +251,42 @@ juce::AudioProcessorEditor* NLDenoiserAudioProcessor::createEditor()
     return new NLDenoiserAudioProcessorEditor (*this);
 }
 
-void NLDenoiserAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void NLDenoiserAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     juce::MemoryOutputStream stream(destData, true);
     _parameters.state.writeToStream(stream);
 }
 
-void NLDenoiserAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void NLDenoiserAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
     _parameters.state = juce::ValueTree::readFromStream(stream);
+}
+
+int
+NLDenoiserAudioProcessor::getOverlap(int quality)
+{
+    switch(quality)
+    {
+        case 0:
+            return OVERLAP_0;
+            break;
+            
+        case 1:
+            return OVERLAP_1;
+            break;
+            
+        case 2:
+            return OVERLAP_2;
+            break;
+
+        case 3:
+            return OVERLAP_3;
+            break;
+            
+        default:
+            return OVERLAP_0;
+    }
 }
 
 // This creates new instances of the plugin..

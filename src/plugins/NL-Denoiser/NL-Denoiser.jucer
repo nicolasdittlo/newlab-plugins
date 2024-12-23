@@ -30,8 +30,6 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
-      <FILE id="ixj6Vy" name="#DenoiserProcessor.cpp#" compile="0" resource="1"
-            file="../../libs/newlab-lib/#DenoiserProcessor.cpp#"/>
       <FILE id="ofQqTx" name="BitmapCheckBox.h" compile="0" resource="0"
             file="../../libs/newlab-lib/BitmapCheckBox.h"/>
       <FILE id="M3SesC" name="CircularBuffer.h" compile="0" resource="0"
@@ -66,6 +64,8 @@
             file="../../libs/newlab-lib/WienerSoftMasking.cpp"/>
       <FILE id="PQ18MU" name="WienerSoftMasking.h" compile="0" resource="0"
             file="../../libs/newlab-lib/WienerSoftMasking.h"/>
+      <FILE id="aMfc9m" name="Window.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Window.cpp"/>
+      <FILE id="Adf9cQ" name="Window.h" compile="0" resource="0" file="../../libs/newlab-lib/Window.h"/>
     </GROUP>
     <GROUP id="{AECB34A8-0352-31FF-AFC7-C2B6F6F36B15}" name="Source">
       <FILE id="bEh6n8" name="PluginProcessor.cpp" compile="1" resource="0"

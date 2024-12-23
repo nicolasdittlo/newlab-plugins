@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 
+#include <OverlapAdd.h>
+
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -14,7 +16,7 @@ public:
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
 #endif
-
+        
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::AudioProcessorEditor* createEditor() override;
@@ -40,5 +42,12 @@ public:
     juce::AudioProcessorValueTreeState _parameters;
     
 private:
+    int getOverlap(int quality);
+    
+    vector<OverlapAdd *> _overlapAdds;
+    vector<DenoiserProcessor *> _processors;
+
+    int _prevQualityParam = 0;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessor)
 };

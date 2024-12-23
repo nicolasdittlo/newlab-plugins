@@ -11,7 +11,7 @@ public:
     virtual ~OverlapAddProcessor();
     
     virtual void processFFT(vector<complex> *compBuf);
-    virtual void processOutSamples(vector<float> *buff);
+    virtual void processOutSamples(vector<float> *buf);
 };
 
 class OverlapAdd
@@ -21,10 +21,11 @@ public:
     virtual ~OverlapAdd();
 
     void setFftSize(int fftSize);
+    void setOverlap(int overlap);
     
     void addProcessor(OverlapAddProcessor *processor);
     
-    void feed(const vector<float> &samples, int blockSize, int nChan);
+    void feed(const vector<float> &samples);
 
     void getOutSamples(vector<float> *samples);
     void clearOutSamples();
@@ -42,8 +43,8 @@ protected:
     bool _fftFlag;
     bool _ifftFlag;
     
-    CircularBuffer<float> _circSampBufsIn[2];
-    CircularBuffer<float> _circSampBufsOut[2];
+    CircularBuffer<float> _circSampBufsIn;
+    CircularBuffer<float> _circSampBufsOut;
     
     vector<complex> _tmpSampBufIn;
     vector<complex> _tmpSampBufOut;
