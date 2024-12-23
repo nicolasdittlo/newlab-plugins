@@ -7,7 +7,7 @@
               pluginFormats="buildAAX,buildAU,buildVST,buildVST3" pluginCharacteristicsValue="pluginAAXDisableBypass,pluginAAXDisableMultiMono"
               pluginDesc="Noise removal plugin" pluginManufacturerCode="Nlpl"
               pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
-              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib"
+              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib&#10;../../../../libs/fftw-3.3.10/api"
               defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1">
   <MAINGROUP id="LE9YKO" name="NL-Denoiser">
     <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
@@ -97,7 +97,8 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"
                JUCE_DSP_USE_STATIC_FFTW="1"/>
   <EXPORTFORMATS>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="fftw3f"
+                extraLinkerFlags="-L../../../../libs/fftw-3.3.10/build-linux&#10;">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="NL-Denoiser"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="NL-Denoiser"/>

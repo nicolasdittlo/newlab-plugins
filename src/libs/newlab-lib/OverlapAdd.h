@@ -10,7 +10,7 @@ public:
     OverlapAddProcessor();
     virtual ~OverlapAddProcessor();
     
-    virtual void processFFT(vector<complex> *compBuf);
+    virtual void processFFT(vector<complex<float> > *compBuf);
     virtual void processOutSamples(vector<float> *buf);
 };
 
@@ -32,7 +32,7 @@ public:
     void flushOutSamples(int numToFlush);
     
 protected:
-    virtual void processFFT(vector<complex> *compBuf);
+    virtual void processFFT(vector<complex<float> > *compBuf);
     virtual void processOutSamples(vector<float> *buff);
 
     vector<OverlapAddProcessor *> _processors;
@@ -46,9 +46,9 @@ protected:
     CircularBuffer<float> _circSampBufsIn;
     CircularBuffer<float> _circSampBufsOut;
     
-    vector<complex> _tmpSampBufIn;
-    vector<complex> _tmpSampBufOut;
-    vector<complex> _tmpCompBufOut;
+    vector<float> _tmpSampBufIn;
+    vector<float> _tmpSampBufOut;
+    vector<complex<float> > _tmpCompBufOut;
 
     vector<float> _tmpSynthZeroBuf;
     

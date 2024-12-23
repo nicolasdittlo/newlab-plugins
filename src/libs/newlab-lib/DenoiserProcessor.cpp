@@ -13,7 +13,7 @@
 // Process the line #2, so we are in the center of the kernel window
 #define RES_NOISE_LINE_NUM 2
 
-#define NOISE_PATTERN_SMOOTH_COEFF 0.99
+#define NOISE_CURVE_SMOOTH_COEFF 0.99
 
 #define DEFAULT_VALUE_SIGNAL 0.0
 
@@ -27,7 +27,7 @@
 
 
 DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshold)
-  _threshold(threshold)
+: _threshold(threshold)
 {
     _bufferSize = bufferSize;
     _overlap = overlap;
@@ -49,7 +49,7 @@ DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshol
                                          SOFT_MASKING_HISTO_SIZE);
 #endif
     
-    ResetResNoiseHistory();
+    resetResNoiseHistory();
 }
 
 DenoiserProcessor::~DenoiserProcessor()
@@ -67,13 +67,21 @@ DenoiserProcessor::reset(int bufferSize, int overlap, float sampleRate)
     _overlap = overlap;
     _sampleRate = sampleRate;
     
-    ResampleNoisePattern();
+    resampleNoiseCurve();
     
-    ResetResNoiseHistory();
+    resetResNoiseHistory();
     
 #if USE_AUTO_RES_NOISE
-    _softMasking->Reset(bufferSize, overlap);
+    _softMasking->reset(bufferSize, overlap);
 #endif
+}
+
+void
+DenoiserProcessor::setOverlap(int overlap)
+{
+    _overlap = overlap;
+
+    reset(_bufferSize, _overlap, _sampleRate);
 }
 
 void
@@ -83,31 +91,31 @@ DenoiserProcessor::setThreshold(float threshold)
 }
 
 void
-DenoiserProcessor::processFft(vector<complex<float> > *ioBuffer)
+DenoiserProcessor::processFFT(vector<complex<float> > *ioBuffer)
 {
     // Add noise statistics
     if (_isBuildingNoiseStatistics)
-        AddNoiseStatistics(ioBuffer);
+        addNoiseStatistics(*ioBuffer);
     
     vector<float> &sigMagns = _tmpBuf0;
     vector<float> &sigPhases = _tmpBuf1;
-    Utils::complexToMagnPhase(&sigMagns, &sigPhases, ioBuffer);
+    Utils::complexToMagnPhase(&sigMagns, &sigPhases, *ioBuffer);
     
     _signalBuf = sigMagns;
     
     vector<float> &noiseMagns = _tmpBuf2;
-    noiseMagns = _noisePattern;
+    noiseMagns = _noiseCurve;
 
     if (noiseMagns.size() != sigMagns.size())
-        // We havn't defined a noise pattern yet
+        // We havn't defined a noise curve yet
     {
         // Define noise magns as 0, but with the good size
         noiseMagns.resize(sigMagns.size());
         Utils::fillZero(&noiseMagns);
     }
     
-    if (!_isBuildingNoiseStatistics && (_noisePattern.size() == ioBuffer.size()))
-        Threshold(&sigMagns, &noiseMagns);
+    if (!_isBuildingNoiseStatistics && (_noiseCurve.size() == ioBuffer->size()))
+        threshold(&sigMagns, &noiseMagns);
     
 #if USE_RESIDUAL_DENOISE
     // Keep the possibility to not use residual denoise
@@ -116,7 +124,7 @@ DenoiserProcessor::processFft(vector<complex<float> > *ioBuffer)
     // there to keep the synchronization
     if (!_isBuildingNoiseStatistics)
         // To eliminate residual noise
-        ResidualDenoise(&sigMagns, &noiseMagns, &sigPhases);
+        residualDenoise(&sigMagns, &noiseMagns, &sigPhases);
 #endif
     
     vector<float> &noisePhases = _tmpBuf3;
@@ -124,10 +132,10 @@ DenoiserProcessor::processFft(vector<complex<float> > *ioBuffer)
     
 #if USE_AUTO_RES_NOISE
     if (!_isBuildingNoiseStatistics)
-        AutoResidualDenoise(&sigMagns, &sigPhases);
+        autoResidualDenoise(&sigMagns, &sigPhases, noiseMagns);
 #endif
        
-    BLUtils::magnPhaseToComplex(&ioBuffer, sigMagns, sigPhases);
+    Utils::magnPhaseToComplex(ioBuffer, sigMagns, sigPhases);
     
     _noiseBuf = noiseMagns;
 }
@@ -149,9 +157,9 @@ DenoiserProcessor::setBuildingNoiseStatistics(bool flag)
 {    
     if (flag && !_isBuildingNoiseStatistics)
     {
-        _noisePattern.resize(_bufferSize);
-        for (int i = 0; i < _noisePattern.size(); i++)
-            _noisePattern[i] = DEFAULT_VALUE_SIGNAL;
+        _noiseCurve.resize(_bufferSize);
+        for (int i = 0; i < _noiseCurve.size(); i++)
+            _noiseCurve[i] = DEFAULT_VALUE_SIGNAL;
     }
 
     _isBuildingNoiseStatistics = flag;
@@ -160,48 +168,48 @@ DenoiserProcessor::setBuildingNoiseStatistics(bool flag)
 void
 DenoiserProcessor::addNoiseStatistics(const vector<complex<float> > &buf)
 {
-    // Add the sample to temp noise pattern
-    vector<float> &noisePattern = _tmpBuf4;
-    noisePattern.Resize(buf.size());
+    // Add the sample to temp noise curve
+    vector<float> &noiseCurve = _tmpBuf4;
+    noiseCurve.resize(buf.size());
     
     for (int i = 0; i < buf.size(); i++)
     {
         float magn = abs(buf[i]);
         
-        noisePattern[i] = magn;
+        noiseCurve[i] = magn;
     }
 
-    for (int i = 0; i < _noisePattern.size(); i++)
-        _noisePattern[i] =
-            NOISE_PATTERN_SMOOTH_COEFF*_noisePattern[i] + (1.0 - NOISE_PATTERN_SMOOTH_COEFF)*noisePattern[i];
+    for (int i = 0; i < _noiseCurve.size(); i++)
+        _noiseCurve[i] =
+            NOISE_CURVE_SMOOTH_COEFF*_noiseCurve[i] + (1.0 - NOISE_CURVE_SMOOTH_COEFF)*noiseCurve[i];
     
-    _nativeNoisePattern = _noisePattern;
+    _nativeNoiseCurve = _noiseCurve;
 }
 
 void
-DenoiserProcessor::getNoisePattern(vector<float> *noisePattern)
+DenoiserProcessor::getNoiseCurve(vector<float> *noiseCurve)
 {
-    *noisePattern = _noisePattern;
+    *noiseCurve = _noiseCurve;
 }
 
 void
-DenoiserProcessor::setNoisePattern(const vector<float> &noisePattern)
+DenoiserProcessor::setNoiseCurve(const vector<float> &noiseCurve)
 {
-    _noisePattern = noisePattern;
+    _noiseCurve = noiseCurve;
 }
 
 void
-DenoiserProcessor::getNativeNoisePattern(vector<float> *noisePattern)
+DenoiserProcessor::getNativeNoiseCurve(vector<float> *noiseCurve)
 {
-    *noisePattern = _nativeNoisePattern;
+    *noiseCurve = _nativeNoiseCurve;
 }
 
 void
-DenoiserProcessor::setNativeNoisePattern(const vector<float> &noisePattern)
+DenoiserProcessor::setNativeNoiseCurve(const vector<float> &noiseCurve)
 {
-    _nativeNoisePattern = noisePattern;
+    _nativeNoiseCurve = noiseCurve;
     
-    ResampleNoisePattern();
+    resampleNoiseCurve();
 }
 
 void
@@ -217,7 +225,7 @@ DenoiserProcessor::setAutoResNoise(bool flag)
     _autoResNoise = flag;
     
     if (_softMasking != NULL)
-        _softMasking->SetProcessingEnabled(_autoResNoise);
+        _softMasking->setProcessingEnabled(_autoResNoise);
 }
 #endif
 
@@ -230,7 +238,7 @@ DenoiserProcessor::getLatency()
     if (_autoResNoise)
     {
         if (_softMasking != NULL)
-            latency = _softMasking->GetLatency();
+            latency = _softMasking->getLatency();
     }
     else // Res noise
         latency = RES_NOISE_LINE_NUM*(_bufferSize - 1)*2/_overlap;
@@ -251,7 +259,7 @@ DenoiserProcessor::resetResNoiseHistory()
     _historyPhases.clear();
     
     vector<float> &zeroBuf = _tmpBuf5;
-    zeroBuf.Resize(_bufferSize);
+    zeroBuf.resize(_bufferSize);
     Utils::fillZero(&zeroBuf);
     
     for (int i = 0; i < RES_NOISE_HISTORY_SIZE; i++)
@@ -330,6 +338,7 @@ DenoiserProcessor::residualDenoise(vector<float> *signalBuffer,
     // If auto res noise, keep spectrogram history, but do not process
     if (_autoResNoise)        
         return;
+#endif
     
     // Prepare for non filtering
     int width = signalBuffer->size();
@@ -344,10 +353,10 @@ DenoiserProcessor::residualDenoise(vector<float> *signalBuffer,
     
     // Prepare the output buffer
     if (_outputImageFilterChunk.size() != width*height)
-        _outputImageFilterChunk.Resize(width*height);
+        _outputImageFilterChunk.resize(width*height);
     
-    float *input = _inputImageFilterChunk;
-    float *output = _outputImageFilterChunk;
+    float *input = _inputImageFilterChunk.data();
+    float *output = _outputImageFilterChunk.data();
     
     // Just in case
     for (int i = 0; i < width*height; i++)
@@ -358,7 +367,7 @@ DenoiserProcessor::residualDenoise(vector<float> *signalBuffer,
     int winSize = 5;
     
     if (_hanningKernel.size() != winSize*winSize)
-        MakeHanningKernel2D(winSize, &_hanningKernel);
+        makeHanningKernel2D(winSize, &_hanningKernel);
     
     noiseFilter(input, output, width, height, winSize, &_hanningKernel,
                 RES_NOISE_LINE_NUM, _resNoiseThrs);
@@ -381,7 +390,8 @@ DenoiserProcessor::residualDenoise(vector<float> *signalBuffer,
 
 void
 DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
-                                       vector<float> *ioSignalPhases)
+                                       vector<float> *ioSignalPhases,
+                                       const vector<float> &noiseMagns)
 {    
     // Recompute the complex buffer here
     // This is more safe than using the original comp buffer,
@@ -392,7 +402,7 @@ DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
     // Reconstruct the original signal (magns)
     vector<float> &originMagns = _tmpBuf6;
     originMagns = *ioSignalMagns;
-    Utils::addBuffer(&originMagns, *ioNoiseMagns);
+    Utils::addBuffers(&originMagns, noiseMagns);
     
     // Get the original complex buffer
     vector<complex<float> > &compBufferOrig = _tmpBuf7;
@@ -402,12 +412,12 @@ DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
 
     // Signal hard mask
     vector<float> &signalMask = _tmpBuf10;
-    signalMask.Resize(ioSignalMagns->size());
+    signalMask.resize(ioSignalMagns->size());
 
     int signalMaskSize = signalMask.size();
     float *ioSignalMagnsData = ioSignalMagns->data();
-    float *ioNoiseMagnsData = ioNoiseMagns->data();
-    float *signalMaskData = signalMask;
+    const float *ioNoiseMagnsData = noiseMagns.data();
+    float *signalMaskData = signalMask.data();
     
     for (int i = 0; i < signalMaskSize; i++)
     {
@@ -433,7 +443,7 @@ DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
     
     // Signal soft masking
     vector<complex<float> > &softMaskedSignal = _tmpBuf22;
-    _softMasking->ProcessCentered(&compBufferOrig,
+    _softMasking->processCentered(&compBufferOrig,
                                   signalMask,
                                   &softMaskedSignal);
 
@@ -446,7 +456,6 @@ DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
     Utils::complexToMagnPhase(ioSignalMagns, &signalPhases, softMaskedSignal);
     
     *ioSignalPhases = signalPhases;
-    *ioNoisePhases = noisePhases;
 }
 
 void
@@ -459,9 +468,9 @@ DenoiserProcessor::noiseFilter(float *input, float *output, int width, int heigh
 
     // Optimization: precompute db
     vector<float> &inputDB = _tmpBuf24;
-    inputDB.Resize(width*height);
-    Utils::ampToDB(inputDB, input, inputDB.size(), 1e-15, (float)DENOISER_MIN_DB);
-    float *inputDBData = inputDB;
+    inputDB.resize(width*height);
+    Utils::ampToDB(inputDB.data(), input, inputDB.size(), 1e-15, (float)DENOISER_MIN_DB);
+    float *inputDBData = inputDB.data();
     
     // Process only one line (for optimization)
     for (int j = lineNum; j < lineNum + 1; j++)
@@ -525,14 +534,14 @@ DenoiserProcessor::noiseFilter(float *input, float *output, int width, int heigh
 }
 
 void
-DenoiserProcessor::samplesHistoryToImage(const bl_queue<vector<float> > *hist,
+DenoiserProcessor::samplesHistoryToImage(const nl_queue<vector<float> > *hist,
                                          vector<float> *imageChunk)
 {
     // Get the image dimensions
     int height = (int)hist->size();
     if (height < 1)
     {
-        imageChunk->Resize(0);
+        imageChunk->resize(0);
         
         return;
     }
@@ -569,8 +578,8 @@ DenoiserProcessor::imageLineToSamples(const vector<float> *image,
                                       int width,
                                       int height,
                                       int lineNum,
-                                      const bl_queue<vector<float> > *hist,
-                                      const bl_queue<vector<float> > *phaseHist,
+                                      const nl_queue<vector<float> > *hist,
+                                      const nl_queue<vector<float> > *phaseHist,
                                       vector<float> *resultBuf,
                                       vector<float> *resultPhases)
 {
@@ -631,7 +640,7 @@ DenoiserProcessor::threshold(vector<float> *ioSigMagns,
     vector<float> &thrsNoiseMagns = _tmpBuf19;
     thrsNoiseMagns = *ioNoiseMagns;
     
-    ApplyThresholdValueToNoiseCurve(&thrsNoiseMagns, _threshold);
+    applyThresholdValueToNoiseCurve(&thrsNoiseMagns, _threshold);
     
     // Threshold, soft elbow
     for (int i = 0; i < ioSigMagns->size(); i++)
@@ -669,11 +678,11 @@ DenoiserProcessor::applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, 
 }
 
 void
-DenoiserProcessor::resampleNoisePattern()
+DenoiserProcessor::resampleNoiseCurve()
 {
-    _noisePattern = _nativeNoisePattern;
+    _noiseCurve = _nativeNoiseCurve;
     
-    Utils::resizeFillZeros(&_noisePattern, _bufferSize);
+    Utils::resizeFillZeros(&_noiseCurve, _bufferSize);
 }
 
 void

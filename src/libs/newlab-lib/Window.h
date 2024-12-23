@@ -1,5 +1,8 @@
-#ifnef WINDOW_H
+#ifndef WINDOW_H
 #define WINDOW_H
+
+#include <vector>
+using namespace std;
 
 class Window
 {

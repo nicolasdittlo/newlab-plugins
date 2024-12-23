@@ -29,12 +29,12 @@ WienerSoftMasking::HistoryLine::resize(int size)
     _size = size;
     
     _sum.resize(_size);
-    _masked0Square.Resize(_size);
-    _masked1Square.Resize(_size);
+    _masked0Square.resize(_size);
+    _masked1Square.resize(_size);
 }
 
 int
-WienerSoftMasking::HistoryLine::GetSize()
+WienerSoftMasking::HistoryLine::getSize()
 {
     return _size;
 }
@@ -118,10 +118,10 @@ WienerSoftMasking::getLatency()
 // output = input * SM
 //
 void
-WienerSoftMasking::processCentered(vector<complex> *ioSum,
+WienerSoftMasking::processCentered(vector<complex<float> > *ioSum,
                                    const vector<float> &mask,
-                                   vector<complex> *ioMaskedResult0,
-                                   vector<complex> *ioMaskedResult1)
+                                   vector<complex<float> > *ioMaskedResult0,
+                                   vector<complex<float> > *ioMaskedResult1)
 {
 
     HistoryLine &newHistoLine = _tmpHistoryLine;
@@ -135,13 +135,13 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
     {
         // masked0 = sum*mask
         newHistoLine._masked0Square = *ioSum;
-        Utils::MultBuffers(&newHistoLine._masked0Square, mask);
+        Utils::multBuffers(&newHistoLine._masked0Square, mask);
 
         // maskd1 = sum - masked0
         // same as: masked1 = sum*(1 - mask)
         newHistoLine._masked1Square = *ioSum;
-        BLUtils::SubstractBuffers(&newHistoLine._masked1Square,
-                                 newHistoLine._masked0Square);
+        Utils::substractBuffers(&newHistoLine._masked1Square,
+                                newHistoLine._masked0Square);
         
         // See: https://hal.inria.fr/hal-01881425/document
         // |x|^2
@@ -153,10 +153,10 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
     }
     else // Not enabled, fill history with zeros
     {
-        newHistoLine._masked0Square.Resize(ioSum->GetSize());
+        newHistoLine._masked0Square.resize(ioSum->size());
         Utils::fillZero(&newHistoLine._masked0Square);
         
-        newHistoLine._masked1Square.Resize(ioSum->GetSize());
+        newHistoLine._masked1Square.resize(ioSum->size());
         Utils::fillZero(&newHistoLine._masked1Square);
     }
     
@@ -187,7 +187,7 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
             return;
 
         vector<complex<float> > &softMask0 = _tmpBuf4;
-        softMask0.resize(_history[0].size());
+        softMask0.resize(_history[0].getSize());
 
         int softMask0Size = softMask0.size();
         complex<float> *softMask0Data = softMask0.data();
@@ -226,7 +226,7 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
         
         // Apply mask 0
         *ioMaskedResult0 = _history[_history.size()/2]._sum;
-        Utils::MultBuffers(ioMaskedResult0, softMask0);
+        Utils::multBuffers(ioMaskedResult0, softMask0);
 
         // Mask 1
         if (ioMaskedResult1 != NULL)
@@ -295,19 +295,19 @@ WienerSoftMasking::computeSigma2(vector<complex<float> > *outSigma2Mask0,
     if (_history.empty())
         return;
     
-    outSigma2Mask0->resize(_history[0].GetSize());
-    outSigma2Mask1->resize(_history[0].GetSize());
+    outSigma2Mask0->resize(_history[0].getSize());
+    outSigma2Mask1->resize(_history[0].getSize());
     
     // Result sum 0
     vector<complex<float> > &currentSum0 = _tmpBuf2;
-    currentSum0.resize(_history[0].size());
+    currentSum0.resize(_history[0].getSize());
     Utils::fillZero(&currentSum0);
 
     complex<float> *currentSum0Data = currentSum0.data();
     
     // Result sum 1
     vector<complex<float> > &currentSum1 = _tmpBuf3;
-    currentSum1.resize(_history[0].size());
+    currentSum1.resize(_history[0].getSize());
     Utils::fillZero(&currentSum1);
 
     complex<float> *currentSum1Data = currentSum1.data();
@@ -319,29 +319,28 @@ WienerSoftMasking::computeSigma2(vector<complex<float> > *outSigma2Mask0,
         Window::makeWindowHann(&_window);
     }
     
-    float sumProba = Utils::ComputeSum(mWindow);
+    float sumProba = Utils::computeSum(_window);
     float sumProbaInv = 0.0;
     if (sumProba > 1e-15)
         sumProbaInv = 1.0/sumProba;
     
-    //
     for (int j = 0; j < _history.size(); j++)
     {
         const HistoryLine &line = _history[j];
         
         const vector<complex<float> > &line0 = line._masked0Square;
         int line0Size = line0.size();
-        complex<float> *line0Data = line0.data();
+        const complex<float> *line0Data = line0.data();
         
         const vector<complex<float> > &line1 = line._masked1Square;
-        complex<float> *line1Data = line1.data();
+        const complex<float> *line1Data = line1.data();
         
         float p = _window[j];
         
         for (int i = 0; i < line0Size; i++)
         {
             complex<float> &expect0 = currentSum0Data[i];
-            const comples &val0 = line0Data[i];
+            const complex<float> &val0 = line0Data[i];
             expect0 += p * val0;
 
             complex<float> &expect1 = currentSum1Data[i];

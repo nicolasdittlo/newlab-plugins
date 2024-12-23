@@ -20,14 +20,23 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
                        ),
       _parameters(*this, nullptr, "PARAMETERS",
                  {
-                     std::make_unique<juce::AudioParameterFloat>("ratio", "Ratio", 0.0f, 100.0f, 100.0f),
-                     std::make_unique<juce::AudioParameterFloat>("threshold", "Threshold", 0.0f, 100.0f, 0.1f),
-                     std::make_unique<juce::AudioParameterFloat>("transientBoost", "Transient Boost", 0.0f, 100.0f, 0.0f),
-                     std::make_unique<juce::AudioParameterFloat>("residualNoise", "Residual Noise", 0.0f, 100.0f, 0.0f),
-                     std::make_unique<juce::AudioParameterBool>("learnModeParamID", "Learn Mode", false),
-                     std::make_unique<juce::AudioParameterBool>("noiseOnlyParamID", "Noise Only", false),
-                     std::make_unique<juce::AudioParameterBool>("softDenoiseParamID", "Soft Denoise", false),
-                     std::make_unique<juce::AudioParameterChoice>("quality", "Quality", juce::StringArray{"1 - Fast", "2", "3", "4 - Best"}, 0)
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"ratio", 700}, "Ratio", 0.0f, 100.0f, 100.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"threshold", 700}, "Threshold", 0.0f, 100.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"transientBoost", 700}, "Transient Boost", 0.0f, 100.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"residualNoise", 700}, "Residual Noise", 0.0f, 100.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"learnModeParamID", 700}, "Learn Mode", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"noiseOnlyParamID", 700}, "Noise Only", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"softDenoiseParamID", 700}, "Soft Denoise", false),
+                     std::make_unique<juce::AudioParameterChoice>(
+            juce::ParameterID{"quality", 700}, "Quality",
+            juce::StringArray{"1 - Fast", "2", "3", "4 - Best"}, 0)
                  })
 #endif
 {
@@ -128,11 +137,11 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
         for (int i = 0; i < numInputChannels; i++)
         {
             DenoiserProcessor *processor = new DenoiserProcessor(fftSize/2 + 1, overlap, threshold);
-            _processors->push_back(processor);
+            _processors.push_back(processor);
             
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
             overlapAdd->addProcessor(processor);
-            _overlapAdds->push_back(overlapAdd);
+            _overlapAdds.push_back(overlapAdd);
         }
     }
 
@@ -228,8 +237,8 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         auto* channelData = buffer.getWritePointer (channel);
 
         vector<float> vecBuf;
-        vecBuf.resize(buffer.getNumOfSamples());
-        memcpy(vecBuf.data(), buffer.getNumOfSamples()*sizeof(float));
+        vecBuf.resize(buffer.getNumSamples());
+        memcpy(vecBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
         
         _overlapAdds[channel]->feed(vecBuf);
 
@@ -237,7 +246,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         _overlapAdds[channel]->getOutSamples(&resBuf);
         _overlapAdds[channel]->flushOutSamples(resBuf.size());
 
-        memcpy(channelData, resBuf.data(), buffer.getNumOfSamples()*sizeof(float));
+        memcpy(channelData, resBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
 }
 

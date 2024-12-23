@@ -18,7 +18,7 @@ public:
     
     virtual ~CircularBuffer() {}
 
-    void SetCapacity(int size)
+    void setCapacity(int size)
     {
         _data.resize(size);
         memset(_data.data(), 0, size*sizeof(T));
@@ -27,7 +27,7 @@ public:
         _writeIdx = 0;
     }
     
-    int GetSize() const
+    int getSize() const
     {
         int size = _writeIdx - _readIdx;
         if (size < 0)
@@ -35,7 +35,7 @@ public:
         return size;
     }
 
-    void Push(const T *data, int size)
+    void push(const T *data, int size)
     {
         if (_writeIdx + size < _data.size())
             memcpy(&_data.data()[_writeIdx], data, size*sizeof(T));
@@ -53,7 +53,7 @@ public:
             _writeIdx += _data.size();
     }
 
-    void Peek(T *data, int size)
+    void peek(T *data, int size)
     {
         if (_readIdx + size < _data.size())
             memcpy(data, &_data.data()[_readIdx], size*sizeof(T));
@@ -67,7 +67,7 @@ public:
         }
     }
 
-    T Peek(int index)
+    T peek(int index)
     {
         int idx = (_readIdx + index) %  _data.size();
         if (idx < 0)
@@ -75,7 +75,7 @@ public:
         return _data[idx];
     }
     
-    void Pop(int size)
+    void pop(int size)
     {
         _readIdx += size;
         _readIdx = _readIdx % _data.size();
@@ -83,7 +83,7 @@ public:
             _readIdx += _data.size();
     }
 
-    void Poke(T *data, int size)
+    void poke(T *data, int size)
     {
         if (_readIdx + size < _data.size())
             memcpy(&_data.data()[_readIdx], data, size*sizeof(T));
@@ -97,7 +97,7 @@ public:
         }
     }
 
-    void Poke(int index, T value)
+    void poke(int index, T value)
     {
         int idx = (_readIdx + index) %  _data.size();
         if (idx < 0)

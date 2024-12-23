@@ -1,7 +1,10 @@
 #ifndef WIENER_SOFT_MASKING_H
 #define WIENER_SOFT_MASKING_H
 
-#include <bl_queue.h>
+#include <complex>
+using namespace std;
+
+#include <nl_queue.h>
 
 // Wiener soft masking applied on complexes
 //
@@ -69,7 +72,7 @@ protected:
     
     int _historySize;
     
-    bl_queue<HistoryLine> _history;
+    nl_queue<HistoryLine> _history;
     
     vector<float> _window;
     

@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 
 #include <OverlapAdd.h>
+#include <DenoiserProcessor.h>
 
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {

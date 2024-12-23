@@ -1,8 +1,8 @@
 #ifndef DENOISER_PROCESSOR_H
 #define DENOISER_PROCESSOR_H
 
-#include <nl_queue.h>
-#include <OverlapAdd.h>
+#include "nl_queue.h"
+#include "OverlapAdd.h"
 
 #define USE_AUTO_RES_NOISE 1
 
@@ -14,9 +14,11 @@ public:
     
     virtual ~DenoiserProcessor();
 
-    void processFft(vector<complex<float> > *ioBuffer) override;
+    void processFFT(vector<complex<float> > *ioBuffer) override;
     
     void reset(int bufferSize, int overlap, float sampleRate);
+
+    void setOverlap(int overlap);
     
     void setThreshold(float threshold);
     
@@ -59,9 +61,8 @@ protected:
     
 #if USE_AUTO_RES_NOISE
     void autoResidualDenoise(vector<float> *ioSignalMagns,
-                             vector<float> *ioNoiseMagns,
                              vector<float> *ioSignalPhases,
-                             vector<float> *ioNoisePhases);
+                             const vector<float> &noiseMagns);
 #endif
     
     // Kernel can be NULL
@@ -70,7 +71,7 @@ protected:
                      float threshold);
     
     // Take an fft buffer history and transform it to an image
-    void samplesHistoryToImage(const bl_queue<vector<float> > *hist,
+    void samplesHistoryToImage(const nl_queue<vector<float> > *hist,
                                vector<float> *imageChunk);
     
     // Take an image and extract one line
@@ -78,8 +79,8 @@ protected:
     // Take the phases from the history
     void imageLineToSamples(const vector<float> *image,
                             int width, int height, int lineNum,
-                            const bl_queue<vector<float> > *hist,
-                            const bl_queue<vector<float> > *phaseHist,
+                            const nl_queue<vector<float> > *hist,
+                            const nl_queue<vector<float> > *phaseHist,
                             vector<float> *resultBuf,
                             vector<float> *resultPhases);
     
@@ -92,7 +93,7 @@ protected:
     
     void resampleNoiseCurve();
 
-    void MakeHanningKernel2D(int size, vector<float> *result);
+    void makeHanningKernel2D(int size, vector<float> *result);
 
     int _bufferSize;
     int _overlap;
@@ -121,10 +122,9 @@ protected:
     
     // Residual denoise
     
-    // NOTE: since using bl_queue, we push_back instead() of push_front()
-    bl_queue<vector<float> > _historyFftBufs;
-    bl_queue<vector<float> > _historyFftNoiseBufs;
-    bl_queue<vector<float> > _historyPhases;
+    nl_queue<vector<float> > _historyFftBufs;
+    nl_queue<vector<float> > _historyFftNoiseBufs;
+    nl_queue<vector<float> > _historyPhases;
     
     vector<float> _inputImageFilterChunk;
     vector<float> _outputImageFilterChunk;
