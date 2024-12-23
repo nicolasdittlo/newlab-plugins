@@ -96,12 +96,9 @@ OverlapAdd::feed(const vector<float> &samples)
                 _tmpSampBufIn[k] *= _anaWin[k];
 
             // Convert real input to JUCE format
-            juce::HeapBlock<float> fftInput(_fftSize);
+            juce::HeapBlock<float> fftInput(2*_fftSize);
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 fftInput[k] = _tmpSampBufIn[k];
-
-            // Output buffer
-            juce::HeapBlock<float> fftOutput(_fftSize * 2);
 
             // Apply FFT
             _forwardFFT->performRealOnlyForwardTransform(fftInput.get());
