@@ -4,25 +4,21 @@
 #include <nl_queue.h>
 #include <OverlapAdd.h>
 
-// Definitions
 #define USE_AUTO_RES_NOISE 1
-
-#define DENOISER_MIN_DB -119.0
-#define DENOISER_MAX_DB 10.0
 
 class WienerSoftMasking;
 class DenoiserProcessor : public OverlapAddProcessor
 {
 public:
-    DenoiserProcessor(int bufferSize, int oversampling, float threshold);
+    DenoiserProcessor(int bufferSize, int overlap, float threshold);
     
     virtual ~DenoiserProcessor();
+
+    void processFft(vector<complex<float> > *ioBuffer) override;
     
-    void reset(int bufferSize, int oversampling, float sampleRate);
+    void reset(int bufferSize, int overlap, float sampleRate);
     
     void setThreshold(float threshold);
-    
-    void processFft(vector<complex> *ioBuffer) override;
     
     void getSignalBuffer(vector<float> *ioBuffer);
     
@@ -31,9 +27,8 @@ public:
     // Noise capture
     void setBuildingNoiseStatistics(bool flag);
     
-    void addNoiseStatistics(const vector<complex> &buf);
+    void addNoiseStatistics(const vector<complex<float> > &buf);
     
-    //
     void getNoiseCurve(vector<float> *noiseCurve);
     void setNoiseCurve(const vector<float> &noiseCurve);
     
@@ -46,12 +41,12 @@ public:
 #if USE_AUTO_RES_NOISE
     void setAutoResNoise(bool autoResNoiseFlag);
 #endif
-    
-    static void applyThresholdToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
 
     int getLatency();
     
 protected:
+    void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
+    
     // Residual denoise
     
     void resetResNoiseHistory();
@@ -145,21 +140,21 @@ private:
     vector<float> _tmpBuf4;
     vector<float> _tmpBuf5;
     vector<float> _tmpBuf6;
-    vector<complex> _tmpBuf7;
+    vector<complex<float> > _tmpBuf7;
     
     vector<float> _tmpBuf9;
     vector<float> _tmpBuf10;
-    vector<complex> _tmpBuf11;
-    vector<complex> _tmpBuf12;
+    vector<complex<float> > _tmpBuf11;
+    vector<complex<float> > _tmpBuf12;
     
     vector<float> _tmpBuf16;
     vector<float> _tmpBuf17;
 
     vector<float> _tmpBuf19;
-    vector<complex> _tmpBuf20;
+    vector<complex<float> > _tmpBuf20;
     
-    vector<complex> _tmpBuf22;
-    vector<complex> _tmpBuf23;
+    vector<complex<float> > _tmpBuf22;
+    vector<complex<float> > _tmpBuf23;
     vector<float> _tmpBuf24;
 };
 

@@ -3,7 +3,7 @@
 void
 Utils::complexToMagnPhase(vector<float> *resultMagn,
                           vector<float> *resultPhase,
-                          const vector<complex> &complexBuf)
+                          const vector<complex<float> > &complexBuf)
 {
     resultMagns->resize(complexBuf.size());
     resultPhases->resize(complexBuf.size());
@@ -17,7 +17,7 @@ Utils::complexToMagnPhase(vector<float> *resultMagn,
 }
 
 void
-Utils::magnPhaseToComplex(vector<complex> *complexBuf,
+Utils::magnPhaseToComplex(vector<complex<float> > *complexBuf,
                           const vector<float> &magns,
                           const vector<float> &phases)
 {
@@ -28,9 +28,9 @@ Utils::magnPhaseToComplex(vector<complex> *complexBuf,
 }
 
 void
-Utils::FillZero(vector<float> *buff)
+Utils::FillZero(vector<float> *buf)
 {
-    memset(buff->data(), 0, buff->size()*sizeof(float));
+    memset(buf->data(), 0, buf->size()*sizeof(float));
 }
 
 void
@@ -53,14 +53,14 @@ Utils::addBuffer(vector<float> *buf0, const vector<float> &buf1)
 }
 
 void
-Utils::multBuffers(vector<complex> *buf0, const vector<float> &buf1)
+Utils::multBuffers(vector<complex<float> > *buf0, const vector<float> &buf1)
 {
     for (int i = 0; i < buf0->size(); i++)
         (*buf0)[i] *= buf1[i];
 }
 
 void
-Utils::substractBuffers(vector<complex> *buf0, const vector<complex> &buf1)
+Utils::substractBuffers(vector<complex<float> > *buf0, const vector<complex<float> > &buf1)
 {
     for (int i = 0; i < buf0->size(); i++)
         (*buf0)[i] -= buf1[i];
@@ -81,13 +81,13 @@ Utils::computeNormOpposite(vector<float> *buf)
 }
 
 void
-Utils::computeSquareConjugate(vector<complex> *buf)
+Utils::computeSquareConjugate(vector<complex<float> > *buf)
 {
-    complex conj;
-    complex tmp;
+    complex<float> conj;
+    complex<float> tmp;
     for (int i = 0; i < buf->size(); i++)
     {
-        complex &c = (*bufData)[i];
+        complex<float> &c = (*bufData)[i];
         conj = c.conj();
         c = conj*c;
     }

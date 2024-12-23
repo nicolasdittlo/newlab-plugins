@@ -3,12 +3,6 @@
 
 #include <bl_queue.h>
 
-#include <BLTypes.h>
-
-#include "IPlug_include_in_plug_hdr.h"
-
-#include "../../WDL/fft.h"
-
 // Wiener soft masking applied on complexes
 //
 // See: https://github.com/TUIlmenauAMS/ASP/blob/master/MaskingMethods.py
@@ -25,7 +19,7 @@ public:
 
     void reset();
     
-    void reset(int bufferSize, int overlapping);
+    void reset(int bufferSize, int overlap);
     
     void setHistorySize(int size);
     
@@ -39,16 +33,16 @@ public:
     // Returns the centered data value in ioSum
     // Returns the centered masked data in ioMaskedResult0
     // Return sum - maskedResult0 in  ioMaskedResult1 if required
-    void processCentered(vector<complex> *ioSum,
+    void processCentered(vector<complex<float> > *ioSum,
                          const vector<float> &mask,
-                         vector<complex> *ioMaskedResult0,
-                         vector<complex> *ioMaskedResult1 = NULL);
+                         vector<complex<float> > *ioMaskedResult0,
+                         vector<complex<float> > *ioMaskedResult1 = NULL);
                
 protected:
-    void computeSigma2(vector<complex> *outSigma2Mask0,
-                       vector<complex> *outSigma2Mask1);
+    void computeSigma2(vector<complex<float> > *outSigma2Mask0,
+                       vector<complex<float> > *outSigma2Mask1);
                        
-    //
+    
     class HistoryLine
     {
     public:
@@ -61,16 +55,15 @@ protected:
         int getSize();
         
     public:
-        vector<complex> mSum;
+        vector<complex<float> > _sum;
         
-        vector<complex> mMasked0Square;
-        vector<complex> mMasked1Square;
+        vector<complex<float> > _masked0Square;
+        vector<complex<float> > _masked1Square;
 
     protected:
         int _size;
     };
 
-    //
     int _bufferSize;
     int _overlap;
     
@@ -84,12 +77,12 @@ protected:
 
 private:
     HistoryLine _tmpHistoryLine;
-    vector<complex> _tmpBuf0;
-    vector<complex> _tmpBuf1;
-    vector<complex> _tmpBuf2;
-    vector<complex> _tmpBuf3;
-    vector<complex> _tmpBuf4;
-    vector<complex> _tmpBuf5;
+    vector<complex<float> > _tmpBuf0;
+    vector<complex<float> > _tmpBuf1;
+    vector<complex<float> > _tmpBuf2;
+    vector<complex<float> > _tmpBuf3;
+    vector<complex<float>> _tmpBuf4;
+    vector<complex<float> > _tmpBuf5;
     vector<float> _tmpBuf6;
     vector<float> _tmpBuf7;
 };

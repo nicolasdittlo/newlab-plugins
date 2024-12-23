@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include <vector>
+#include <complex>
+
 using namespace std;
 
 class Utils
@@ -9,25 +11,25 @@ class Utils
  public:
     static void complexToMagnPhase(vector<float> *resultMagn,
                                    vector<float> *resultPhase,
-                                   const vector<complex> &complexBuf);
+                                   const vector<complex<float> > &complexBuf);
 
-    static void magnPhaseToComplex(vector<complex> *complexBuf,
+    static void magnPhaseToComplex(vector<complex<float> > *complexBuf,
                                    const vector<float> &magns,
                                    const vector<float> &phases);
         
-    static void fillZero(vector<float> *buff);
+    static void fillZero(vector<float> *buf);
 
     static void resizeFillZeros(vector<float> *buf, int newSize);
 
     static void addBuffers(vector<float> *buf0, const vector<float> &buf1);
-    static void multBuffers(vector<complex> *buf0, const vector<float> &buf1);
-    static void substractBuffers(vector<complex> *buf0, const vector<complex> &buf1);
+    static void multBuffers(vector<complex<float>> *buf0, const vector<float> &buf1);
+    static void substractBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
 
     static void multValue(vector<float> *buf, float val);
         
     static void computeNormOpposite(vector<float> *buf);
 
-    static void computeSquareConjugate(vector<complex> *buf);
+    static void computeSquareConjugate(vector<complex<float> > *buf);
 
     static float computeSum(const vector<float> &buf);
         

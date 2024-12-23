@@ -14,7 +14,7 @@ WienerSoftMasking::HistoryLine::HistoryLine(const HistoryLine &other)
 {
     _size = other._size;
 
-    Resize(_size);
+    resize(_size);
     
     _sum = other._sum;
     _masked0Square = other._masked0Square;
@@ -39,8 +39,6 @@ WienerSoftMasking::HistoryLine::GetSize()
     return _size;
 }
 
-//
-
 WienerSoftMasking::WienerSoftMasking(int bufferSize, int overlap, int historySize)
 {
     _bufferSize = bufferSize;
@@ -59,7 +57,7 @@ WienerSoftMasking::reset(int bufferSize, int overlap)
     _bufferSize = bufferSize;
     _overlap = overlap;
     
-    Reset();
+    reset();
 }
 
 void
@@ -105,7 +103,7 @@ WienerSoftMasking::getLatency()
     // (this covers the case of odd and even history size)
     // Index 0 has 0 latency, since we have just added the current data to it.
     int revIndex = (_historySize - 1) - _historySize/2;
-    int latency = revIndex*(_bufferSize/_overlap);
+    int latency = revIndex*(((_bufferSize - 1)*2)/_overlap);
     
     return latency;
 }
@@ -121,9 +119,9 @@ WienerSoftMasking::getLatency()
 //
 void
 WienerSoftMasking::processCentered(vector<complex> *ioSum,
-                                  const vector<float> &mask,
-                                  vector<complex> *ioMaskedResult0,
-                                  vector<complex> *ioMaskedResult1)
+                                   const vector<float> &mask,
+                                   vector<complex> *ioMaskedResult0,
+                                   vector<complex> *ioMaskedResult1)
 {
 
     HistoryLine &newHistoLine = _tmpHistoryLine;
@@ -177,36 +175,36 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
     
     if (_processingEnabled)
     {
-        vector<complex> &sigma2Mask0 = _tmpBuf0;
-        vector<complex> &sigma2Mask1 = _tmpBuf1;
+        vector<complex<float> > &sigma2Mask0 = _tmpBuf0;
+        vector<complex<float> > &sigma2Mask1 = _tmpBuf1;
         computeSigma2(&sigma2Mask0, &sigma2Mask1);
 
-        complex *s0Data = sigma2Mask0.data();
-        complex *s1Data = sigma2Mask1.data();
+        complex<float> *s0Data = sigma2Mask0.data();
+        complex<float> *s1Data = sigma2Mask1.data();
         
         // Create the mask
         if (_history.empty()) // Just in case
             return;
 
-        vector<complex> &softMask0 = _tmpBuf4;
+        vector<complex<float> > &softMask0 = _tmpBuf4;
         softMask0.resize(_history[0].size());
 
         int softMask0Size = softMask0.size();
-        complex *softMask0Data = softMask0.data();
+        complex<float> *softMask0Data = softMask0.data();
         
         // Compute soft mask 0
-        complex csum;
-        complex maskVal;
+        complex<float> csum;
+        complex<float> maskVal;
         for (int i = 0; i < softMask0Size; i++)
         {
-            const complex &s0 = s0Data[i];
-            const complex &s1 = s1Data[i];
+            const complex<float> &s0 = s0Data[i];
+            const complex<float> &s1 = s1Data[i];
 
             // Compute s0 + s1
             csum = s0;
             csum += s1;
 
-            maskVal = complex(0.0, 0.0);
+            maskVal = complex<float>(0.0, 0.0);
 
             if ((std::fabs(csum.real()) > 1e-15) ||
                 (std::fabs(csum.imag()) > 1e-15))
@@ -234,36 +232,32 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
         if (ioMaskedResult1 != NULL)
         {
 #if USE_FAKE_MASK1
-            // Fake mask 1
             // Simple difference
             *ioMaskedResult1 = _history[_history.size()/2]._sum;;
             Utils::substractBuffers(ioMaskedResult1, *ioMaskedResult0);
 #else
             // Use real mask for second mask
             
-            vector<complex> &softMask1 = _tmpBuf5;
+            vector<complex<float> > &softMask1 = _tmpBuf5;
             softMask1.resize(_history[0].size());
 
             int softMask1Size = softMask1.size();
-            complex *softMask1Data = softMask1.data();
+            complex<float> *softMask1Data = softMask1.data();
         
             // Compute soft mask 1
-            complex csum;
-            complex maskVal;
+            complex<float> csum;
+            complex<float> maskVal;
             for (int i = 0; i < softMask1Size; i++)
             {
-                // TODO: optimize, by re-using softMask0
-                // and making 1 - mask0, with complex
-                
-                const complex &s0 = s0Data[i];
-                const complex &s1 = s1Data[i];
+                const complex<float> &s0 = s0Data[i];
+                const complex<float> &s1 = s1Data[i];
                 
                 // Compute s0 + s1
                 csum = s0;
                 csum += s1;
         
-                if ((std::fabs(csum.real()) > 1e-15) ||
-                    (std::fabs(csum.imag()) > 1e-15))
+                if ((fabs(csum.real()) > 1e-15) ||
+                    (fabs(csum.imag()) > 1e-15))
                     maskVal = s1 / sum;
 
                 BL_float maskMagn = abs(maskVal);
@@ -285,21 +279,18 @@ WienerSoftMasking::processCentered(vector<complex> *ioSum,
         }
     }
     
-    // Even if processing enabled is true or false,
-    // update the data from the history
+    // Update the data from the history even if processing enabled is false,
     
     // Compute the centered values
     if (!_history.empty())
-    {
         // Shifted input data
         *ioSum = _history[_history.size()/2]._sum;
-    }
 }
 
-// NOTE: variance is equal to sigma^2
+// Variance is equal to sigma^2
 void
-WienerSoftMasking::computeSigma2(vector<complex> *outSigma2Mask0,
-                                 vector<complex> *outSigma2Mask1)
+WienerSoftMasking::computeSigma2(vector<complex<float> > *outSigma2Mask0,
+                                 vector<complex<float> > *outSigma2Mask1)
 {    
     if (_history.empty())
         return;
@@ -308,18 +299,18 @@ WienerSoftMasking::computeSigma2(vector<complex> *outSigma2Mask0,
     outSigma2Mask1->resize(_history[0].GetSize());
     
     // Result sum 0
-    vector<complex> &currentSum0 = _tmpBuf2;
+    vector<complex<float> > &currentSum0 = _tmpBuf2;
     currentSum0.resize(_history[0].size());
     Utils::fillZero(&currentSum0);
 
-    complex *currentSum0Data = currentSum0.data();
+    complex<float> *currentSum0Data = currentSum0.data();
     
     // Result sum 1
-    vector<complex> &currentSum1 = _tmpBuf3;
+    vector<complex<float> > &currentSum1 = _tmpBuf3;
     currentSum1.resize(_history[0].size());
     Utils::fillZero(&currentSum1);
 
-    complex *currentSum1Data = currentSum1.data();
+    complex<float> *currentSum1Data = currentSum1.data();
     
     // Window
     if (_window.size() != _history.size())
@@ -338,23 +329,23 @@ WienerSoftMasking::computeSigma2(vector<complex> *outSigma2Mask0,
     {
         const HistoryLine &line = _history[j];
         
-        const vector<complex> &line0 = line._masked0Square;
+        const vector<complex<float> > &line0 = line._masked0Square;
         int line0Size = line0.size();
-        complex *line0Data = line0.data();
+        complex<float> *line0Data = line0.data();
         
-        const vector<complex> &line1 = line._masked1Square;
-        complex *line1Data = line1.data();
+        const vector<complex<float> > &line1 = line._masked1Square;
+        complex<float> *line1Data = line1.data();
         
-        float p = mWindow[j];
+        float p = _window[j];
         
         for (int i = 0; i < line0Size; i++)
         {
-            complex &expect0 = currentSum0Data[i];
+            complex<float> &expect0 = currentSum0Data[i];
             const comples &val0 = line0Data[i];
             expect0 += p * val0;
 
-            complex &expect1 = currentSum1Data[i];
-            const complex &val1 = line1Data[i];
+            complex<float> &expect1 = currentSum1Data[i];
+            const complex<float> &val1 = line1Data[i];
             expect1 += p * val1;
         }
     }
