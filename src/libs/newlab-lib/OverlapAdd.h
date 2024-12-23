@@ -10,8 +10,8 @@ public:
     OverlapAddProcessor();
     virtual ~OverlapAddProcessor();
     
-    virtual void ProcessFFT(vector<float> *compBuf, int chanNum);
-    virtual void ProcessOutSamples(vector<float> *buff, int chanNum);
+    virtual void processFFT(vector<complex> *compBuf, int chanNum);
+    virtual void processOutSamples(vector<float> *buff, int chanNum);
 };
 
 class OverlapAdd
@@ -19,21 +19,23 @@ class OverlapAdd
 public:
     OverlapAdd(int fftSize, int overlap, bool fft, bool ifft);
     virtual ~OverlapAdd();
-    
-    void AddProcessor(OverlapAddProcessor *processor);
-    
-    void Feed(const vector<float> &samples, int blockSize, int nChan);
 
-    void GetOutSamples(vector<float> *samples);
-    void ClearOutSamples();
-    void FlushOutSamples(int numToFlush);
+    void setFftSize(int fftSize);
+    
+    void addProcessor(OverlapAddProcessor *processor);
+    
+    void feed(const vector<float> &samples, int blockSize, int nChan);
+
+    void getOutSamples(vector<float> *samples);
+    void clearOutSamples();
+    void flushOutSamples(int numToFlush);
     
 protected:
-    virtual void ProcessFFT(vector<float> *compBuf, int chanNum);
-    virtual void ProcessOutSamples(vector<float> *buff, int chanNum);
+    virtual void processFFT(vector<complex> *compBuf, int chanNum);
+    virtual void processOutSamples(vector<float> *buff, int chanNum);
 
     // win must have been resized before
-    virtual void MakeWindow(vector<float> *win);
+    virtual void makeWindow(vector<float> *win);
 
     vector<OverlapAddProcessor *> _processors;
     
@@ -46,10 +48,9 @@ protected:
     CircularBuffer<float> _circSampBufsIn[2];
     CircularBuffer<float> _circSampBufsOut[2];
     
-    vector<float> _tmpSampBufIn;
-    vector<float> _tmpSampBufOut;
-    vector<float> _tmpCompBufIn;
-    vector<float> _tmpCompBufOut;
+    vector<complex> _tmpSampBufIn;
+    vector<complex> _tmpSampBufOut;
+    vector<complex> _tmpCompBufOut;
 
     vector<float> _tmpSynthZeroBuf;
     

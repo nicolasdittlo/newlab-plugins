@@ -13,20 +13,32 @@ OverlapAddProcessor::OverlapAddProcessor() {}
 OverlapAddProcessor::~OverlapAddProcessor() {}
 
 void
-OverlapAddProcessor::ProcessFFT(vector<float> *compBuf, int chanNum) {}
+OverlapAddProcessor::processFFT(vector<complex> *compBuf, int chanNum) {}
 
 void
-OverlapAddProcessor::ProcessOutSamples(vector<float> *buff, int chanNum) {}
+OverlapAddProcessor::processOutSamples(vector<float> *buff, int chanNum) {}
 
 // OverlapAdd
 OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
     : _forwardFFT(log2(fftSize)), _backwardFFT(log2(fftSize))
 {
-    _fftSize = fftSize;
     _overlap = overlap;
 
     _fftFlag = fft;
     _ifftFlag = ifft;
+    
+    setFftSize(fftSize);
+}
+
+OverlapAdd::~OverlapAdd() {}
+
+void
+OverlapAdd::setFftSize(int fftSize)
+{
+    _forwardFFT = juce::FFT(log2(fftSize));
+    _backwardFFT = juce::FFT(log2(fftSize));
+
+    _fftSize = fftSize;
 
     vector<float> zeros;
     zeros.resize(_fftSize * 2);
@@ -42,8 +54,7 @@ OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
 
     _tmpSampBufIn.resize(_fftSize);
     _tmpSampBufOut.resize(_fftSize);
-    _tmpCompBufIn.resize(_fftSize * 2);
-    _tmpCompBufOut.resize(_fftSize * 2);
+    _tmpCompBufOut.resize(_fftSize/2 + 1);
 
     _anaWin.resize(_fftSize);
     MakeWindow(&_anaWin);
@@ -52,16 +63,14 @@ OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
     MakeWindow(&_synthWin);
 }
 
-OverlapAdd::~OverlapAdd() {}
-
 void
-OverlapAdd::AddProcessor(OverlapAddProcessor *processor)
+OverlapAdd::addProcessor(OverlapAddProcessor *processor)
 {
     _processors.push_back(processor);
 }
 
 void
-OverlapAdd::Feed(const vector<float> &samples, int blockSize, int nChan)
+OverlapAdd::feed(const vector<float> &samples, int blockSize, int nChan)
 {
     int synthShift = _fftSize / _overlap;
     _tmpSynthZeroBuf.resize(synthShift);
@@ -84,26 +93,20 @@ OverlapAdd::Feed(const vector<float> &samples, int blockSize, int nChan)
                 for (int k = 0; k < _tmpSampBufIn.size(); k++)
                     _tmpSampBufIn[k] *= _anaWin[k];
 
-                // Convert real input to JUCE complex format
-                juce::HeapBlock<juce::dsp::Complex<float>> fftInput(_fftSize);
+                // Convert real input to JUCE format
+                juce::HeapBlock<float> fftInput(_fftSize);
                 for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                {
-                    fftInput[k].real(_tmpSampBufIn[k]);
-                    fftInput[k].imag(0.0f);
-                }
+                    fftInput[k] = _tmpSampBufIn[k];
 
                 // Output buffer
-                juce::HeapBlock<juce::dsp::Complex<float>> fftOutput(_fftSize);
+                juce::HeapBlock<float> fftOutput(_fftSize * 2);
 
                 // Apply FFT
-                _forwardFFT.perform(fftInput.get(), fftOutput.get(), false);
+                _forwardFFT.performRealOnlyForwardTransform(fftInput.get());
 
                 // Store output in temporary buffer
-                for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                {
-                    _tmpCompBufOut[2 * k] = fftOutput[k].real();
-                    _tmpCompBufOut[2 * k + 1] = fftOutput[k].imag();
-                }
+                for (int k = 0; k < _tmpCompBufOut.size(); k++)
+                    _tmpCompBufOut[k] = complex(fftInput[k], fftInput[_fftSize + k]);
             }
 
             // Apply callback
@@ -111,23 +114,20 @@ OverlapAdd::Feed(const vector<float> &samples, int blockSize, int nChan)
 
             if (_ifftFlag)
             {
-                // Convert to JUCE complex format for inverse FFT
-                juce::HeapBlock<juce::dsp::Complex<float>> ifftInput(_fftSize);
+                // Convert to JUCE real format for inverse FFT
+                juce::HeapBlock<float> ifftInput(_fftSize * 2);
                 for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 {
-                    ifftInput[k].real(_tmpCompBufOut[2 * k]);
-                    ifftInput[k].imag(_tmpCompBufOut[2 * k + 1]);
+                    ifftInput[k] = _tmpCompBufOut[k].real();
+                    ifftInput[_fftSize + k] = _tmpCompBufOut[k].imag();
                 }
 
-                // Output buffer
-                juce::HeapBlock<juce::dsp::Complex<float>> ifftOutput(_fftSize);
-
                 // Apply inverse FFT
-                _backwardFFT.perform(ifftInput.get(), ifftOutput.get(), true);
+                _backwardFFT.performRealOnlyInverseTransform(ifftInput.get());
 
-                // Convert interleaved complex back to real samples
+                // Convert back to real samples
                 for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                    _tmpSampBufIn[k] = ifftOutput[k].real();
+                    _tmpSampBufIn[k] = ifftInput[k];
 
                 // Apply resynth coeff
                 double resynthCoeff = 1.0 / _fftSize;
@@ -161,19 +161,19 @@ OverlapAdd::Feed(const vector<float> &samples, int blockSize, int nChan)
 }
 
 void
-OverlapAdd::GetOutSamples(vector<float> *samples)
+OverlapAdd::getOutSamples(vector<float> *samples)
 {
     *samples = _outSamples;
 }
 
 void
-OverlapAdd::ClearOutSamples()
+OverlapAdd::clearOutSamples()
 {
     _outSamples.clear();
 }
 
 void
-OverlapAdd::FlushOutSamples(int numToFlush)
+OverlapAdd::flushOutSamples(int numToFlush)
 {
     if (numToFlush > _outSamples.size())
     {
@@ -185,7 +185,7 @@ OverlapAdd::FlushOutSamples(int numToFlush)
 }
 
 void
-OverlapAdd::ProcessFFT(vector<float> *compBuf, int chanNum)
+OverlapAdd::processFFT(vector<float> *compBuf, int chanNum)
 {
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -195,7 +195,7 @@ OverlapAdd::ProcessFFT(vector<float> *compBuf, int chanNum)
 }
 
 void
-OverlapAdd::ProcessOutSamples(vector<float> *buff, int chanNum)
+OverlapAdd::processOutSamples(vector<float> *buff, int chanNum)
 {
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -209,7 +209,7 @@ OverlapAdd::ProcessOutSamples(vector<float> *buff, int chanNum)
 }
 
 void
-OverlapAdd::MakeWindow(vector<float> *win)
+OverlapAdd::makeWindow(vector<float> *win)
 {
     // Hann
     for (int i = 0; i < win->size(); i++)
