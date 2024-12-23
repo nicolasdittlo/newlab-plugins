@@ -233,7 +233,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto* channelData = buffer.getWritePointer (channel);
+        auto* channelData = buffer.getWritePointer(channel);
 
         vector<float> vecBuf;
         vecBuf.resize(buffer.getNumSamples());
