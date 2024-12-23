@@ -18,13 +18,8 @@ OverlapAddProcessor::processOutSamples(vector<float> *buff) {}
 
 // OverlapAdd
 OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
-: _forwardFFT(log2(fftSize)), _backwardFFT(log2(fftSize))
+: _overlap(overlap), _fftFlag(fft), _ifftFlag(ifft)
 {
-    _overlap = overlap;
-
-    _fftFlag = fft;
-    _ifftFlag = ifft;
-    
     setFftSize(fftSize);
 }
 
@@ -33,10 +28,10 @@ OverlapAdd::~OverlapAdd() {}
 void
 OverlapAdd::setFftSize(int fftSize)
 {
-    _forwardFFT = juce::dsp::FFT(log2(fftSize));
-    _backwardFFT = juce::dsp::FFT(log2(fftSize));
-
     _fftSize = fftSize;
+
+    _forwardFFT = std::make_unique<juce::dsp::FFT>(log2(fftSize));
+    _backwardFFT = std::make_unique<juce::dsp::FFT>(log2(fftSize));
 
     vector<float> zeros;
     zeros.resize(_fftSize * 2);
@@ -49,7 +44,7 @@ OverlapAdd::setFftSize(int fftSize)
 
     _tmpSampBufIn.resize(_fftSize);
     _tmpSampBufOut.resize(_fftSize);
-    _tmpCompBufOut.resize(_fftSize/2 + 1);
+    _tmpCompBufOut.resize(_fftSize / 2 + 1);
 
     _anaWin.resize(_fftSize);
     Window::makeWindowHann(&_anaWin);
@@ -66,10 +61,10 @@ OverlapAdd::setOverlap(int overlap)
     vector<float> zeros;
     zeros.resize(_fftSize * 2);
     memset(zeros.data(), 0, zeros.size() * sizeof(float));
-    
+
     _circSampBufsIn.setCapacity(_fftSize * 2);
     _circSampBufsOut.setCapacity(_fftSize * 2);
-        
+
     _circSampBufsOut.push(zeros.data(), zeros.size());
 }
 
@@ -88,7 +83,7 @@ OverlapAdd::feed(const vector<float> &samples)
 
     _circSampBufsIn.push(samples.data(), samples.size());
 
-    while (_circSampBufsIn.getSize() > _fftSize)
+    while (_circSampBufsIn.getSize() >= _fftSize)
     {
         // Get current buffer
         _circSampBufsIn.peek(_tmpSampBufIn.data(), _fftSize);
@@ -99,7 +94,7 @@ OverlapAdd::feed(const vector<float> &samples)
             // Apply analysis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= _anaWin[k];
-            
+
             // Convert real input to JUCE format
             juce::HeapBlock<float> fftInput(_fftSize);
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
@@ -109,7 +104,7 @@ OverlapAdd::feed(const vector<float> &samples)
             juce::HeapBlock<float> fftOutput(_fftSize * 2);
 
             // Apply FFT
-            _forwardFFT.performRealOnlyForwardTransform(fftInput.get());
+            _forwardFFT->performRealOnlyForwardTransform(fftInput.get());
 
             // Store output in temporary buffer
             for (int k = 0; k < _tmpCompBufOut.size(); k++)
@@ -128,14 +123,14 @@ OverlapAdd::feed(const vector<float> &samples)
                 ifftInput[k] = _tmpCompBufOut[k].real();
                 ifftInput[_fftSize + k] = _tmpCompBufOut[k].imag();
             }
-            
+
             // Apply inverse FFT
-            _backwardFFT.performRealOnlyInverseTransform(ifftInput.get());
+            _backwardFFT->performRealOnlyInverseTransform(ifftInput.get());
 
             // Convert back to real samples
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] = ifftInput[k];
-            
+
             // Apply resynth coeff
             double resynthCoeff = 1.0 / _fftSize;
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
@@ -166,10 +161,20 @@ OverlapAdd::feed(const vector<float> &samples)
     }
 }
 
-void
-OverlapAdd::getOutSamples(vector<float> *samples)
+int
+OverlapAdd::getOutSamples(vector<float> *samples, int numSamples)
 {
-    *samples = _outSamples;
+    samples->resize(numSamples);
+   
+    int numZeros = numSamples - _outSamples.size();
+    if (numZeros < 0)
+        numZeros = 0;
+    for (int i = 0; i < numZeros; i++)
+        (*samples)[i] = 0.0;
+    for (int i = numZeros; i < numSamples; i++)
+        (*samples)[i] = _outSamples[i - numZeros];
+
+    return numSamples - numZeros;
 }
 
 void

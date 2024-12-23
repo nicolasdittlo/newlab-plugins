@@ -27,7 +27,8 @@ public:
     
     void feed(const vector<float> &samples);
 
-    void getOutSamples(vector<float> *samples);
+    // Return the number of samples to flush
+    int getOutSamples(vector<float> *samples, int numSamples);
     void clearOutSamples();
     void flushOutSamples(int numToFlush);
     
@@ -57,8 +58,8 @@ protected:
 
     vector<float> _outSamples;
 
-    juce::dsp::FFT _forwardFFT;
-    juce::dsp::FFT _backwardFFT;
+    std::unique_ptr<juce::dsp::FFT> _forwardFFT;
+    std::unique_ptr<juce::dsp::FFT> _backwardFFT;
 };
 
 #endif // OVERLAP_ADD_H

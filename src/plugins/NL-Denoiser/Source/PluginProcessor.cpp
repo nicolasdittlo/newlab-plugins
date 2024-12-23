@@ -116,7 +116,7 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 {
     int numInputChannels = getTotalNumInputChannels();
     
-    int fftSize = juce::nextPowerOfTwo(sampleRate*FFT_SIZE_COEFF);
+    int fftSize = juce::nextPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
 
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
@@ -127,13 +127,12 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     {
         for (int i = 0; i < _overlapAdds.size(); i++)
             delete _overlapAdds[i];
-
+        _overlapAdds.clear();
+        
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
-
-        _overlapAdds.resize(numInputChannels);
-        _processors.resize(numInputChannels);
-
+        _processors.clear();
+        
         for (int i = 0; i < numInputChannels; i++)
         {
             DenoiserProcessor *processor = new DenoiserProcessor(fftSize/2 + 1, overlap, threshold);
@@ -243,8 +242,8 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         _overlapAdds[channel]->feed(vecBuf);
 
         vector<float> resBuf;
-        _overlapAdds[channel]->getOutSamples(&resBuf);
-        _overlapAdds[channel]->flushOutSamples(resBuf.size());
+        int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&resBuf, buffer.getNumSamples());
+        _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
 
         memcpy(channelData, resBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
