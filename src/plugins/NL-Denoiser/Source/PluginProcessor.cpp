@@ -218,7 +218,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     auto noiseOnly = _parameters.getRawParameterValue("noiseOnlyParamID")->load();
     auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
     auto quality = _parameters.getRawParameterValue("quality")->load();
-
+    
     ratio *= 0.01;
     
     bool qualityChanged = (quality != _prevQualityParam);
@@ -268,6 +268,9 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         getNoiseBuf(&noiseBuf, channelData, outBuf);
 
         applyRatio(ratio, &outBuf, channelData, noiseBuf);
+
+        if (noiseOnly > 0.5)
+            outBuf = noiseBuf;
         
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
