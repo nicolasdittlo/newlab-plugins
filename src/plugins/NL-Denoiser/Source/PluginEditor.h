@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+
 #include "PluginProcessor.h"
 
 #include "RotarySliderWithValue.h"
@@ -8,6 +9,7 @@
 #include "CustomComboBox.h"
 #include "PlugNameComponent.h"
 #include "HelpButton.h"
+#include "SpectrumComponent.h"
 
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -56,6 +58,8 @@ private:
     std::unique_ptr<PlugNameComponent> _plugNameComponent;
 
     std::unique_ptr<HelpButton> _helpButton;
+
+    std::unique_ptr<SpectrumComponent> _spectrumComponent;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

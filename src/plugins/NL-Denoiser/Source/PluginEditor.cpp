@@ -113,6 +113,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _helpButton = std::make_unique<HelpButton>();
     _helpButton->onStateChange = [] () { ManualPdfViewer::openEmbeddedPdf(); };
     addAndMakeVisible(*_helpButton);
+
+    _spectrumComponent = std::make_unique<SpectrumComponent>();
+    addAndMakeVisible(*_spectrumComponent);
     
     // Set the editor's size
     setSize(464, 464);
@@ -190,4 +193,6 @@ void NLDenoiserAudioProcessorEditor::resized()
                                   _plugNameComponent->getHeight());
 
     _helpButton->setBounds(getWidth() - 20 - 14, getHeight() - 20 - 10, 20, 20);
+
+    _spectrumComponent->setBounds(0, 0, 464, 198);
 }

@@ -7,9 +7,12 @@
               pluginFormats="buildAAX,buildAU,buildVST,buildVST3" pluginCharacteristicsValue="pluginAAXDisableBypass,pluginAAXDisableMultiMono"
               pluginDesc="Noise removal plugin" pluginManufacturerCode="Nlpl"
               pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
-              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib&#10;../../../../libs/fftw-3.3.10/api"
+              headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib&#10;../../../../libs/fftw-3.3.10/api&#10;../../../../libs/nanovg/src"
               defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1">
   <MAINGROUP id="LE9YKO" name="NL-Denoiser">
+    <GROUP id="{A7E4A4B9-0F14-99AB-E614-E8A83EECBBF2}" name="nanovg">
+      <FILE id="FkvJgi" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
+    </GROUP>
     <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
       <FILE id="ceVi8O" name="background.png" compile="0" resource="1" file="Resources/background.png"/>
       <FILE id="SUcf4v" name="checkbox_checked.png" compile="0" resource="1"
@@ -50,12 +53,19 @@
       <FILE id="kiCgpQ" name="ManualPdfViewer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/ManualPdfViewer.h"/>
       <FILE id="vhGbhj" name="nl_queue.h" compile="0" resource="0" file="../../libs/newlab-lib/nl_queue.h"/>
+      <FILE id="JyI1T4" name="NLDebug.h" compile="0" resource="0" file="../../libs/newlab-lib/NLDebug.h"/>
+      <FILE id="Dzx2B7" name="OpenGLNanoVGComponent.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/OpenGLNanoVGComponent.cpp"/>
+      <FILE id="Ga68lf" name="OpenGLNanoVGComponent.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/OpenGLNanoVGComponent.h"/>
       <FILE id="Od5NTt" name="OverlapAdd.cpp" compile="1" resource="0" file="../../libs/newlab-lib/OverlapAdd.cpp"/>
       <FILE id="VAPbYz" name="OverlapAdd.h" compile="0" resource="0" file="../../libs/newlab-lib/OverlapAdd.h"/>
       <FILE id="UJFUzI" name="PlugNameComponent.h" compile="0" resource="0"
             file="../../libs/newlab-lib/PlugNameComponent.h"/>
       <FILE id="jqrsw5" name="RotarySliderWithValue.h" compile="0" resource="0"
             file="../../libs/newlab-lib/RotarySliderWithValue.h"/>
+      <FILE id="o4A4Zp" name="SpectrumComponent.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/SpectrumComponent.h"/>
       <FILE id="pvXG4y" name="Utils.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Utils.cpp"/>
       <FILE id="EylLDV" name="Utils.h" compile="0" resource="0" file="../../libs/newlab-lib/Utils.h"/>
       <FILE id="G8LejO" name="VersionTextDrawer.h" compile="0" resource="0"
