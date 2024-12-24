@@ -274,7 +274,7 @@ Scale::applyScaleFilterBank(FilterBankType fbType,
     
     if (_filterBanks[(int)fbType] == NULL)
     {
-        Type type = FilterBankTypeToType(fbType);
+        Type type = filterBankTypeToType(fbType);
         _filterBanks[(int)fbType] = new FilterBank(type);
     }
     
@@ -660,28 +660,6 @@ Scale::dataToMel(vector<float> *values,
 
         t0 += t0incr;
     }
-}
-
-void
-Scale::dataToMelFilter(vector<float> *values,
-                       float minFreq, float maxFreq)
-{
-    int numFilters = values->GetSize();
-    vector<float> &result = mTmpBuf2;
-    _melScale->HzToMelFilter(&result, *values, (float)(maxFreq*2.0), numFilters);
-    
-    *values = result;
-}
-
-void
-Scale::dataToMelFilterInv(vector<float> *values,
-                          float minFreq, float maxFreq)
-{
-    int numFilters = values->GetSize();
-    vector<float> &result = mTmpBuf3;
-    _melScale->MelToHzFilter(&result, *values, (float)(maxFreq*2.0), numFilters);
-    
-    *values = result;
 }
 
 void

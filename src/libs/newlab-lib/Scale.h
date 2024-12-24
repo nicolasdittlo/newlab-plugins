@@ -148,12 +148,6 @@ protected:
     
     void dataToMel(vector<float> *values,
                    float minFreq, float maxFreq);
-    
-    void dataToMelFilter(vector<float> *values,
-                         float minFreq, float maxFreq);
-    
-    void dataToMelFilterInv(vector<float> *values,
-                            float minFreq, float maxFreq);
 
     // Process in block
     
@@ -200,9 +194,6 @@ protected:
     void toLogForEach(vector<float> *values);
     
     void toLogInvForEach(vector<float> *values);
-    
-    // Must keep the object, for precomputed filter bank
-    MelScale *_melScale;
     
     FilterBank *_filterBanks[NUM_FILTER_BANKS];
     
