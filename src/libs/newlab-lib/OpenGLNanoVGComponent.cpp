@@ -14,7 +14,7 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
 {
     _openGLContext.setRenderer(this);
     _openGLContext.attachTo(*this);
-    _openGLContext.setContinuousRepainting(true); // Optional, for continuous updates
+    //_openGLContext.setContinuousRepainting(true); // Optional, for continuous updates
 }
 
 OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
