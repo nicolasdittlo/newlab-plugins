@@ -44,7 +44,12 @@ public:
     
 private:
     int getOverlap(int quality);
-    
+
+    void getNoiseBuf(vector<float> *noiseBuf, float *inputBuf, const vector<float> &outputBuf);
+
+    void applyRatio(float ratio, vector<float> *outputBuf,
+                    float *channelData, const vector<float> &noiseBuf);
+        
     vector<OverlapAdd *> _overlapAdds;
     vector<DenoiserProcessor *> _processors;
 

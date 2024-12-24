@@ -219,6 +219,8 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
     auto quality = _parameters.getRawParameterValue("quality")->load();
 
+    ratio *= 0.01;
+    
     bool qualityChanged = (quality != _prevQualityParam);
     _prevQualityParam = quality;
                     
@@ -258,11 +260,16 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         
         _overlapAdds[channel]->feed(vecBuf);
 
-        vector<float> resBuf;
-        int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&resBuf, buffer.getNumSamples());
+        vector<float> outBuf;
+        int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
         _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
 
-        memcpy(channelData, resBuf.data(), buffer.getNumSamples()*sizeof(float));
+        vector<float> noiseBuf;
+        getNoiseBuf(&noiseBuf, channelData, outBuf);
+
+        applyRatio(ratio, &outBuf, channelData, noiseBuf);
+        
+        memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
 }
 
@@ -312,6 +319,23 @@ NLDenoiserAudioProcessor::getOverlap(int quality)
         default:
             return OVERLAP_0;
     }
+}
+
+void
+NLDenoiserAudioProcessor::getNoiseBuf(vector<float> *noiseBuf, float *inputBuf, const vector<float> &outputBuf)
+{
+    noiseBuf->resize(outputBuf.size());
+
+    for (int i = 0; i < noiseBuf->size(); i++)
+        (*noiseBuf)[i] = inputBuf[i] - outputBuf[i];
+}
+
+void
+NLDenoiserAudioProcessor::applyRatio(float ratio, vector<float> *outputBuf,
+                                     float *channelData, const vector<float> &noiseBuf)
+{
+    for (int i = 0; i < outputBuf->size(); i++)
+        (*outputBuf)[i] = channelData[i] + ratio*noiseBuf[i];
 }
 
 // This creates new instances of the plugin..
