@@ -34,6 +34,17 @@ OpenGLNanoVGComponent::newOpenGLContextCreated()
     
     _nvgContext = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
     jassert(_nvgContext != nullptr);
+
+    // Load font from memory
+    int fontIndex = nvgCreateFontMem(_nvgContext,
+                                     "Roboto-Bold",  // Internal name used by NanoVG
+                                     (unsigned char *)BinaryData::RobotoBold_ttf,  // Pointer to the font data
+                                     BinaryData::RobotoBold_ttfSize,  // Size of the font data
+                                     0  // Do not free the memory (managed by JUCE)
+                                     );
+
+    if (fontIndex == -1)
+        DBG("Failed to load font Roboto-Bold");
 }
 
 void
@@ -72,7 +83,7 @@ OpenGLNanoVGComponent::drawNanoVGGraphics()
     nvgFill(_nvgContext);
     
     nvgFontSize(_nvgContext, 24.0f);
-    nvgFontFace(_nvgContext, "sans");
+    nvgFontFace(_nvgContext, "Roboto-Bold");
     nvgFillColor(_nvgContext, nvgRGBA(255, 255, 255, 255));
     nvgTextAlign(_nvgContext, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgText(_nvgContext, 150, 100, "Hello, NanoVG (GL2)!", nullptr);
