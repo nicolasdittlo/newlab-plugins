@@ -19,11 +19,7 @@ class SmoothCurveDB
 
     void clearValues();
     
-    void SetValues(const vector<float> &values, bool reset);
-
-    void getHistogramValues(vector<float> *values);
-
-    void getHistogramValuesDB(vector<float> *values);
+    void setValues(const vector<float> &values, bool reset);
 };
 
 #endif

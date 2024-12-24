@@ -98,15 +98,3 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     
     _curve->SetValues5LF(avgValues, !useFilterBank, !sameScale);
 }
-
-void
-SmoothCurveDB::getHistogramValues(vector<float> *values)
-{
-    _histogram->getValues(values);
-}
-
-void
-SmoothCurveDB::getHistogramValuesDB(vector<float> *values)
-{
-    _histogram->getValuesDB(values);
-}
