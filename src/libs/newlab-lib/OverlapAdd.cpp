@@ -94,23 +94,23 @@ OverlapAdd::feed(const vector<float> &samples)
             // Apply analysis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= _anaWin[k];
-
+            
             // Convert real input to JUCE format
             juce::HeapBlock<float> fftInput(2*_fftSize);
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 fftInput[k] = _tmpSampBufIn[k];
-
+            
             // Apply FFT
             _forwardFFT->performRealOnlyForwardTransform(fftInput.get());
-
+            
             // Store output in temporary buffer
             for (int k = 0; k < _tmpCompBufOut.size(); k++)
                 _tmpCompBufOut[k] = complex(fftInput[k], fftInput[_fftSize + k]);
         }
-
+        
         // Apply callback
         processFFT(&_tmpCompBufOut);
-
+        
         if (_ifftFlag)
         {
             // Convert to JUCE real format for inverse FFT
@@ -123,20 +123,20 @@ OverlapAdd::feed(const vector<float> &samples)
 
             // Apply inverse FFT
             _backwardFFT->performRealOnlyInverseTransform(ifftInput.get());
-
+            
             // Convert back to real samples
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] = ifftInput[k];
 
             // Apply resynth coeff
-            double resynthCoeff = 1.0 / _fftSize;
-            for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                _tmpSampBufIn[k] *= resynthCoeff;
+            //double resynthCoeff = 1.0 / _fftSize;
+            //for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            //    _tmpSampBufIn[k] *= resynthCoeff;
 
             // Apply synthesis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= _synthWin[k];
-
+            
             // Output
             _circSampBufsOut.peek(_tmpSampBufOut.data(),
                                   _synthWin.size());
@@ -151,7 +151,7 @@ OverlapAdd::feed(const vector<float> &samples)
 
             _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
                                   _tmpSynthZeroBuf.size());
-
+            
             // Apply callback
             processOutSamples(&_tmpSampBufIn);
         }
@@ -170,7 +170,7 @@ OverlapAdd::getOutSamples(vector<float> *samples, int numSamples)
         (*samples)[i] = 0.0;
     for (int i = numZeros; i < numSamples; i++)
         (*samples)[i] = _outSamples[i - numZeros];
-
+        
     return numSamples - numZeros;
 }
 
