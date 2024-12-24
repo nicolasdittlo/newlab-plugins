@@ -152,6 +152,14 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 
     for (int i = 0; i < _processors.size(); i++)
         _processors[i]->reset(fftSize/2 + 1, overlap, sampleRate);
+
+    // Update latency
+    if (!_processors.empty())
+    {
+        int latency = _processors[0]->getLatency();
+        setLatencySamples(latency);
+        updateHostDisplay();
+    }
 }
 
 void NLDenoiserAudioProcessor::releaseResources()
@@ -211,6 +219,9 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
     auto quality = _parameters.getRawParameterValue("quality")->load();
 
+    bool qualityChanged = (quality != _prevQualityParam);
+    _prevQualityParam = quality;
+                    
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -219,14 +230,20 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         _processors[i]->setBuildingNoiseStatistics(learnMode);
         _processors[i]->setAutoResNoise(softDenoise);
 
-        if (quality != _prevQualityParam)
-        {
-            _prevQualityParam = quality;
-            
+        if (qualityChanged)
+        {            
             int overlap = getOverlap(quality);
 
             _processors[i]->setOverlap(overlap);
             _overlapAdds[i]->setOverlap(overlap);
+
+            // Update latency
+            if (!_processors.empty())
+            {
+                int latency = _processors[0]->getLatency();
+                setLatencySamples(latency);
+                updateHostDisplay();
+            }
         }
     }
     
