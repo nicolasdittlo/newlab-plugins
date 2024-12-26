@@ -11,9 +11,7 @@ class FreqAxis
     virtual ~FreqAxis();
 
     void init(Axis *axis,
-              bool horizontal,
-              int bufferSize, float sampleRate,
-              int graphWidth);
+              int bufferSize, float sampleRate);
     
     void reset(int bufferSize, float sampleRate);
     

@@ -7,7 +7,7 @@
 #include "SpectrumView.h"
 
 #define FONT "Roboto-Bold"
-#define FONT_SIZE 14.0
+#define FONT_SIZE 12.0
 
 SpectrumView::SpectrumView()
 {

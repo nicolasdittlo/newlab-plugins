@@ -17,9 +17,7 @@ AmpAxis::AmpAxis(bool displayLines, Density density)
 AmpAxis::~AmpAxis() {}
 
 void
-AmpAxis::init(Axis *axis,
-              float minDB, float maxDB,
-              int graphWidth)
+AmpAxis::init(Axis *axis, float minDB, float maxDB)
 {
     _minDB = minDB;
     _maxDB = maxDB;
@@ -29,12 +27,14 @@ AmpAxis::init(Axis *axis,
     int axisColor[4] = { 48, 48, 48, 255 };
     int axisLabelColor[4] = { 255, 255, 255, 255 };
     float lineWidth = 1.25;
+
+    float offsetX = 0.00862069;
     
     axis->initVAxis(Scale::LINEAR,
                     minDB, maxDB,
                     axisColor, axisLabelColor,
                     lineWidth,
-                    4.0/graphWidth, 0.0);
+                    offsetX, 0.0);
     
     update();
 }

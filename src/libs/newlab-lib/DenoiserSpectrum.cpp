@@ -17,12 +17,11 @@
 #define CURVE_NUM_VALUES 256
 
 DenoiserSpectrum::DenoiserSpectrum(SpectrumView *spectrumView,
-                                   float sampleRate, int bufferSize,
-                                   int width)
+                                   float sampleRate, int bufferSize)
 {
     _spectrumView = spectrumView;
     
-    createAxes(spectrumView, sampleRate, bufferSize, width);
+    createAxes(spectrumView, sampleRate, bufferSize);
 
     createCurves(sampleRate);
 }
@@ -47,8 +46,7 @@ DenoiserSpectrum::~DenoiserSpectrum()
 
 void
 DenoiserSpectrum::createAxes(SpectrumView *spectrumView,
-                             float sampleRate, int bufferSize,
-                             int width)
+                             float sampleRate, int bufferSize)
 {
     _hAxis = new Axis();
     _freqAxis = new FreqAxis(true, Scale::LOG);
@@ -59,12 +57,10 @@ DenoiserSpectrum::createAxes(SpectrumView *spectrumView,
     spectrumView->setHAxis(_hAxis);
     spectrumView->setVAxis(_vAxis);
     
-    bool horizontal = true;
-    _freqAxis->init(_hAxis, horizontal, bufferSize,
-                    sampleRate, width);
+    _freqAxis->init(_hAxis, bufferSize, sampleRate);
     _freqAxis->reset(bufferSize, sampleRate);
     
-    _ampAxis->init(_vAxis, DENOISER_MIN_DB, DENOISER_MAX_DB, width);
+    _ampAxis->init(_vAxis, DENOISER_MIN_DB, DENOISER_MAX_DB);
 }
 
 void

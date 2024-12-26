@@ -15,8 +15,7 @@ class DenoiserSpectrum
 {
  public:
     DenoiserSpectrum(SpectrumView *spectrumView,
-                     float sampleRate, int bufferSize,
-                     int width);
+                     float sampleRate, int bufferSize);
 
     virtual ~DenoiserSpectrum();
 
@@ -29,8 +28,7 @@ class DenoiserSpectrum
         
  protected:
     void createAxes(SpectrumView *spectrumView,
-                    float sampleRate, int bufferSize,
-                    int width);
+                    float sampleRate, int bufferSize);
 
     void createCurves(float sampleRate);
 

@@ -15,9 +15,7 @@ public:
     
     virtual ~AmpAxis();
     
-    void init(Axis *axis,
-              float minDB, float maxDB,
-              int graphWidth);
+    void init(Axis *axis, float minDB, float maxDBh);
     
     void reset(float minDB, float maxDB);
     

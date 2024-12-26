@@ -206,10 +206,7 @@ FreqAxis::FreqAxis(bool displayLines,
 FreqAxis::~FreqAxis() {}
 
 void
-FreqAxis::init(Axis *axis,
-               bool horizontal,
-               int bufferSize, float sampleRate,
-               int graphWidth)
+FreqAxis::init(Axis *axis, int bufferSize, float sampleRate)
 {
     _axis = axis;
     
@@ -222,23 +219,12 @@ FreqAxis::init(Axis *axis,
     
     if (!_displayLines)
         axisColor[3] = 0;
-    
-    if (horizontal)
-    {        
-        _axis->initHAxis(_scale,
-                         0.0, sampleRate*0.5,
-                         axisColor, axisLabelColor,
-                         lineWidth,
-                         0.0);
-    }
-    else
-    {        
-        _axis->initVAxis(_scale,
-                         0.0, sampleRate*0.5,
-                         axisColor, axisLabelColor,
-                         lineWidth,
-                         1.0 - 40.0/graphWidth, 0.0);
-    }
+            
+    _axis->initHAxis(_scale,
+                     0.0, sampleRate*0.5,
+                     axisColor, axisLabelColor,
+                     lineWidth,
+                     0.0);
     
     update();
 }

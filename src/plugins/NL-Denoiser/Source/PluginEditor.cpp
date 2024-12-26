@@ -118,7 +118,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     addAndMakeVisible(*_spectrumComponent);
 
     _spectrumView = std::make_unique<SpectrumView>();
-    _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(_spectrumView.get(), 44100.0, 2048, 464);
+    _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(_spectrumView.get(), 44100.0, 2048);
 
     _spectrumComponent->setSpectrumView(_spectrumView.get());
     
