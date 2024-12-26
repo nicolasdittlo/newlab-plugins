@@ -227,14 +227,17 @@ NLDenoiserAudioProcessorEditor::timerCallback()
     vector<float> noiseBuffer;
     vector<float> noiseProfileBuffer;
         
-    _audioProcessor.getBuffers(&signalBuffer,
-                               &noiseBuffer,
-                               &noiseProfileBuffer);
+    bool newBuffersAvailable = _audioProcessor.getBuffers(&signalBuffer,
+                                                          &noiseBuffer,
+                                                          &noiseProfileBuffer);
 
-    bool isLearning = _audioProcessor._parameters.getRawParameterValue("learnModeParamID")->load();
+    if (newBuffersAvailable)
+    {
+        bool isLearning = _audioProcessor._parameters.getRawParameterValue("learnModeParamID")->load();
     
-    _denoiserSpectrum->updateCurves(signalBuffer,
-                                    noiseBuffer,
-                                    noiseProfileBuffer,
-                                    isLearning);
+        _denoiserSpectrum->updateCurves(signalBuffer,
+                                        noiseBuffer,
+                                        noiseProfileBuffer,
+                                        isLearning);
+    }
 }

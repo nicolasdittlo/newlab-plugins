@@ -43,7 +43,7 @@ public:
 
     void setSampleRateChangeListener(SampleRateChangeListener listener);
 
-    void getBuffers(vector<float> *signalBuffer,
+    bool getBuffers(vector<float> *signalBuffer,
                     vector<float> *noiseBuffer,
                     vector<float> *noiseProfileBuffer);
     
@@ -71,6 +71,7 @@ private:
     vector<float> _noiseProfileBuffer;
     
     std::mutex _curvesMutex;
+    bool _newBuffersAvailble = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessor)
 };
