@@ -34,7 +34,7 @@ class SpectrumView
     void drawText(NVGcontext *nvgContext, float x, float y,
                   float fontSize,
                   const char *text, int color[4],
-                  int halign, int valign, float fontSizeCoeff);
+                  int halign, int valign);
     void drawSeparatorY0(NVGcontext *nvgContext);
     bool isCurveUndefined(const vector<float> &x,
                           const vector<float> &y,

@@ -133,8 +133,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     
                     drawText(nvgContext, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             halign, NVG_ALIGN_BOTTOM);
                 }
             }
 
@@ -150,8 +149,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     // First text: aligne left
                     drawText(nvgContext, tx, ty, FONT_SIZE,
                              text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             halign, NVG_ALIGN_BOTTOM);
                 }
         
                 if (i == axis->_values.size() - 1)
@@ -164,8 +162,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     // Last text: align right
                     drawText(nvgContext, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             halign, NVG_ALIGN_BOTTOM);
                 }
             }
         }
@@ -217,8 +214,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
                              halign,
-                             NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             NVG_ALIGN_BOTTOM);
                 }
             }
             
@@ -234,8 +230,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             halign, NVG_ALIGN_BOTTOM);
                 }
                 
                 if (i == axis->_values.size() - 1)
@@ -248,8 +243,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM,
-                             axis->_fontSizeCoeff);
+                             halign, NVG_ALIGN_BOTTOM);
                 }
             }
         }
@@ -275,14 +269,14 @@ SpectrumView::drawText(NVGcontext *nvgContext,
                        float x, float y,
                        float fontSize,
                        const char *text, int color[4],
-                       int halign, int valign, float fontSizeCoeff)
+                       int halign, int valign)
 {
     if (strlen(text) == 0)
         return;
     
     nvgSave(nvgContext);
         
-    nvgFontSize(nvgContext, fontSize*fontSizeCoeff);
+    nvgFontSize(nvgContext, fontSize);
 	nvgFontFace(nvgContext, FONT);
     nvgFontBlur(nvgContext, 0);
 	nvgTextAlign(nvgContext, halign | valign);
@@ -486,7 +480,7 @@ SpectrumView::drawCurveDescriptions(NVGcontext *nvgContext)
                  y,
                  FONT_SIZE, descr,
                  curve->_descrColor,
-                 NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE, 1.0);
+                 NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE);
         
         nvgRestore(nvgContext);
         

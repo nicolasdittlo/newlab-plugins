@@ -13,8 +13,6 @@ Axis::Axis()
     _offsetX = 0.0;
     _offsetY = 0.0;
     
-    _fontSizeCoeff = 1.0;
-    
     _scaleType = Scale::LINEAR;
     _minVal = 0.0;
     _maxVal = 1.0;
@@ -40,13 +38,10 @@ Axis::initHAxis(Scale::Type scale,
                 float minX, float maxX,
                 int axisColor[4], int axisLabelColor[4],
                 float lineWidth,
-                float offsetY,
-                float fontSizeCoeff)
+                float offsetY)
 {   
     _offsetX = 0.0;
     _offsetY = offsetY;
-    
-    _fontSizeCoeff = fontSizeCoeff;
     
     _scaleType = scale;
     _minVal = minX;
@@ -64,13 +59,11 @@ Axis::initVAxis(Scale::Type scale,
                 int axisColor[4], int axisLabelColor[4],
                 float lineWidth,
                 float offsetX, float offsetY,
-                float fontSizeCoeff, bool alignTextRight,
+                bool alignTextRight,
                 bool alignRight)
 {
     _offsetX = offsetX;
     _offsetY = offsetY;
-    
-    _fontSizeCoeff = fontSizeCoeff;
     
     _scaleType = scale;
     _minVal = minY;

@@ -17,15 +17,13 @@ public:
                    float minX, float maxX,
                    int axisColor[4], int axisLabelColor[4],
                    float lineWidth,
-                   float offsetY = 0.0,
-                   float fontSizeCoeff = 1.0);
+                   float offsetY = 0.0);
     
     void initVAxis(Scale::Type scale,
                    float minY, float maxY,
                    int axisColor[4], int axisLabelColor[4],
                    float lineWidth,
                    float offsetX = 0.0, float offsetY = 0.0,
-                   float fontSizeCoeff = 1.0,
                    bool alignTextRight = false,
                    bool alignRight = true);
     
@@ -64,8 +62,6 @@ protected:
     // To be able to display the axis on the right
     float _offsetX;
     float _offsetY;
-    
-    float _fontSizeCoeff;
     
     bool _alignTextRight;
     bool _alignRight;
