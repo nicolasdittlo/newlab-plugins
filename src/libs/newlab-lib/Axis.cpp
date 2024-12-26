@@ -27,9 +27,6 @@ Axis::Axis()
     
     _scale = new Scale();
 
-    // align by default
-    _alignToScreenPixels = true;
-
     _offsetPixels = 0.0;
 }
 
@@ -117,12 +114,6 @@ Axis::setData(char *data[][2], int numData)
         
         _values[i] = aData;
     }
-}
-
-void
-Axis::setAlignToScreenPixels(bool flag)
-{
-    _alignToScreenPixels = flag;
 }
 
 void

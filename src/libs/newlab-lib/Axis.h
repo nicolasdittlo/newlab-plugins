@@ -74,8 +74,6 @@ protected:
 
     Scale *_scale;
 
-    bool _alignToScreenPixels;
-
     // For time axis scroll
     float _offsetPixels;
 };

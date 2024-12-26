@@ -117,8 +117,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     // Draw a vertical line
                     nvgBeginPath(nvgContext);
 
-                    if (axis->_alignToScreenPixels)
-                        x = (int)x;
+                    x = (int)x;
                     
                     nvgMoveTo(nvgContext, x, y0f);
                     nvgLineTo(nvgContext, x, y1f);
@@ -190,9 +189,8 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     float x0 = 0.0;
                     float x1 = _width;
 
-                    if (axis->_alignToScreenPixels)
-                        y = (int)y;
                     
+                    y = (int)y; 
                     float yf = y;
                     
                     yf = _height - yf;
