@@ -100,9 +100,8 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
 
             float xLabel = x;
             xLabel += axis->_offsetPixels;
-            
-            if (((i > 0) && (i < axis->_values.size() - 1)) ||
-                !axis->_alignBorderLabels)
+
+            if ((i > 0) && (i < axis->_values.size() - 1))
             {
                 if (lineLabelFlag)
                 {
@@ -133,8 +132,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
 
                     int halign = NVG_ALIGN_CENTER;
                     
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
-                    
                     drawText(nvgContext, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
@@ -142,7 +139,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 }
             }
 
-            if (!lineLabelFlag && axis->_alignBorderLabels)
+            if (!lineLabelFlag)
             {
                 if (i == 0)
                 {
@@ -185,8 +182,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
             float yLabel = y;
             yLabel += axis->_offsetPixels;
             
-            if (((i > 0) && (i < axis->_values.size() - 1)) ||
-                !axis->_alignBorderLabels)
+            if ((i > 0) && (i < axis->_values.size() - 1))
                 // First and last: don't draw axis line
             {
                 if (lineLabelFlag)
@@ -220,8 +216,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
 
                     int halign = align | NVG_ALIGN_MIDDLE;
                     
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
-                    
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
                              halign,
@@ -230,7 +224,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 }
             }
             
-            if (!lineLabelFlag && axis->_alignBorderLabels)
+            if (!lineLabelFlag)
             {
                 if (i == 0)
                     // First text: align "top"
