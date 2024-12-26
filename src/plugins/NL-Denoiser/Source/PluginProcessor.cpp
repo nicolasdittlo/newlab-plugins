@@ -229,6 +229,9 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     auto quality = _parameters.getRawParameterValue("quality")->load();
     
     ratio *= 0.01;
+    threshold *= 0.01;
+    transientBoost *= 0.01;
+    residualNoise *= 0.01;
     
     bool qualityChanged = (quality != _prevQualityParam);
     _prevQualityParam = quality;
