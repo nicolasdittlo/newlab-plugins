@@ -32,6 +32,8 @@ SpectrumView::setVAxis(Axis *axis)
 void
 SpectrumView::addCurve(Curve *curve)
 {
+    curve->setViewSize(_width, _height);
+    
     _curves.push_back(curve);
 }
 
@@ -63,6 +65,9 @@ SpectrumView::setViewSize(int width, int height)
 {
     _width = width;
     _height = height;
+
+    for (int i = 0; i < _curves.size(); i++)
+        _curves[i]->setViewSize(_width, _height);
 }
 
 void
@@ -368,6 +373,8 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
     float offset = curve->_lineWidth;
         
     nvgSave(nvgContext);
+
+    setCurveDrawStyle(nvgContext, curve);
     
     nvgBeginPath(nvgContext);
     
@@ -409,14 +416,7 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
         }
     }
     
-    nvgFillColor(nvgContext, nvgRGBA(curve->_fillColor[0], curve->_fillColor[1],
-                                     curve->_fillColor[2], curve->_fillColor[3]));
 	nvgFill(nvgContext);
-    
-    nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0], curve->_color[1],
-                                       curve->_color[2], curve->_color[3]));
-    
-    nvgStrokeWidth(nvgContext, curve->_lineWidth);
     nvgStroke(nvgContext);
 
     nvgRestore(nvgContext);
@@ -519,8 +519,8 @@ SpectrumView::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
     nvgStrokeWidth(nvgContext, curve->_lineWidth);
     
     nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0]*255, curve->_color[1]*255,
-                                curve->_color[2]*255, curve->_color[3]*255));
+                                       curve->_color[2]*255, curve->_color[3]*255));
     
     nvgFillColor(nvgContext, nvgRGBA(curve->_fillColor[0]*255, curve->_fillColor[1]*255,
-                                curve->_fillColor[2]*255, curve->_fillColor[3]*255));
+                                     curve->_fillColor[2]*255, curve->_fillColor[3]*255));
 }

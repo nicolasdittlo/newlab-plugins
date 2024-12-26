@@ -29,10 +29,8 @@ Curve::Curve(int numValues)
     _lineWidth = 1.5;
     
     _curveFill = false;
-    _fillAlpha = 1.0;
     
     SET_COLOR_FROM_INT(_fillColor, 0, 0, 0, 255);
-    _fillColorSet = false;
     
     _numValues = numValues;
     _xValues.resize(_numValues);
@@ -126,16 +124,9 @@ Curve::setFill(bool flag)
 }
 
 void
-Curve::setFillColor(int r, int g, int b)
+Curve::setFillColor(int r, int g, int b, int a)
 {
-    SET_COLOR_FROM_INT(_fillColor, r, g, b, 255);
-    _fillColorSet = true;
-}
-
-void
-Curve::setFillAlpha(float alpha)
-{
-    _fillAlpha = alpha;
+    SET_COLOR_FROM_INT(_fillColor, r, g, b, a);
 }
 
 void

@@ -240,4 +240,6 @@ NLDenoiserAudioProcessorEditor::timerCallback()
                                         noiseProfileBuffer,
                                         isLearning);
     }
+
+    _spectrumComponent->repaint();
 }

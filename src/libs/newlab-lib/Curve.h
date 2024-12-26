@@ -36,10 +36,7 @@ public:
     void setLineWidth(float lineWidth);
     
     void setFill(bool flag);
-    
-    void setFillColor(int r, int g, int b);
-
-    void setFillAlpha(float alpha);
+    void setFillColor(int r, int g, int b, int a);
     
  protected:
     friend class SpectrumView;
@@ -58,16 +55,11 @@ public:
     float _maxY;
     
     float _color[4];
+
+    bool _curveFill;
+    float _fillColor[4];
     
     float _lineWidth;
-       
-    bool _curveFill;
-
-    float _fillColor[4];
-    float _fillAlpha;
-    
-
-    bool _fillColorSet;
         
     int _numValues;
     vector<float> _xValues;

@@ -79,9 +79,9 @@ DenoiserSpectrum::createCurves(float sampleRate)
     _signalCurve->setDescription("signal", descrColor);
     _signalCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _signalCurve->setYScale(Scale::DB, DENOISER_MIN_DB, DENOISER_MAX_DB);
-    _signalCurve->setFill(true);
-    _signalCurve->setFillAlpha(fillAlpha);
     _signalCurve->setColor(signalColor[0], signalColor[1], signalColor[2]);
+    _signalCurve->setFill(true);
+    _signalCurve->setFillColor(signalColor[0], signalColor[1], signalColor[2], fillAlpha*255);
     _signalCurve->setLineWidth(2.0);
         
     _signalCurveSmooth = new SmoothCurveDB(_signalCurve,
@@ -98,7 +98,6 @@ DenoiserSpectrum::createCurves(float sampleRate)
     _noiseCurve->setDescription("noise", descrColor);
     _noiseCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _noiseCurve->setYScale(Scale::DB, DENOISER_MIN_DB, DENOISER_MAX_DB);
-    _noiseCurve->setFillAlpha(fillAlpha);
     _noiseCurve->setColor(noiseColor[0], noiseColor[1], noiseColor[2]);
         
     _noiseCurveSmooth = new SmoothCurveDB(_noiseCurve,
@@ -115,7 +114,6 @@ DenoiserSpectrum::createCurves(float sampleRate)
     _noiseProfileCurve->setDescription("noise profile", descrColor);
     _noiseProfileCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _noiseProfileCurve->setYScale(Scale::DB, DENOISER_MIN_DB, DENOISER_MAX_DB);
-    _noiseProfileCurve->setFillAlpha(fillAlpha);
     _noiseProfileCurve->setColor(noiseProfileColor[0],
                                  noiseProfileColor[1],
                                  noiseProfileColor[2]);
