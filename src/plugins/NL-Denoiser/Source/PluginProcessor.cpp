@@ -285,14 +285,13 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     }
 
     // Get curves
-    vector<float> signalBuffer;
-    _processors[0]->getSignalBuffer(&signalBuffer);
-
-    vector<float> noiseBuffer;
-    _processors[0]->getNoiseBuffer(&noiseBuffer);
-
-    vector<float> noiseProfileBuffer;
-    _processors[0]->getNoiseCurve(&noiseProfileBuffer);
+    {
+        std::lock_guard<std::mutex> lock(_curvesMutex);
+        
+        _processors[0]->getSignalBuffer(&_signalBuffer);
+        _processors[0]->getNoiseBuffer(&_noiseBuffer);
+        _processors[0]->getNoiseCurve(&_noiseProfileBuffer);
+    }
 }
 
 bool NLDenoiserAudioProcessor::hasEditor() const
@@ -315,6 +314,24 @@ void NLDenoiserAudioProcessor::setStateInformation(const void* data, int sizeInB
 {
     juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
     _parameters.state = juce::ValueTree::readFromStream(stream);
+}
+
+void
+NLDenoiserAudioProcessor::setSampleRateChangeListener(SampleRateChangeListener listener)
+{
+    _sampleRateChangeListener = listener;
+}
+
+void
+NLDenoiserAudioProcessor::getBuffers(vector<float> *signalBuffer,
+                                     vector<float> *noiseBuffer,
+                                     vector<float> *noiseProfileBuffer)
+{
+    std::lock_guard<std::mutex> lock(_curvesMutex);
+
+    *signalBuffer = _signalBuffer;
+    *noiseBuffer = _noiseBuffer;
+    *noiseProfileBuffer = _noiseProfileBuffer;
 }
 
 int

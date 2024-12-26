@@ -10,16 +10,7 @@
 
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
-{
-    // Register the sample rate change listener
-    _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
-    {
-        juce::MessageManager::callAsync([this, sampleRate, bufferSize]()
-        {
-            handleSampleRateChange(sampleRate, bufferSize);
-        });
-    });
-        
+{    
     // Set the custom look and feel
     juce::LookAndFeel::setDefaultLookAndFeel(new CustomLookAndFeel());
     
@@ -133,10 +124,23 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     
     // Set the editor's size
     setSize(464, 464);
+
+    // Register the sample rate change listener
+    _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
+    {
+        juce::MessageManager::callAsync([this, sampleRate, bufferSize]()
+        {
+            handleSampleRateChange(sampleRate, bufferSize);
+        });
+    });
+    
+    startTimer(15);
 }
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
 {
+    stopTimer();
+    
     // Reset the LookAndFeel to avoid dangling references
     juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
 }
@@ -214,4 +218,23 @@ void NLDenoiserAudioProcessorEditor::resized()
 void NLDenoiserAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
 {
     _denoiserSpectrum->reset(bufferSize, sampleRate);
+}
+
+void
+NLDenoiserAudioProcessorEditor::timerCallback()
+{
+    vector<float> signalBuffer;
+    vector<float> noiseBuffer;
+    vector<float> noiseProfileBuffer;
+        
+    _audioProcessor->getBuffers(&signalBuffer,
+                                &noiseBuffer,
+                                &noiseProfileBuffer);
+
+    bool isLearning = _audioProcessor->_parameters.getRawParameterValue("learnModeParamID")->load();
+    
+    _denoiserSpectrum->updateCurves(signalBuffer,
+                                    noiseBuffer,
+                                    noiseProfileBuffer,
+                                    isLearning);
 }

@@ -41,10 +41,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    void setSampleRateChangeListener(SampleRateChangeListener listener)
-    {
-        _sampleRateChangeListener = listener;
-    }
+    void setSampleRateChangeListener(SampleRateChangeListener listener);
+
+    void getBuffers(vector<float> *signalBuffer,
+                    vector<float> *noiseBuffer,
+                    vector<float> *noiseProfileBuffer);
     
 public:
     juce::AudioProcessorValueTreeState _parameters;
@@ -64,6 +65,12 @@ private:
 
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;
+
+    vector<float> _signalBuffer;
+    vector<float> _noiseBuffer;
+    vector<float> _noiseProfileBuffer;
+    
+    std::mutex _curvesMutex;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessor)
 };

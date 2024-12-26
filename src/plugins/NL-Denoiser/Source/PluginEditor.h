@@ -13,7 +13,7 @@
 #include "SpectrumView.h"
 #include "DenoiserSpectrum.h"
 
-class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
+class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     NLDenoiserAudioProcessorEditor (NLDenoiserAudioProcessor&);
@@ -26,6 +26,8 @@ private:
     void drawVersionText(juce::Graphics& g);
 
     void handleSampleRateChange(double newSampleRate, int bufferSize);
+
+    void timerCallback() override;
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
