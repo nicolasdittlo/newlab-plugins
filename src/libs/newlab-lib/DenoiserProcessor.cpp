@@ -1,5 +1,6 @@
 #include "WienerSoftMasking.h"
 #include "Utils.h"
+#include "Defines.h"
 #include "DenoiserProcessor.h"
 
 
@@ -426,7 +427,7 @@ DenoiserProcessor::autoResidualDenoise(vector<float> *ioSignalMagns,
         
         float sum = resSig + resNoise;
         float coeff = 0.0;
-        if (sum > 1e-15)
+        if (sum > NL_EPS)
             coeff = resSig/sum;
         
         signalMaskData[i] = coeff;

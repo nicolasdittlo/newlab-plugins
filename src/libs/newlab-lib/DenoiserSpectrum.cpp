@@ -4,6 +4,7 @@
 #include "Curve.h"
 #include "SmoothCurveDB.h"
 #include "ParamSmoother.h"
+#include "SpectrumView.h"
 
 #include "DenoiserSpectrum.h"
 
@@ -97,7 +98,7 @@ DenoiserSpectrum::createCurves(float sampleRate)
     // Noise curve
     int noiseColor[4] = { 255, 255, 200, 200 };
     
-    _noiseCurve = new Curve(GRAPH_CURVE_NUM_VALUES);
+    _noiseCurve = new Curve(CURVE_NUM_VALUES);
     _noiseCurve->setDescription("noise", descrColor);
     _noiseCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _noiseCurve->setYScale(Scale::DB, DENOISER_MIN_DB, DENOISER_MAX_DB);
@@ -106,7 +107,7 @@ DenoiserSpectrum::createCurves(float sampleRate)
         
     _noiseCurveSmooth = new SmoothCurveDB(_noiseCurve,
                                           curveSmoothCoeff,
-                                          GRAPH_CURVE_NUM_VALUES,
+                                          CURVE_NUM_VALUES,
                                           DENOISER_MIN_DB,
                                           DENOISER_MIN_DB, DENOISER_MAX_DB,
                                           sampleRate);
@@ -114,7 +115,7 @@ DenoiserSpectrum::createCurves(float sampleRate)
     // Noise profile curve
     int noiseProfileColor[4] = { 255, 128, 0, 255 };
         
-    _noiseProfileCurve = new Curve(GRAPH_CURVE_NUM_VALUES);
+    _noiseProfileCurve = new Curve(CURVE_NUM_VALUES);
     _noiseProfileCurve->setDescription("noise profile", descrColor);
     _noiseProfileCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _noiseProfileCurve->setYScale(Scale::DB, DENOISER_MIN_DB, DENOISER_MAX_DB);
@@ -124,11 +125,11 @@ DenoiserSpectrum::createCurves(float sampleRate)
                                  noiseProfileColor[2]);
         
     float curveSmoothCoeffNoiseProfile =
-        ParamSmoother2::ComputeSmoothFactor(CURVE_SMOOTH_COEFF_NOISE_PROFILE_MS,
-                                            REF_SAMPLERATE);
+        ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_NOISE_PROFILE_MS,
+                                           REF_SAMPLERATE);
     _noiseProfileCurveSmooth = new SmoothCurveDB(_noiseProfileCurve,
                                                  curveSmoothCoeffNoiseProfile,
-                                                 GRAPH_CURVE_NUM_VALUES,
+                                                 CURVE_NUM_VALUES,
                                                  DENOISER_MIN_DB,
                                                  DENOISER_MIN_DB,
                                                  DENOISER_MAX_DB,
@@ -156,10 +157,13 @@ DenoiserSpectrum::reset(int bufferSize, float sampleRate)
     _noiseCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _noiseProfileCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
 
-    
-    _signalCurveSmooth->reset(sampleRate);
-    _noiseCurveSmooth->reset(sampleRate);
-    _noiseProfileCurveSmooth->reset(sampleRate);
+
+    float curveSmoothCoeff =
+        ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_MS, sampleRate);
+        
+    _signalCurveSmooth->reset(sampleRate, curveSmoothCoeff);
+    _noiseCurveSmooth->reset(sampleRate, curveSmoothCoeff);
+    _noiseProfileCurveSmooth->reset(sampleRate, curveSmoothCoeff);
 }
 
 void
@@ -168,12 +172,12 @@ DenoiserSpectrum::updateCurves(const vector<float> &signal,
                                const vector<float> &noiseProfile,
                                bool isLearning)
 {
-    _signalCurveSmooth->setValues(signal);
+    _signalCurveSmooth->setValues(signal, false);
 
     if (!isLearning)
-        _noiseCurveSmooth->setValues(noise);
+        _noiseCurveSmooth->setValues(noise, false);
     else
         _noiseCurveSmooth->clearValues();
 
-    _noiseProfileCurveSmooth->setValues(noiseProfile);
+    _noiseProfileCurveSmooth->setValues(noiseProfile, false);
 }

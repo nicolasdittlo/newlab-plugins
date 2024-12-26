@@ -168,7 +168,7 @@ FilterBank::createFilterBankHzToTarget(FilterBankObj *filterBank, int dataSize,
     
     filterBank->_filters.resize(filterBank->_numFilters);
     
-    for (int i = 0; i < filterBank->mFilters.size(); i++)
+    for (int i = 0; i < filterBank->_filters.size(); i++)
     {
         filterBank->_filters[i]._data.resize(dataSize);
         Utils::fillZero(&filterBank->_filters[i]._data);
@@ -231,8 +231,8 @@ FilterBank::createFilterBankHzToTarget(FilterBankObj *filterBank, int dataSize,
 
         fixSmallTriangles(&fmin, &fmax, dataSize);
             
-        filterBank->_filters[m - 1].mBounds[0] = std::floor(fmin);
-        filterBank->_filters[m - 1].mBounds[1] = std::ceil(fmax);
+        filterBank->_filters[m - 1]._bounds[0] = std::floor(fmin);
+        filterBank->_filters[m - 1]._bounds[1] = std::ceil(fmax);
 
         // Check upper bound
         if (filterBank->_filters[m - 1]._bounds[1] > dataSize - 1)
@@ -255,7 +255,7 @@ FilterBank::createFilterBankHzToTarget(FilterBankObj *filterBank, int dataSize,
             // Normalize
             tarea /= (fmid - fmin)*0.5 + (fmax - fmid)*0.5;
             
-            filterBank->_filters[m - 1].data.data()[i] += tarea;
+            filterBank->_filters[m - 1]._data.data()[i] += tarea;
         }
     }
 }
@@ -378,7 +378,7 @@ FilterBank::applyFilterBank(vector<float> *result,
 
         const float *filterData = filter._data.data();
         float *resultData = result->data();
-        float *magnsData = magns.data();
+        const float *magnsData = magns.data();
         
         // For each destination value
         for (int i = filter._bounds[0]; i <= filter._bounds[1]; i++)

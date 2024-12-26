@@ -1,7 +1,7 @@
 #ifndef FREQ_AXIS_H
 #define FREQ_AXIS_H
 
-#inclue "Scale.h"
+#include "Scale.h"
 
 class FreqAxis
 {
@@ -40,7 +40,7 @@ class FreqAxis
     
     bool _displayLines;
     
-    Scale::Type mScale;
+    Scale::Type _scale;
 
     float _maxFreq;
 };

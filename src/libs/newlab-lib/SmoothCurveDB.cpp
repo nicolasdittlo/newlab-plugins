@@ -1,3 +1,6 @@
+#include <math.h>
+
+#include "Defines.h"
 #include "SmoothAvgHistogramDB.h"
 #include "Curve.h"
 
@@ -48,7 +51,7 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     // Add the values
     int histoNumValues = _histogram->getNumValues();
     
-    vector<float> &values0 = mTmpBuf0;
+    vector<float> &values0 = _tmpBuf0;
     values0 = values;
 
     bool useFilterBank = false;
@@ -56,7 +59,7 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     // Filter banks
     if (!reset)
     {
-        vector<float> &decimValues = mTmpBuf1;
+        vector<float> &decimValues = _tmpBuf1;
 
         Scale::FilterBankType type =
             _curve->_scale->typeToFilterBankType(_curve->_xScale);
@@ -66,7 +69,7 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
         values0 = decimValues;
     }
     
-    vector<float> &avgValues = mTmpBuf2;
+    vector<float> &avgValues = _tmpBuf2;
     avgValues = values0;
 
     // Check if we have the same scale
@@ -77,8 +80,8 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     _curve->getYScale(&curveScale, &curveMinY, &curveMaxY);
 
     if ((curveScale == Scale::DB) &&
-        (fabs(curveMinY - _minDB) < 1e-15) &&
-        (fabs(curveMaxY - _maxDB) < 1e-15))
+        (fabs(curveMinY - _minDB) < NL_EPS) &&
+        (fabs(curveMaxY - _maxDB) < NL_EPS))
         sameScale = true;
         
     if (!reset)
@@ -96,5 +99,5 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     
     _curve->clearValues();
     
-    _curve->SetValues5LF(avgValues, !useFilterBank, !sameScale);
+    _curve->setValues(avgValues, !useFilterBank, !sameScale);
 }

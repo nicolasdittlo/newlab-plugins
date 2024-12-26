@@ -1,6 +1,7 @@
 #include <cmath>
 #include <math.h> // for exp10
 
+#include "Defines.h"
 #include "MelScale.h"
 #include "FilterBank.h"
 #include "Utils.h"
@@ -20,16 +21,12 @@
 
 Scale::Scale()
 {
-    _melScale = new MelScale();
-
     for (int i = 0; i < NUM_FILTER_BANKS; i++)
         _filterBanks[i] = NULL;
 }
 
 Scale::~Scale()
 {
-    delete _melScale;
-
     for (int i = 0; i < NUM_FILTER_BANKS; i++)
     {
         if (_filterBanks[i] != NULL)
@@ -38,7 +35,7 @@ Scale::~Scale()
 }
 
 float
-Scale::ApplyScale(Type scaleType,
+Scale::applyScale(Type scaleType,
                   float x, float minValue, float maxValue)
 {
     if (scaleType == NORMALIZED)
@@ -188,7 +185,7 @@ Scale::applyScaleForEach(Type scaleType,
 }
     
 void
-Scale::ApplyScaleInvForEach(Type scaleType,
+Scale::applyScaleInvForEach(Type scaleType,
                             vector<float> *values,
                             float minValue,
                             float maxValue)
@@ -240,14 +237,6 @@ Scale::applyScale(Type scaleType,
     {
         dataToMel(values, minValue, maxValue);
     }
-    else if (scaleType == MEL_FILTER)
-    {
-        dataToMelFilter(values, minValue, maxValue);
-    }
-    else if (scaleType == MEL_FILTER_INV)
-    {
-        dataToMelFilterInv(values, minValue, maxValue);
-    }
 }
 
 void
@@ -261,7 +250,7 @@ Scale::applyScaleFilterBank(FilterBankType fbType,
         // Try to not apply filter bank
         // Because even in linear, it modifies the data a little
 
-        if (magns.GetSize() == numFilters)
+        if (magns.size() == numFilters)
             // Size is the same, nothing to do, just copy
         {
             *result = magns;
@@ -292,7 +281,7 @@ Scale::applyScaleFilterBankInv(FilterBankType fbType,
         // Try to not apply filter bank
         // Because even in linear, it modifies the data a little
 
-        if (magns.GetSize() == numFilters)
+        if (magns.size() == numFilters)
             // Size is the same, nothing to do, just copy
         {
             *result = magns;
@@ -305,7 +294,7 @@ Scale::applyScaleFilterBankInv(FilterBankType fbType,
     
     if (_filterBanks[(int)fbType] == NULL)
     {
-        Type type = FilterBankTypeToType(fbType);
+        Type type = filterBankTypeToType(fbType);
         
         _filterBanks[(int)fbType] = new FilterBank(type);
     }
@@ -349,7 +338,7 @@ Scale::typeToFilterBankType(Type type)
 }
 
 Scale::Type
-Scale::tilterBankTypeToType(FilterBankType fbType)
+Scale::filterBankTypeToType(FilterBankType fbType)
 {
     switch (fbType)
     {
@@ -405,7 +394,7 @@ Scale::valueToNormalizedInv(float y,
 float
 Scale::normalizedToDB(float x, float mindB, float maxdB)
 {
-    if (std::fabs(x) < BL_EPS)
+    if (std::fabs(x) < NL_EPS)
         x = mindB;
     else
         x = Utils::ampToDB(x);
@@ -466,10 +455,10 @@ Scale::normalizedToLog10Inv(float x, float minValue, float maxValue)
 float
 Scale::normalizedToLog(float x, float minValue, float maxValue)
 {
-    float a = (FastMath::pow(10.0, 0.5) - 1.0)/LOG_CENTER_FREQ;
+    float a = (pow(10.0, 0.5) - 1.0)/LOG_CENTER_FREQ;
  
-    float lMin = FastMath::log10(1.0 + minValue*a);
-    float lMax = FastMath::log10(1.0 + maxValue*a);
+    float lMin = log10(1.0 + minValue*a);
+    float lMax = log10(1.0 + maxValue*a);
     
     x = x*(maxValue - minValue) + minValue;
     
@@ -481,12 +470,12 @@ Scale::normalizedToLog(float x, float minValue, float maxValue)
 }
 
 float
-Scale::NormalizedToLogInv(float x, float minValue, float maxValue)
+Scale::normalizedToLogInv(float x, float minValue, float maxValue)
 {
     float a = (pow(10.0, 0.5) - 1.0)/LOG_CENTER_FREQ;
     
-    float lMin = FastMath::log10(1.0 + minValue*a);
-    float lMax = FastMath::log10(1.0 + maxValue*a);
+    float lMin = log10(1.0 + minValue*a);
+    float lMax = log10(1.0 + maxValue*a);
     
     x = x*(lMax - lMin) + lMin;
     
@@ -520,7 +509,7 @@ Scale::normalizedToLowZoom(float x, float minValue, float maxValue)
 {
     // 2 times mel
     float result = normalizedToMel(x, minValue, maxValue);
-    result = Utils::ApplyGamma(result, (float)LOW_ZOOM_GAMMA); // mel + gamma
+    result = Utils::applyGamma(result, (float)LOW_ZOOM_GAMMA); // mel + gamma
 
     return result;
 }
@@ -530,7 +519,7 @@ Scale::normalizedToLowZoomInv(float x, float minValue, float maxValue)
 {
     // 2 times mel inv
     float result =
-        UtilsMath::ApplyGamma(x, (float)(1.0 - LOW_ZOOM_GAMMA)); // mel + gamma
+        Utils::applyGamma(x, (float)(1.0 - LOW_ZOOM_GAMMA)); // mel + gamma
     result = normalizedToMelInv(result, minValue, maxValue);
         
     return result;
@@ -539,12 +528,12 @@ Scale::normalizedToLowZoomInv(float x, float minValue, float maxValue)
 void
 Scale::dataToLogScale(vector<float> *values)
 {
-    vector<float> &origValues = mTmpBuf0;
+    vector<float> &origValues = _tmpBuf0;
     origValues = *values;
     
-    int valuesSize = values->GetSize();
-    float *valuesData = values->Get();
-    float *origValuesData = origValues.Get();
+    int valuesSize = values->size();
+    float *valuesData = values->data();
+    float *origValuesData = origValues.data();
     
     for (int i = 0; i < valuesSize; i++)
     {
@@ -577,10 +566,10 @@ Scale::normalizedToMel(float x,
 {
     x = x*(maxFreq - minFreq) + minFreq;
     
-    x = MelScale::HzToMel(x);
+    x = MelScale::hzToMel(x);
     
-    float lMin = MelScale::HzToMel(minFreq);
-    float lMax = MelScale::HzToMel(maxFreq);
+    float lMin = MelScale::hzToMel(minFreq);
+    float lMax = MelScale::hzToMel(maxFreq);
     
     x = (x - lMin)/(lMax - lMin);
     
@@ -592,12 +581,12 @@ Scale::normalizedToMelInv(float x,
                           float minFreq,
                           float maxFreq)
 {
-    float minMel = MelScale::HzToMel(minFreq);
-    float maxMel = MelScale::HzToMel(maxFreq);
+    float minMel = MelScale::hzToMel(minFreq);
+    float maxMel = MelScale::hzToMel(maxFreq);
     
     x = x*(maxMel - minMel) + minMel;
     
-    x = MelScale::MelToHz(x);
+    x = MelScale::melToHz(x);
     
     x = (x - minFreq)/(maxFreq - minFreq);
     
@@ -624,15 +613,15 @@ void
 Scale::dataToMel(vector<float> *values,
                  float minFreq, float maxFreq)
 {
-    vector<float> &origValues = mTmpBuf1;
+    vector<float> &origValues = _tmpBuf1;
     origValues = *values;
     
-    int valuesSize = values->GetSize();
-    float *valuesData = values->Get();
-    float *origValuesData = origValues.Get();
+    int valuesSize = values->size();
+    float *valuesData = values->data();
+    float *origValuesData = origValues.data();
     
-    float minMel = MelScale::HzToMel(minFreq);
-    float maxMel = MelScale::HzToMel(maxFreq);
+    float minMel = MelScale::hzToMel(minFreq);
+    float maxMel = MelScale::hzToMel(maxFreq);
 
     float t0 = 0.0;
     float t0incr = 1.0/valuesSize;
@@ -642,7 +631,7 @@ Scale::dataToMel(vector<float> *values,
     {
         // "Inverse" process for data
         float mel = minMel + t0*(maxMel - minMel);
-        float freq = MelScale::MelToHz(mel);
+        float freq = MelScale::melToHz(mel);
         float t = (freq - minFreq)*freqCoeff;
 
         int dstIdx = (int)(t*valuesSize);
@@ -670,7 +659,7 @@ Scale::valueToNormalizedForEach(vector<float> *values,
     float *valuesData = values->data();
 
     float coeffInv = 0.0;
-    if (maxValue - minValue > BL_EPS)
+    if (maxValue - minValue > NL_EPS)
         coeffInv = 1.0/(maxValue - minValue);
     
     for (int i = 0; i < numValues; i++)
@@ -709,14 +698,14 @@ Scale::normalizedToDBForEach(vector<float> *values,
     float *valuesData = values->data();
 
     float coeffInv = 0.0;
-    if (maxdB - mindB > BL_EPS)
+    if (maxdB - mindB > NL_EPS)
         coeffInv = 1.0/(maxdB - mindB);
     
     for (int i = 0; i < numValues; i++)
     {
         float x = valuesData[i];
         
-        if (std::fabs(x) < BL_EPS)
+        if (std::fabs(x) < NL_EPS)
             x = mindB;
         else
             x = Utils::ampToDB(x);
@@ -767,7 +756,7 @@ Scale::normalizedToLog10ForEach(vector<float> *values,
     float lMax = log10(1.0 + maxValue);
         
     float coeffInv = 0.0;
-    if (lMax - lMin > BL_EPS)
+    if (lMax - lMin > NL_EPS)
         coeffInv = 1.0/(lMax - lMin);
                         
     for (int i = 0; i < numValues; i++)
@@ -796,7 +785,7 @@ Scale::normalizedToLog10InvForEach(vector<float> *values,
     float lMax = log10(1.0 + maxValue);
         
     float coeffInv = 0.0;
-    if (maxValue - minValue > BL_EPS)
+    if (maxValue - minValue > NL_EPS)
         coeffInv = 1.0/(maxValue - minValue);
     
     for (int i = 0; i < numValues; i++)
@@ -827,7 +816,7 @@ Scale::normalizedToLogForEach(vector<float> *values,
     float lMax = log10(1.0 + maxValue*a);
         
     float coeffInv = 0.0;
-    if (lMax - lMin > 1e-15)
+    if (lMax - lMin > NL_EPS)
         coeffInv = 1.0/(lMax - lMin);
                         
     for (int i = 0; i < numValues; i++)
@@ -858,7 +847,7 @@ Scale::normalizedToLogInvForEach(vector<float> *values,
     float lMax = log10(1.0 + maxValue*a);
         
     float coeffInv = 0.0;
-    if (maxValue - minValue > BL_EPS)
+    if (maxValue - minValue > NL_EPS)
         coeffInv = 1.0/(maxValue - minValue);
     
     for (int i = 0; i < numValues; i++)
@@ -919,11 +908,11 @@ Scale::normalizedToMelForEach(vector<float> *values,
     int numValues = values->size();
     float *valuesData = values->data();
 
-    float lMin = MelScale::HzToMel(minFreq);
-    float lMax = MelScale::HzToMel(maxFreq);
+    float lMin = MelScale::hzToMel(minFreq);
+    float lMax = MelScale::hzToMel(maxFreq);
         
     float coeffInv = 0.0;
-    if (lMax - lMin > 1e-15)
+    if (lMax - lMin > NL_EPS)
         coeffInv = 1.0/(lMax - lMin);
     
     for (int i = 0; i < numValues; i++)
@@ -932,7 +921,7 @@ Scale::normalizedToMelForEach(vector<float> *values,
         
         x = x*(maxFreq - minFreq) + minFreq;
     
-        x = MelScale::HzToMel(x);
+        x = MelScale::hzToMel(x);
     
         x = (x - lMin)*coeffInv;;
 
@@ -948,11 +937,11 @@ Scale::normalizedToMelInvForEach(vector<float> *values,
     int numValues = values->size();
     float *valuesData = values->data();
 
-    float minMel = MelScale::HzToMel(minFreq);
-    float maxMel = MelScale::HzToMel(maxFreq);
+    float minMel = MelScale::hzToMel(minFreq);
+    float maxMel = MelScale::hzToMel(maxFreq);
         
     float coeffInv = 0.0;
-    if (maxFreq - minFreq > BL_EPS)
+    if (maxFreq - minFreq > NL_EPS)
         coeffInv = 1.0/(maxFreq - minFreq);
     
     for (int i = 0; i < numValues; i++)
@@ -961,7 +950,7 @@ Scale::normalizedToMelInvForEach(vector<float> *values,
     
         x = x*(maxMel - minMel) + minMel;
         
-        x = MelScale::MelToHz(x);
+        x = MelScale::melToHz(x);
     
         x = (x - minFreq)*coeffInv;
         
@@ -977,11 +966,11 @@ Scale::normalizedToLowZoomForEach(vector<float> *values,
     int numValues = values->size();
     float *valuesData = values->data();
 
-    float lMin = MelScale::HzToMel(minFreq);    
-    float lMax = MelScale::HzToMel(maxFreq);
+    float lMin = MelScale::hzToMel(minFreq);    
+    float lMax = MelScale::hzToMel(maxFreq);
         
     float coeffInv = 0.0;
-    if (lMax - lMin > 1e-15)
+    if (lMax - lMin > NL_EPS)
         coeffInv = 1.0/(lMax - lMin);
     
     for (int i = 0; i < numValues; i++)
@@ -990,11 +979,11 @@ Scale::normalizedToLowZoomForEach(vector<float> *values,
         
         x = x*(maxFreq - minFreq) + minFreq;
     
-        x = MelScale::HzToMel(x);
+        x = MelScale::hzToMel(x);
         
         x = (x - lMin)*coeffInv;;
 
-        x = Utils::ApplyGamma(x, (float)LOW_ZOOM_GAMMA);
+        x = Utils::applyGamma(x, (float)LOW_ZOOM_GAMMA);
         
         valuesData[i] = x;
     }
@@ -1008,22 +997,22 @@ Scale::normalizedToLowZoomInvForEach(vector<float> *values,
     int numValues = values->size();
     float *valuesData = values->data();
 
-    float minMel = MelScale::HzToMel(minValue);    
-    float maxMel = MelScale::HzToMel(maxValue);
+    float minMel = MelScale::hzToMel(minValue);    
+    float maxMel = MelScale::hzToMel(maxValue);
         
     float coeffInv = 0.0;
-    if (maxValue - minValue > BL_EPS)
+    if (maxValue - minValue > NL_EPS)
         coeffInv = 1.0/(maxValue - minValue);
     
     for (int i = 0; i < numValues; i++)
     {
         float x = valuesData[i];
 
-        x = BLUtilsMath::ApplyGamma(x, (float)(1.0 - LOW_ZOOM_GAMMA));
+        x = Utils::applyGamma(x, (float)(1.0 - LOW_ZOOM_GAMMA));
         
         x = x*(maxMel - minMel) + minMel;
         
-        x = MelScale::MelToHz(x);
+        x = MelScale::melToHz(x);
     
         x = (x - minValue)*coeffInv;
         
@@ -1038,7 +1027,7 @@ Scale::toLogForEach(vector<float> *values)
     {
         float x = values->data()[i];
         x = log(x + LOG_EPS);
-        values->Get()[i] = x;
+        values->data()[i] = x;
     }
 }
     

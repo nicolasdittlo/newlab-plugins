@@ -5,8 +5,10 @@
 using namespace std;
 
 class Curve;
+class SmoothAvgHistogramDB;
 class SmoothCurveDB
 {
+ public:
     SmoothCurveDB(Curve *curve,
                   float smoothFactor,
                   int size, float defaultValue,
@@ -20,6 +22,21 @@ class SmoothCurveDB
     void clearValues();
     
     void setValues(const vector<float> &values, bool reset);
+
+ protected:
+    float _minDB;
+    float _maxDB;
+    
+    SmoothAvgHistogramDB *_histogram;
+    
+    Curve *_curve;
+
+    float _sampleRate;
+
+ private:
+    vector<float> _tmpBuf0;
+    vector<float> _tmpBuf1;
+    vector<float> _tmpBuf2;
 };
 
 #endif

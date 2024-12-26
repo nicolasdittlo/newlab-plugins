@@ -22,7 +22,7 @@ SmoothAvgHistogramDB::SmoothAvgHistogramDB(int size, float smoothCoeff,
 SmoothAvgHistogramDB::~SmoothAvgHistogramDB() {}
 
 void
-SmoothAvgHistogramDB::AddValues(const vector<float> &values)
+SmoothAvgHistogramDB::addValues(const vector<float> &values)
 {
     if (values.size() != _data.size())
         return;
@@ -84,7 +84,7 @@ SmoothAvgHistogramDB::setValues(const vector<float> *values,
     if (!convertToDB)
         _data = *values;
     else
-        BLUtils::normalizedYTodB(*values, _mindB, _maxdB, &_data);
+        Utils::normalizedYTodB(*values, _mindB, _maxdB, &_data);
 }
 
 void
@@ -94,5 +94,5 @@ SmoothAvgHistogramDB::reset(float smoothCoeff)
         _smoothCoeff = smoothCoeff;
             
     for (int i = 0; i < _data.size(); i++)
-        _data.Get()[i] = _defaultValue;
+        _data.data()[i] = _defaultValue;
 }

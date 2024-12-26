@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include "Defines.h"
+
 #include "Utils.h"
 
 void
@@ -39,6 +41,13 @@ void
 Utils::fillZero(vector<complex<float> > *buf)
 {
     memset(buf->data(), 0, buf->size()*sizeof(complex<float>));
+}
+
+void
+Utils::fillValue(vector<float> *buf, float value)
+{
+    for (int i = 0; i < buf->size(); i++)
+        (*buf)[i] = value;
 }
 
 void
@@ -127,6 +136,16 @@ Utils::computeSum(const vector<float> &buf)
 }
 
 float
+Utils::ampToDB(float sampleVal)
+{
+#define AMP_DB 8.685889638065036553
+    
+    float result = AMP_DB*log(fabs(sampleVal));
+
+    return result;
+}
+
+float
 Utils::ampToDB(float sampleVal, float eps, float minDB)
 {
 #define AMP_DB 8.685889638065036553
@@ -137,6 +156,16 @@ Utils::ampToDB(float sampleVal, float eps, float minDB)
         result = AMP_DB*log(fabs(sampleVal));
 
     return result;
+}
+
+float
+Utils::DBToAmp(float dbVal)
+{
+    // Magic number for dB to gain conversion.
+    // Approximates 10^(x/20)
+#define BL_IAMP_DB 0.11512925464970
+ 
+    return exp(((float)BL_IAMP_DB)*dbVal);
 }
 
 void
@@ -163,4 +192,62 @@ Utils::ampToDB(float *dBBuf, const float *ampBuf, int bufSize,
         
         dBBuf[i] = dbAmp;
     }
+}
+
+float
+Utils::normalizedYTodB(float y, float mindB, float maxdB)
+{
+    if (fabs(y) < NL_EPS)
+        y = mindB;
+    else
+        y = Utils::ampToDB(y);
+    
+    y = (y - mindB)/(maxdB - mindB);
+    
+    return y;
+}
+
+void
+Utils::normalizedYTodB(const vector<float> &yBuf,
+                       float mindB, float maxdB,
+                       vector<float> *resBuf)
+{
+    resBuf->resize(yBuf.size());
+
+    float rangeInv = 1.0/(maxdB - mindB);
+
+    int bufSize = yBuf.size();
+    const float *yBufData = yBuf.data();
+    float *resBufData = resBuf->data();
+    
+    for (int i = 0; i < bufSize; i++)
+    {
+        float y = yBufData[i];
+        
+        if (fabs(y) < NL_EPS)
+            y = mindB;
+        else
+            y = Utils::ampToDB(y);
+    
+        y = (y - mindB)*rangeInv;
+
+        resBufData[i] = y;
+    }
+}
+
+float
+Utils::normalizedYTodBInv(float y, float mindB, float maxdB)
+{
+    float result = y*(maxdB - mindB) + mindB;
+    
+    result = Utils::DBToAmp(result);
+    
+    return result;
+}
+
+float
+Utils::applyGamma(float t, float gamma)
+{
+    float bA = t/((1.0/gamma - 2.0)*(1.0 - t) + 1.0);
+    return bA;
 }

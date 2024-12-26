@@ -63,8 +63,7 @@ Axis::initHAxis(Scale::Type scale,
     _alignTextRight = false;
     _alignRight = true;
     
-    init(axisColor, axisLabelColor,
-         axisOverlayColor, axisLinesOverlayColor, lineWidth);
+    init(axisColor, axisLabelColor, lineWidth);
 }
 
 void
@@ -88,18 +87,14 @@ Axis::initVAxis(Scale::Type scale,
     _alignTextRight = alignTextRight;
     _alignRight = alignRight;
     
-    init(axisColor, axisLabelColor,
-         axisOverlayColor, axisLinesOverlayColor,
-         lineWidth);
+    init(axisColor, axisLabelColor, lineWidth);
 }
 
 void
-Axis::SetMinMaxValues(float minVal, float maxVal)
+Axis::setMinMaxValues(float minVal, float maxVal)
 {
-    mMinVal = minVal;
-    mMaxVal = maxVal;
-    
-    NotifyGraph();
+    _minVal = minVal;
+    _maxVal = maxVal;
 }
 
 void
@@ -107,7 +102,7 @@ Axis::setData(char *data[][2], int numData)
 {
     _values.resize(numData);
 
-    AxisData aData;
+    Data aData;
     string text;
 
     float rangeInv = 1.0/(_maxVal - _minVal);
@@ -118,7 +113,7 @@ Axis::setData(char *data[][2], int numData)
         float val = atof(data[i][0]);
         float t = (val - _minVal)*rangeInv;
         
-        t = _scale->ApplyScale(_scaleType, t, mMinVal, mMaxVal);
+        t = _scale->applyScale(_scaleType, t, _minVal, _maxVal);
         
         text = data[i][1];
         
@@ -154,7 +149,7 @@ Axis::setScaleType(Scale::Type scaleType)
 }
 
 void
-Axis::setOffsetPixels(BL_FLOAT offsetPixels)
+Axis::setOffsetPixels(float offsetPixels)
 {
     _offsetPixels = offsetPixels;
 }
@@ -166,12 +161,11 @@ Axis::setAlignBorderLabels(bool flag)
 }
 
 void
-Axis::init(int axisColor[4], int axisLabelColor[4],
-           float lineWidth)
+Axis::init(int color[4], int labelColor[4], float lineWidth)
 {
     for (int i = 0; i < 4; i++)
     {
-        _color[i] = _axisColor[i];
+        _color[i] = color[i];
         _labelColor[i] = labelColor[i];
     }
     

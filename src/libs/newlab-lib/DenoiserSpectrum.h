@@ -33,7 +33,9 @@ class DenoiserSpectrum
                     int width);
 
     void createCurves(float sampleRate);
-        
+
+    SpectrumView *_spectrumView;
+    
     AmpAxis *_ampAxis;
     Axis *_hAxis;
     
@@ -48,5 +50,6 @@ class DenoiserSpectrum
     
     Curve *_noiseProfileCurve;
     SmoothCurveDB *_noiseProfileCurveSmooth;
+};
 
 #endif

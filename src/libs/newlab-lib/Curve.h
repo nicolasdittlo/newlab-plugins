@@ -42,6 +42,8 @@ public:
     void setFillAlpha(float alpha);
     
  protected:
+    friend class SpectrumView;
+    
     // Description
     char *_description;
     int _descrColor[4];
@@ -73,6 +75,7 @@ public:
     
     float _viewSize[2];
 
+    friend class SmoothCurveDB;
     Scale *_scale;
 };
 

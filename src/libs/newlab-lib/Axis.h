@@ -1,6 +1,9 @@
 #ifndef AXIS_H
 #define AXIS_H
 
+#include <string>
+using namespace std;
+
 #include "Scale.h"
 
 class Axis
@@ -55,17 +58,18 @@ protected:
     void init(int axisColor[4],
               int axisLabelColor[4],
               float lineWidth);
-    
+
+    friend class SpectrumView;
+        
     typedef struct
     {
-        float mT;
-        string mText;
-    } AxisData;
+        float _t;
+        string _text;
+    } Data;
     
+    vector<Data> _values;
     
-    vector<AxisData> _values;
-    
-    Scale::Type mScaleType;
+    Scale::Type _scaleType;
     float _minVal;
     float _maxVal;
     

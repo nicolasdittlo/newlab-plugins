@@ -1,6 +1,9 @@
 #ifndef SMOOTH_AVG_HISTOGRAM_DB_H
 #define SMOOTH_AVG_HISTOGRAM_DB_H
 
+#include <vector>
+using namespace std;
+
 // Normalize Y to dB internally
 class SmoothAvgHistogramDB
 {

@@ -1,10 +1,7 @@
 #include <math.h>
 
+#include "Defines.h"
 #include "Window.h"
-
-#ifndef M_PI
-#define M_PI 3.141592654
-#endif
 
 void
 Window::makeWindowHann(vector<float> *win)

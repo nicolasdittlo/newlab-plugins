@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "Utils.h"
+#include "Defines.h"
 
 #include "MelScale.h"
 
@@ -37,7 +38,7 @@ MelScale::hzToMel(vector<float> *resultMagns,
     Utils::fillZero(resultMagns);
     
     float maxFreq = sampleRate*0.5;
-    if (maxFreq < BL_EPS)
+    if (maxFreq < NL_EPS)
         return;
     
     float maxMel = hzToMel(maxFreq);
@@ -49,7 +50,7 @@ MelScale::hzToMel(vector<float> *resultMagns,
     float *resultMagnsData = resultMagns->data();
     
     int magnsSize = magns.size();
-    float *magnsData = magns.data();
+    const float *magnsData = magns.data();
     for (int i = 0; i < resultMagnsSize; i++)
     {
         float mel = i*melCoeff;
@@ -83,7 +84,7 @@ MelScale::melToHz(vector<float> *resultMagns,
                   const vector<float> &magns,
                   float sampleRate)
 {
-    resultMagns->resize(magns.GetSize());
+    resultMagns->resize(magns.size());
     Utils::fillZero(resultMagns);
     
     float hzPerBin = sampleRate*0.5/magns.size();
@@ -94,7 +95,7 @@ MelScale::melToHz(vector<float> *resultMagns,
     int resultMagnsSize = resultMagns->size();
     float *resultMagnsData = resultMagns->data();
     int magnsSize = magns.size();
-    float *magnsData = magns.data();
+    const float *magnsData = magns.data();
     
     for (int i = 0; i < resultMagnsSize; i++)
     {

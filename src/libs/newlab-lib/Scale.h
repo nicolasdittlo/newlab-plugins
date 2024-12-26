@@ -92,7 +92,7 @@ public:
                                  float sampleRate, int numFilters);
 
     FilterBankType typeToFilterBankType(Type type);
-    Type tilterBankTypeToType(FilterBankType fbType);
+    Type filterBankTypeToType(FilterBankType fbType);
     
 protected:
     float valueToNormalized(float y,
@@ -204,3 +204,5 @@ private:
     vector<float> _tmpBuf2;
     vector<float> _tmpBuf3;
 };
+
+#endif

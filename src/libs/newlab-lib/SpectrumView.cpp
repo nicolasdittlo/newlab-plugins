@@ -1,3 +1,9 @@
+#include <string.h>
+
+#include <nanovg.h>
+
+#include "Axis.h"
+#include "Curve.h"
 #include "SpectrumView.h"
 
 #define FONT "Roboto-Bold"
@@ -29,9 +35,10 @@ SpectrumView::addCurve(Curve *curve)
     _curves.push_back(curve);
 }
 
+void
 SpectrumView::draw(NVGcontext *nvgContext)
 {
-    drawAxis(true);
+    drawAxis(nvgContext, true);
 
     nvgSave(nvgContext);    
     drawCurves(nvgContext);
@@ -59,7 +66,7 @@ SpectrumView::setViewSize(int width, int height)
 }
 
 void
-SpectrumView::drawAxisb(NVGcontext *nvgContext, bool lineLabelFlag)
+SpectrumView::drawAxis(NVGcontext *nvgContext, bool lineLabelFlag)
 {
     if (_hAxis != NULL)
         drawAxis(nvgContext, _hAxis, true, lineLabelFlag);
@@ -100,13 +107,13 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (lineLabelFlag)
                 {
                     float y0 = 0.0;
-                    float y1 = height;
+                    float y1 = _height;
         
                     float y0f = y0;
                     float y1f = y1;
 
-                    y0f = height - y0f;
-                    y1f = height - y1f;
+                    y0f = _height - y0f;
+                    y1f = _height - y1f;
 
                     // Draw a vertical line
                     nvgBeginPath(nvgContext);
@@ -122,13 +129,13 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 else
                 {
                     float tx = xLabel;
-                    float ty = textOffset + axis->_offsetY*height;
+                    float ty = textOffset + axis->_offsetY*_height;
 
                     int halign = NVG_ALIGN_CENTER;
                     
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
-                    drawText(tx, ty,
+                    drawText(nvgContext, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
                              axis->_fontSizeCoeff);
@@ -140,14 +147,14 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (i == 0)
                 {
                     float tx = xLabel + textOffset;
-                    float ty = textOffset + axis->_offsetY*height;
+                    float ty = textOffset + axis->_offsetY*_height;
 
                     int halign = NVG_ALIGN_LEFT;
                     
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
                     // First text: aligne left
-                    drawText(tx, ty, FONT_SIZE,
+                    drawText(nvgContext, tx, ty, FONT_SIZE,
                              text, axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
                              axis->_fontSizeCoeff);
@@ -156,14 +163,14 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (i == axis->_values.size() - 1)
                 {
                     float tx = xLabel - textOffset;
-                    float ty = textOffset + axis->_offsetY*height;
+                    float ty = textOffset + axis->_offsetY*_height;
 
                     int halign = NVG_ALIGN_RIGHT;
                     
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
                     // Last text: align right
-                    drawText(tx, ty,
+                    drawText(nvgContext, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
                              axis->_fontSizeCoeff);
@@ -174,14 +181,10 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
             // Vertical
         {
             float textOffset = FONT_SIZE*0.2;
-                
-            t = convertToBoundsY(t);
-
-            t = convertToAxisBounds(axis, t);
             
             float y = t*_height;
             
-            y += axis->_offsetY*height; // For Ghost
+            y += axis->_offsetY*_height; // For Ghost
 
             float yLabel = y;
             yLabel += axis->_offsetPixels;
@@ -193,14 +196,14 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (lineLabelFlag)
                 {
                     float x0 = 0.0;
-                    float x1 = width;
+                    float x1 = _width;
 
                     if (axis->_alignToScreenPixels)
                         y = (int)y;
                     
                     float yf = y;
                     
-                    yf = height - yf;
+                    yf = _height - yf;
                     
                     // Draw a horizontal line
                     nvgBeginPath(nvgContext);
@@ -216,14 +219,14 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     if (axis->_alignTextRight)
                         align = NVG_ALIGN_RIGHT;
                     
-                    float tx = textOffset + axis->_offsetX*width;
+                    float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel;
 
                     int halign = align | NVG_ALIGN_MIDDLE;
                     
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
-                    grawText(tx, ty, FONT_SIZE, text,
+                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
                              halign,
                              NVG_ALIGN_BOTTOM,
@@ -236,13 +239,13 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (i == 0)
                     // First text: align "top"
                 {
-                    float tx = textOffset + axis->_affsetX*width;
+                    float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel + FONT_SIZE*0.75;
 
                     int halign = NVG_ALIGN_LEFT;
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
-                    drawText(tx, ty, FONT_SIZE, text,
+                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
                              axis->_fontSizeCoeff);
@@ -251,13 +254,13 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 if (i == axis->_values.size() - 1)
                     // Last text: align "bottom"
                 {
-                    float tx = textOffset + axis->_offsetX*width;
+                    float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel - FONT_SIZE*1.5;
 
                     int halign = NVG_ALIGN_LEFT;
                     applyViewOrientation(*axis, &tx, &ty, &halign);
                     
-                    drawText(tx, ty, FONT_SIZE, text,
+                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
                              halign, NVG_ALIGN_BOTTOM,
                              axis->_fontSizeCoeff);
@@ -305,19 +308,16 @@ SpectrumView::drawText(NVGcontext *nvgContext,
     
 	nvgText(nvgContext, x, yf, text, NULL);
     
-    nvgRestore(vg);
+    nvgRestore(nvgContext);
 }
 
 void
 SpectrumView::drawSeparatorY0(NVGcontext *nvgContext)
-{
-    if (!_separatorY0)
-        return;
-    
+{    
     nvgSave(nvgContext);
-    nvgStrokeWidth(nvgContext, _sepY0LineWidth);
+    nvgStrokeWidth(nvgContext, 2.0);
     
-    nvgStrokeColor(nvgContext, nvgRGBA(_sepY0Color[0], _sepY0Color[1], _sepY0Color[2], _sepY0Color[3]));
+    nvgStrokeColor(nvgContext, nvgRGBA(147, 147, 147, 255));
     
     // Draw a vertical line ath the bottom
     nvgBeginPath(nvgContext);
@@ -325,10 +325,10 @@ SpectrumView::drawSeparatorY0(NVGcontext *nvgContext)
     float x0 = 0;
     float x1 = _width;
     
-    float y = _sepY0LineWidth/2.0;
+    float y = 1.0;
     
     float yf = y;
-    yf = height - yf;
+    yf = _height - yf;
     
     nvgMoveTo(nvgContext, x0, yf);
     nvgLineTo(nvgContext, x1, yf);
@@ -347,17 +347,17 @@ SpectrumView::applyViewOrientation(const Axis &axis,
     if (axis._viewOrientation == Axis::VERTICAL)
     {
         // Rotate 90 degrees
-        x = x / _width;
-        y = y / _height;
+        *x = *x / _width;
+        *y = *y / _height;
     
-        float  tmp = x;
-        x = y;
-        y = tmp;
+        float  tmp = *x;
+        *x = *y;
+        *y = tmp;
     
-        x = _width;
-        y = _height;
+        *x = _width;
+        *y = _height;
     
-        x = _width - x;
+        *x = _width - *x;
     }
     
     if (axis._forceLabelHAlign >= 0)
@@ -390,7 +390,7 @@ SpectrumView::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
             continue;
         
         float yf = y;
-        yf = height - yf;
+        yf = _height - yf;
         
         if (firstPoint)
         {
@@ -434,10 +434,10 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
             continue;
                 
         float yf = y;
-        float y1f = curve->_curveFillOriginY*_height - offset;
+        float y1f = - offset;
 
-        yf = height - yf;
-        y1f = height - y1f;
+        yf = _height - yf;
+        y1f = _height - y1f;
         
         if (i == 0)
         {
@@ -449,7 +449,7 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
         
         nvgLineTo(nvgContext, x, yf);
         
-        if (i >= curve->_xValues.GetSize() - 1)
+        if (i >= curve->_xValues.size() - 1)
             // Close
         {
             nvgLineTo(nvgContext, x + offset, yf);
@@ -460,16 +460,78 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
     }
     
     nvgFillColor(nvgContext, nvgRGBA(curve->_fillColor[0], curve->_fillColor[1],
-                              curve->_fillColor[2], curve->_fillColor[3]));
+                                     curve->_fillColor[2], curve->_fillColor[3]));
 	nvgFill(nvgContext);
     
-    nvgStrokeColor(nvgContext, nvgRGBA(curve->_strokeColor[0], curve->_strokeColor[1],
-                                curve->_strokeColor[2], curve->_strokeColor[3]));
+    nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0], curve->_color[1],
+                                       curve->_color[2], curve->_color[3]));
     
     nvgStrokeWidth(nvgContext, curve->_lineWidth);
     nvgStroke(nvgContext);
 
     nvgRestore(nvgContext);
+}
+
+void
+SpectrumView::drawCurveDescriptions(NVGcontext *nvgContext)
+{
+#define OFFSET_Y 4.0
+    
+#define DESCR_X 40.0
+#define DESCR_Y0 10.0 + OFFSET_Y
+    
+#define DESCR_WIDTH 20
+#define DESCR_Y_STEP 12
+#define DESCR_SPACE 5
+    
+#define TEXT_Y_OFFSET 2
+    
+    int descrNum = 0;
+    for (int i = 0; i < _curves.size(); i++)
+    {
+        Curve *curve = _curves[i];
+        char *descr = curve->_description;
+        if (descr == NULL)
+            continue;
+        
+        float y = _height - (DESCR_Y0 + descrNum*DESCR_Y_STEP);
+        
+        nvgSave(nvgContext);
+        
+        // If line width < 0, it can be the case when we want to fill
+        // a curve, but not display line over (just the fill)
+        // But for the description, we need the right line width
+        float prevLineWidth = curve->_lineWidth;
+        if (curve->_lineWidth < 0)
+            curve->_lineWidth = -curve->_lineWidth;
+        
+        setCurveDrawStyle(nvgContext, curve);
+
+        curve->_lineWidth = prevLineWidth;
+        
+        y += TEXT_Y_OFFSET;
+        
+        float yf = y;
+        yf = _height - yf;
+        
+        nvgBeginPath(nvgContext);
+        
+        nvgMoveTo(nvgContext, DESCR_X, yf);
+        nvgLineTo(nvgContext, DESCR_X + DESCR_WIDTH, yf);
+        
+        nvgStroke(nvgContext);
+        
+        drawText(nvgContext,
+                 DESCR_X + DESCR_WIDTH + DESCR_SPACE,
+                 y,
+                 FONT_SIZE, descr,
+                 curve->_descrColor,
+                 NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE, 1.0);
+        
+        nvgRestore(nvgContext);
+        
+        descrNum++;
+    }
 }
 
 bool
@@ -506,9 +568,9 @@ SpectrumView::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
 {
     nvgStrokeWidth(nvgContext, curve->_lineWidth);
     
-    nvgStrokeColor(mVg, nvgRGBA(curve->_color[0]*255, curve->_color[1]*255,
+    nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0]*255, curve->_color[1]*255,
                                 curve->_color[2]*255, curve->_color[3]*255));
     
-    nvgFillColor(mVg, nvgRGBA(curve->_fillColor[0]*255, curve->_fillColor[1]*255,
+    nvgFillColor(nvgContext, nvgRGBA(curve->_fillColor[0]*255, curve->_fillColor[1]*255,
                                 curve->_fillColor[2]*255, curve->_fillColor[3]*255));
 }

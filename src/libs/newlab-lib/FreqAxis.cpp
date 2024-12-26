@@ -233,7 +233,7 @@ FreqAxis::init(Axis *axis,
     }
     else
     {        
-        _axis->initVAxis(mScale,
+        _axis->initVAxis(_scale,
                          0.0, sampleRate*0.5,
                          axisColor, axisLabelColor,
                          lineWidth,
@@ -309,31 +309,31 @@ FreqAxis::update()
         // Avoid a shift
         minHzValue = 0.0;
 
-        UpdateAxis(NUM_AXIS_DATA_FULL2, freqsFull2, labelsFull2,
+        updateAxis(NUM_AXIS_DATA_FULL2, freqsFull2, labelsFull2,
                    minHzValue, maxHzValue);
     }
-    else if ((mScale == Scale::LOG) ||
-             (mScale == Scale::LOG10) ||
-             (mScale == Scale::LOG_FACTOR) ||
-             (mScale == Scale::MEL) ||
-             (mScale == Scale::LOW_ZOOM))
+    else if ((_scale == Scale::LOG) ||
+             (_scale == Scale::LOG10) ||
+             (_scale == Scale::LOG_FACTOR) ||
+             (_scale == Scale::MEL) ||
+             (_scale == Scale::LOW_ZOOM))
     {
-        if (mMaxFreq <= 30.0)
+        if (_maxFreq <= 30.0)
             updateAxis(NUM_AXIS_DATA_LOG25,
                        freqsLog25, labelsLog25,
                        0.0, 30.0);
-        else if (mMaxFreq <= 60.0)
+        else if (_maxFreq <= 60.0)
             updateAxis(NUM_AXIS_DATA_LOG50,
                        freqsLog50, labelsLog50,
                        0.0, 60.0);
-        else if (mMaxFreq <= 120.0)
+        else if (_maxFreq <= 120.0)
             updateAxis(NUM_AXIS_DATA_LOG100,
                        freqsLog100, labelsLog100,
                        0.0, 120.0);
     }
     else if (_scale == Scale::LINEAR)
     {
-        if (maxFreq <= 6.5)
+        if (_maxFreq <= 6.5)
             updateAxis(NUM_AXIS_DATA_LIN6,
                        freqsLin6, labelsLin6,
                        0.0, 6.5);

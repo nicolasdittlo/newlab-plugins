@@ -1,3 +1,4 @@
+#include "Defines.h"
 #include "Utils.h"
 #include "Window.h"
 #include "WienerSoftMasking.h"
@@ -206,8 +207,8 @@ WienerSoftMasking::processCentered(vector<complex<float> > *ioSum,
 
             maskVal = complex<float>(0.0, 0.0);
 
-            if ((std::fabs(csum.real()) > 1e-15) ||
-                (std::fabs(csum.imag()) > 1e-15))
+            if ((std::fabs(csum.real()) > NL_EPS) ||
+                (std::fabs(csum.imag()) > NL_EPS))
                 maskVal = s0 / csum;
             
             float maskMagn = abs(maskVal);
@@ -256,8 +257,8 @@ WienerSoftMasking::processCentered(vector<complex<float> > *ioSum,
                 csum = s0;
                 csum += s1;
         
-                if ((fabs(csum.real()) > 1e-15) ||
-                    (fabs(csum.imag()) > 1e-15))
+                if ((fabs(csum.real()) > NL_EPS) ||
+                    (fabs(csum.imag()) > NL_EPS))
                     maskVal = s1 / sum;
 
                 BL_float maskMagn = abs(maskVal);
@@ -321,7 +322,7 @@ WienerSoftMasking::computeSigma2(vector<complex<float> > *outSigma2Mask0,
     
     float sumProba = Utils::computeSum(_window);
     float sumProbaInv = 0.0;
-    if (sumProba > 1e-15)
+    if (sumProba > NL_EPS)
         sumProbaInv = 1.0/sumProba;
     
     for (int j = 0; j < _history.size(); j++)
@@ -350,7 +351,7 @@ WienerSoftMasking::computeSigma2(vector<complex<float> > *outSigma2Mask0,
     }
 
     // Divide by sum probas
-    if (sumProba > 1e-15)
+    if (sumProba > NL_EPS)
     {
         Utils::multValue(&currentSum0, sumProbaInv);
         Utils::multValue(&currentSum1, sumProbaInv);

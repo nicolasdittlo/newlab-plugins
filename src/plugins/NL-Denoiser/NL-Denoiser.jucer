@@ -33,11 +33,17 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
+      <FILE id="MrGHFX" name="AmpAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AmpAxis.cpp"/>
+      <FILE id="cUzZWV" name="AmpAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/AmpAxis.h"/>
+      <FILE id="VRdMcA" name="Axis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Axis.cpp"/>
+      <FILE id="Qc79By" name="Axis.h" compile="0" resource="0" file="../../libs/newlab-lib/Axis.h"/>
       <FILE id="ofQqTx" name="BitmapCheckBox.h" compile="0" resource="0"
             file="../../libs/newlab-lib/BitmapCheckBox.h"/>
       <FILE id="M3SesC" name="CircularBuffer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/CircularBuffer.h"/>
       <FILE id="LDmlKX" name="Config.h" compile="0" resource="0" file="../../libs/newlab-lib/Config.h"/>
+      <FILE id="LHF1Xa" name="Curve.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Curve.cpp"/>
+      <FILE id="tDoq1F" name="Curve.h" compile="0" resource="0" file="../../libs/newlab-lib/Curve.h"/>
       <FILE id="DDZikU" name="CustomComboBox.h" compile="0" resource="0"
             file="../../libs/newlab-lib/CustomComboBox.h"/>
       <FILE id="AGYI23" name="CustomLookAndFeel.h" compile="0" resource="0"
@@ -48,10 +54,20 @@
             file="../../libs/newlab-lib/DenoiserProcessor.cpp"/>
       <FILE id="vckmnw" name="DenoiserProcessor.h" compile="0" resource="0"
             file="../../libs/newlab-lib/DenoiserProcessor.h"/>
+      <FILE id="yvwTSd" name="DenoiserSpectrum.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/DenoiserSpectrum.cpp"/>
+      <FILE id="qr6B4U" name="DenoiserSpectrum.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/DenoiserSpectrum.h"/>
+      <FILE id="VGk7dL" name="FilterBank.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterBank.cpp"/>
+      <FILE id="zASwSB" name="FilterBank.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterBank.h"/>
       <FILE id="GGWd8d" name="FontManager.h" compile="0" resource="0" file="../../libs/newlab-lib/FontManager.h"/>
+      <FILE id="yMAPMV" name="FreqAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FreqAxis.cpp"/>
+      <FILE id="S2rKnl" name="FreqAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/FreqAxis.h"/>
       <FILE id="sa3wNV" name="HelpButton.h" compile="0" resource="0" file="../../libs/newlab-lib/HelpButton.h"/>
       <FILE id="kiCgpQ" name="ManualPdfViewer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/ManualPdfViewer.h"/>
+      <FILE id="dFjkKg" name="MelScale.cpp" compile="1" resource="0" file="../../libs/newlab-lib/MelScale.cpp"/>
+      <FILE id="ey6J05" name="MelScale.h" compile="0" resource="0" file="../../libs/newlab-lib/MelScale.h"/>
       <FILE id="vhGbhj" name="nl_queue.h" compile="0" resource="0" file="../../libs/newlab-lib/nl_queue.h"/>
       <FILE id="JyI1T4" name="NLDebug.h" compile="0" resource="0" file="../../libs/newlab-lib/NLDebug.h"/>
       <FILE id="Dzx2B7" name="OpenGLNanoVGComponent.cpp" compile="1" resource="0"
@@ -60,12 +76,25 @@
             file="../../libs/newlab-lib/OpenGLNanoVGComponent.h"/>
       <FILE id="Od5NTt" name="OverlapAdd.cpp" compile="1" resource="0" file="../../libs/newlab-lib/OverlapAdd.cpp"/>
       <FILE id="VAPbYz" name="OverlapAdd.h" compile="0" resource="0" file="../../libs/newlab-lib/OverlapAdd.h"/>
+      <FILE id="mSKDEP" name="ParamSmoother.h" compile="0" resource="0" file="../../libs/newlab-lib/ParamSmoother.h"/>
       <FILE id="UJFUzI" name="PlugNameComponent.h" compile="0" resource="0"
             file="../../libs/newlab-lib/PlugNameComponent.h"/>
       <FILE id="jqrsw5" name="RotarySliderWithValue.h" compile="0" resource="0"
             file="../../libs/newlab-lib/RotarySliderWithValue.h"/>
+      <FILE id="GMGRBz" name="Scale.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Scale.cpp"/>
+      <FILE id="DqdldT" name="Scale.h" compile="0" resource="0" file="../../libs/newlab-lib/Scale.h"/>
+      <FILE id="m1O0rU" name="SmoothAvgHistogramDB.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/SmoothAvgHistogramDB.cpp"/>
+      <FILE id="cysiLB" name="SmoothAvgHistogramDB.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/SmoothAvgHistogramDB.h"/>
+      <FILE id="rw2udP" name="SmoothCurveDB.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/SmoothCurveDB.cpp"/>
+      <FILE id="PNzY6T" name="SmoothCurveDB.h" compile="0" resource="0" file="../../libs/newlab-lib/SmoothCurveDB.h"/>
       <FILE id="o4A4Zp" name="SpectrumComponent.h" compile="0" resource="0"
             file="../../libs/newlab-lib/SpectrumComponent.h"/>
+      <FILE id="hCydn8" name="SpectrumView.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/SpectrumView.cpp"/>
+      <FILE id="I5bmkP" name="SpectrumView.h" compile="0" resource="0" file="../../libs/newlab-lib/SpectrumView.h"/>
       <FILE id="pvXG4y" name="Utils.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Utils.cpp"/>
       <FILE id="EylLDV" name="Utils.h" compile="0" resource="0" file="../../libs/newlab-lib/Utils.h"/>
       <FILE id="G8LejO" name="VersionTextDrawer.h" compile="0" resource="0"

@@ -118,7 +118,7 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     
     int fftSize = juce::nextPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
 
-    if (qampleRate != _sampleRate)
+    if (sampleRate != _sampleRate)
     {
         _sampleRate = sampleRate;
         

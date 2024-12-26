@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "Utils.h"
 #include "Curve.h"
 
 #define SET_COLOR_FROM_INT(__COLOR__, __R__, __G__, __B__, __A__)   \
@@ -31,10 +35,10 @@ Curve::Curve(int numValues)
     _fillColorSet = false;
     
     _numValues = numValues;
-    _xValues.Resize(_numValues);
-    _yValues.Resize(_numValues);
+    _xValues.resize(_numValues);
+    _yValues.resize(_numValues);
         
-    ClearValues();
+    clearValues();
     
     _viewSize[0] = 256;
     _viewSize[1] = 256;
@@ -96,7 +100,7 @@ Curve::getYScale(Scale::Type *scale, float *minY, float *maxY)
 }
 
 void
-Curve::SetXScale(Scale::Type scale, float minX, float maxX)
+Curve::setXScale(Scale::Type scale, float minX, float maxX)
 {
     _xScale = scale;
     _minX = minX;
@@ -160,7 +164,7 @@ Curve::setValues(const vector<float> &values,
     if (applyXScale)
         _scale->applyScaleForEach(_xScale, &_xValues, _minX, _maxX);
 
-    Utils::multValues(&_xValues, (float)width);
+    Utils::multValue(&_xValues, (float)width);
     
     // Y
     _yValues = values;
@@ -176,5 +180,5 @@ Curve::setValues(const vector<float> &values,
     }
     
     float factor = height;
-    Utils::MultValues(&_yValues, factor);
+    Utils::multValue(&_yValues, factor);
 }

@@ -20,6 +20,8 @@ class Utils
     static void fillZero(vector<float> *buf);
     static void fillZero(vector<complex<float> > *buf);
 
+    static void fillValue(vector<float> *buf, float value);
+    
     static void resizeFillZeros(vector<float> *buf, int newSize);
 
     static void addBuffers(vector<float> *buf0, const vector<float> &buf1);
@@ -35,13 +37,26 @@ class Utils
     static void computeSquareConjugate(vector<complex<float> > *buf);
 
     static float computeSum(const vector<float> &buf);
-        
+
+    static float ampToDB(float sampleVal);
     static float ampToDB(float sampleVal, float eps, float minDB);
-        
+
+    static float DBToAmp(float dbVal);
+    
     static void ampToDB(vector<float> *dBBuf, const vector<float> &ampBuf, float eps, float minDB);
 
     static void ampToDB(float *dBBuf, const float *ampBuf, int bufSize,
                         float eps, float minDB);
+
+    static float normalizedYTodB(float y, float mindB, float maxdB);
+
+    static void normalizedYTodB(const vector<float> &yBuf,
+                                float mindB, float maxdB,
+                                vector<float> *resBuf);
+
+    static float normalizedYTodBInv(float y, float mindB, float maxdB);
+        
+    static float applyGamma(float t, float gamma);
 };
 
 #endif

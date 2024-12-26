@@ -1,6 +1,6 @@
 #include "Axis.h"
 
-#include "GraphAmpAxis.h"
+#include "AmpAxis.h"
 
 AmpAxis::AmpAxis(bool displayLines, Density density)
 {
@@ -27,8 +27,8 @@ AmpAxis::init(Axis *axis,
     _axis = axis;
     
     int axisColor[4] = { 48, 48, 48, 255 };
-    int axisLabelColor[4] = { 255, 255, 255, 255 }
-        lineWidth = 1.25;
+    int axisLabelColor[4] = { 255, 255, 255, 255 };
+    float lineWidth = 1.25;
     
     axis->initVAxis(Scale::LINEAR,
                     minDB, maxDB,
@@ -91,13 +91,13 @@ AmpAxis::updateDensity20dB()
     
     for (int i = 0; i < NUM_AXIS_DATA_20DB; i++)
     {
-        if ((amps[i] < mMinDB) || (amps[i] > mMaxDB))
+        if ((amps[i] < _minDB) || (amps[i] > _maxDB))
             sprintf(AXIS_DATA[i][1], " ");
         
         sprintf(AXIS_DATA[i][0], "%g", amps[i]);
     }
     
-    _axis->SetData(AXIS_DATA, NUM_AXIS_DATA_20DB);
+    _axis->setData(AXIS_DATA, NUM_AXIS_DATA_20DB);
     
     for (int i = 0; i < NUM_AXIS_DATA_20DB; i++)
     {
@@ -151,13 +151,13 @@ AmpAxis::updateDensity10dB()
     
     for (int i = 0; i < NUM_AXIS_DATA_10DB; i++)
     {
-        if ((amps[i] < mMinDB) || (amps[i] > mMaxDB))
+        if ((amps[i] < _minDB) || (amps[i] > _maxDB))
             sprintf(AXIS_DATA[i][1], " ");
         
         sprintf(AXIS_DATA[i][0], "%g", amps[i]);
     }
     
-    _axis->SetData(AXIS_DATA, NUM_AXIS_DATA_10DB);
+    _axis->setData(AXIS_DATA, NUM_AXIS_DATA_10DB);
     
     for (int i = 0; i < NUM_AXIS_DATA_10DB; i++)
     {

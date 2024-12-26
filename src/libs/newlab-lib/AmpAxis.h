@@ -27,7 +27,7 @@ protected:
     void updateDensity20dB();
     void updateDensity10dB();
     
-    Axis2 *_axis;
+    Axis *_axis;
     
     float _minDB;
     float _maxDB;

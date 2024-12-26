@@ -6,6 +6,8 @@ using namespace std;
 
 typedef struct NVGcontext NVGcontext;
 
+class Axis;
+class Curve;
 class SpectrumView
 {
  public:
@@ -28,6 +30,7 @@ class SpectrumView
     void drawCurves(NVGcontext *nvgContext);
     void drawLineCurve(NVGcontext *nvgContext, Curve *curve);
     void drawFillCurve(NVGcontext *nvgContext, Curve *curve);
+    void drawCurveDescriptions(NVGcontext *nvgContext);
     void drawText(NVGcontext *nvgContext, float x, float y,
                   float fontSize,
                   const char *text, int color[4],
@@ -39,7 +42,7 @@ class SpectrumView
     bool isCurveUndefined(const vector<float> &x,
                           const vector<float> &y,
                           int minNumValues);
-    void setCurveDrawStyle(Curve *curve);
+    void setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve);
 
  protected:
     vector<Curve *> _curves;
