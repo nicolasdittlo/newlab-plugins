@@ -54,8 +54,8 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     vector<float> &values0 = _tmpBuf0;
     values0 = values;
 
-    bool useFilterBank = false;
-
+    bool useFilterBank = true;
+    
     // Filter banks
     if (!reset)
     {

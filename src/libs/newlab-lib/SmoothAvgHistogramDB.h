@@ -9,7 +9,7 @@ class SmoothAvgHistogramDB
 {
 public:
     SmoothAvgHistogramDB(int size, float smoothCoeff,
-                         float defaultValue, float mindB, float maxdB);
+                         float defaultValue, float minDB, float maxDB);
     
     virtual ~SmoothAvgHistogramDB();
     
@@ -38,8 +38,8 @@ protected:
     
     float _defaultValue;
     
-    float _mindB;
-    float _maxdB;
+    float _minDB;
+    float _maxDB;
 
  private:
     // Tmp buffers

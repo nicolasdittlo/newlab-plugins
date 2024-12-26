@@ -163,9 +163,9 @@ Utils::DBToAmp(float dbVal)
 {
     // Magic number for dB to gain conversion.
     // Approximates 10^(x/20)
-#define BL_IAMP_DB 0.11512925464970
+#define IAMP_DB 0.11512925464970
  
-    return exp(((float)BL_IAMP_DB)*dbVal);
+    return exp(((float)IAMP_DB)*dbVal);
 }
 
 void

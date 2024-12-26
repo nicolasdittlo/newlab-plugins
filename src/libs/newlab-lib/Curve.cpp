@@ -170,6 +170,5 @@ Curve::setValues(const vector<float> &values,
             _scale->applyScaleForEach(Scale::NORMALIZED, &_yValues, _minY, _maxY);
     }
     
-    float factor = height;
-    Utils::multValue(&_yValues, factor);
+    Utils::multValue(&_yValues, height);
 }

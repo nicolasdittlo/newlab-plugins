@@ -516,6 +516,8 @@ SpectrumView::isCurveUndefined(const vector<float> &x,
 void
 SpectrumView::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
 {
+    nvgLineJoin(nvgContext, NVG_BEVEL);
+    
     nvgStrokeWidth(nvgContext, curve->_lineWidth);
     
     nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0]*255, curve->_color[1]*255,

@@ -5,16 +5,16 @@
 
 SmoothAvgHistogramDB::SmoothAvgHistogramDB(int size, float smoothCoeff,
                                            float defaultValue,
-                                           float mindB, float maxdB)
+                                           float minDB, float maxDB)
 {
     _data.resize(size);
     
     _smoothCoeff = smoothCoeff;
     
-    _mindB = mindB;
-    _maxdB = maxdB;
+    _minDB = minDB;
+    _maxDB = maxDB;
 
-    _defaultValue = (defaultValue - _mindB)/(_maxdB - _mindB);
+    _defaultValue = (defaultValue - _minDB)/(_maxDB - _minDB);
     
     reset();
 }
@@ -30,7 +30,7 @@ SmoothAvgHistogramDB::addValues(const vector<float> &values)
     vector<float> &normY = _tmpBuf0;
     normY.resize(values.size());
 
-    Utils::normalizedYTodB(values, _mindB, _maxdB, &normY);
+    Utils::normalizedYTodB(values, _minDB, _maxDB, &normY);
     
     for (int i = 0; i < values.size(); i++)
     {
@@ -58,7 +58,7 @@ SmoothAvgHistogramDB::getValues(vector<float> *values)
     {
         float val = _data.data()[i];
         
-        val = Utils::normalizedYTodBInv(val, _mindB, _maxdB);
+        val = Utils::normalizedYTodBInv(val, _minDB, _maxDB);
         
         values->data()[i] = val;
     }
@@ -84,7 +84,7 @@ SmoothAvgHistogramDB::setValues(const vector<float> *values,
     if (!convertToDB)
         _data = *values;
     else
-        Utils::normalizedYTodB(*values, _mindB, _maxdB, &_data);
+        Utils::normalizedYTodB(*values, _minDB, _maxDB, &_data);
 }
 
 void
