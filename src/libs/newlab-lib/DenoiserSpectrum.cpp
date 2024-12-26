@@ -60,7 +60,7 @@ DenoiserSpectrum::createAxes(SpectrumView *spectrumView,
     
     bool horizontal = true;
     _freqAxis->init(_hAxis, horizontal, bufferSize,
-                    sampleRate, graphWidth);
+                    sampleRate, width);
     _freqAxis->reset(bufferSize, sampleRate);
     
     _ampAxis->init(_vAxis, DENOISER_MIN_DB, DENOISER_MAX_DB, width);

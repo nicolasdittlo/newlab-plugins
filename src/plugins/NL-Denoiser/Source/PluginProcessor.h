@@ -8,6 +8,8 @@
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
 public:
+    using SampleRateChangeListener = std::function<void(double, int)>;
+    
     NLDenoiserAudioProcessor();
     ~NLDenoiserAudioProcessor() override;
 
@@ -38,7 +40,12 @@ public:
 
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-        
+
+    void setSampleRateChangeListener(SampleRateChangeListener listener)
+    {
+        _sampleRateChangeListener = listener;
+    }
+    
 public:
     juce::AudioProcessorValueTreeState _parameters;
     
@@ -54,6 +61,9 @@ private:
     vector<DenoiserProcessor *> _processors;
 
     int _prevQualityParam = 0;
+
+    double _sampleRate = 0.0;
+    SampleRateChangeListener _sampleRateChangeListener = nullptr;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessor)
 };

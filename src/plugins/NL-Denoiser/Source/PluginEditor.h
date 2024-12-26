@@ -10,6 +10,8 @@
 #include "PlugNameComponent.h"
 #include "HelpButton.h"
 #include "SpectrumComponent.h"
+#include "SpectrumView.h"
+#include "DenoiserSpectrum.h"
 
 class NLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
@@ -22,7 +24,9 @@ public:
 
 private:
     void drawVersionText(juce::Graphics& g);
-        
+
+    void handleSampleRateChange(double newSampleRate, int bufferSize);
+    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     NLDenoiserAudioProcessor& _audioProcessor;
@@ -60,6 +64,9 @@ private:
     std::unique_ptr<HelpButton> _helpButton;
 
     std::unique_ptr<SpectrumComponent> _spectrumComponent;
+
+    std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum;
+    std::unique_ptr<SpectrumView> _spectrumView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)
 };

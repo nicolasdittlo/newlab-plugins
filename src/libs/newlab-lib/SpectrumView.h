@@ -1,38 +1,53 @@
 #ifndef SPECTRUM_VIEW_H
 #define SPECTRUM_VIEW_H
 
+#include <vector>
+using namespace std;
+
 typedef struct NVGcontext NVGcontext;
 
 class SpectrumView
 {
  public:
-    SpectrumView(NVGcontext *nvgContext, int width, int height);
+    SpectrumView();
     virtual ~SpectrumView();
 
-    void draw();
+    void setHAxis(Axis *axis);
+    void setVAxis(Axis *axis);
 
+    void addCurve(Curve *curve);
+    
+    void draw(NVGcontext *nvgContext);
+
+    void setViewSize(int width, int height);
     void getViewSize(int *width, int *_height);
     
  protected:
-    void drawAxis(bool lineLabelFlag);
-    void drawAxis(Axis *axis, bool horizontal, bool lineLabelFlag);
-    void drawCurves();
-    void drawText(float x, float y,
+    void drawAxis(NVGcontext *nvgContext, bool lineLabelFlag);
+    void drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool lineLabelFlag);
+    void drawCurves(NVGcontext *nvgContext);
+    void drawLineCurve(NVGcontext *nvgContext, Curve *curve);
+    void drawFillCurve(NVGcontext *nvgContext, Curve *curve);
+    void drawText(NVGcontext *nvgContext, float x, float y,
                   float fontSize,
                   const char *text, int color[4],
                   int halign, int valign, float fontSizeCoeff);
-    void drawSeparatorY0();
+    void drawSeparatorY0(NVGcontext *nvgContext);
     void applyViewOrientation(const Axis &axis,
                               float *x, float *y,
                               int *labelHAlign);
-    float convertToBoundsY(float t);
-    float ConvertToAxisBounds(Axis *axis, float t);
-    void drawLineCurve(Curve *curve);
-    void drawFillCurve(Curve *curve);
     bool isCurveUndefined(const vector<float> &x,
                           const vector<float> &y,
                           int minNumValues);
     void setCurveDrawStyle(Curve *curve);
+
+ protected:
+    vector<Curve *> _curves;
+    Axis *_hAxis;
+    Axis *_vAxis;
+    
+    int _width;
+    int _height;
 };
 
 #endif

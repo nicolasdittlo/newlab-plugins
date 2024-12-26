@@ -11,9 +11,18 @@
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
 {
+    // Register the sample rate change listener
+    _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
+    {
+        juce::MessageManager::callAsync([this, sampleRate, bufferSize]()
+        {
+            handleSampleRateChange(sampleRate, bufferSize);
+        });
+    });
+        
     // Set the custom look and feel
     juce::LookAndFeel::setDefaultLookAndFeel(new CustomLookAndFeel());
- 
+    
     // Load the background image from binary resources
     _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
 
@@ -116,6 +125,11 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     _spectrumComponent = std::make_unique<SpectrumComponent>();
     addAndMakeVisible(*_spectrumComponent);
+
+    _spectrumView = std::make_unique<SpectrumView>();
+    _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(*_spectrumView, 44100.0, 2048, 464);
+
+    _spectrumComponent->setSpectrumView(*_spectrumView);
     
     // Set the editor's size
     setSize(464, 464);
@@ -195,4 +209,9 @@ void NLDenoiserAudioProcessorEditor::resized()
     _helpButton->setBounds(getWidth() - 20 - 14, getHeight() - 20 - 10, 20, 20);
 
     _spectrumComponent->setBounds(0, 0, 464, 198);
+}
+
+void NLDenoiserAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
+{
+    _denoiserSpectrum->reset(bufferSize, sampleRate);
 }

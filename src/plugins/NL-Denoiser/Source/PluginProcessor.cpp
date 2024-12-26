@@ -118,6 +118,15 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     
     int fftSize = juce::nextPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
 
+    if (qampleRate != _sampleRate)
+    {
+        _sampleRate = sampleRate;
+        
+        // Notify listener
+        if (_sampleRateChangeListener)
+            _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
+    }
+    
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
 
@@ -274,6 +283,16 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
+
+    // Get curves
+    vector<float> signalBuffer;
+    _processors[0]->getSignalBuffer(&signalBuffer);
+
+    vector<float> noiseBuffer;
+    _processors[0]->getNoiseBuffer(&noiseBuffer);
+
+    vector<float> noiseProfileBuffer;
+    _processors[0]->getNoiseCurve(&noiseProfileBuffer);
 }
 
 bool NLDenoiserAudioProcessor::hasEditor() const
