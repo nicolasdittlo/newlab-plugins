@@ -203,8 +203,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                 else
                 {
                     int align = NVG_ALIGN_LEFT;
-                    if (axis->_alignTextRight)
-                        align = NVG_ALIGN_RIGHT;
                     
                     float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel;

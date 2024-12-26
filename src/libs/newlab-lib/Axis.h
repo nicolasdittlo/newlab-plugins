@@ -23,9 +23,7 @@ public:
                    float minY, float maxY,
                    int axisColor[4], int axisLabelColor[4],
                    float lineWidth,
-                   float offsetX = 0.0, float offsetY = 0.0,
-                   bool alignTextRight = false,
-                   bool alignRight = true);
+                   float offsetX = 0.0, float offsetY = 0.0);
     
     void setMinMaxValues(float minVal, float maxVal);
     
@@ -62,9 +60,6 @@ protected:
     // To be able to display the axis on the right
     float _offsetX;
     float _offsetY;
-    
-    bool _alignTextRight;
-    bool _alignRight;
     
     float _lineWidth;
 

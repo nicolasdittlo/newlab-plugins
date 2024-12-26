@@ -17,10 +17,6 @@ Axis::Axis()
     _minVal = 0.0;
     _maxVal = 1.0;
     
-    _alignTextRight = false;
-    
-    _alignRight = false;
-    
     _lineWidth = 1.0;
     
     _scale = new Scale();
@@ -47,9 +43,6 @@ Axis::initHAxis(Scale::Type scale,
     _minVal = minX;
     _maxVal = maxX;
     
-    _alignTextRight = false;
-    _alignRight = true;
-    
     init(axisColor, axisLabelColor, lineWidth);
 }
 
@@ -58,9 +51,7 @@ Axis::initVAxis(Scale::Type scale,
                 float minY, float maxY,
                 int axisColor[4], int axisLabelColor[4],
                 float lineWidth,
-                float offsetX, float offsetY,
-                bool alignTextRight,
-                bool alignRight)
+                float offsetX, float offsetY)
 {
     _offsetX = offsetX;
     _offsetY = offsetY;
@@ -68,9 +59,6 @@ Axis::initVAxis(Scale::Type scale,
     _scaleType = scale;
     _minVal = minY;
     _maxVal = maxY;
-    
-    _alignTextRight = alignTextRight;
-    _alignRight = alignRight;
     
     init(axisColor, axisLabelColor, lineWidth);
 }
