@@ -80,12 +80,12 @@ OpenGLNanoVGComponent::drawNanoVGGraphics()
     // Example NanoVG drawing: a rectangle and text
     nvgBeginPath(_nvgContext);
     nvgRect(_nvgContext, 50, 50, 200, 100);
-    nvgFillColor(_nvgContext, nvgRGBA(255, 192, 0, 255));
+    nvgFillColor(_nvgContext, nvgRGBA(255, 255, 0, 0));
     nvgFill(_nvgContext);
     
     nvgFontSize(_nvgContext, 24.0f);
     nvgFontFace(_nvgContext, "Roboto-Bold");
     nvgFillColor(_nvgContext, nvgRGBA(255, 255, 255, 255));
     nvgTextAlign(_nvgContext, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-    nvgText(_nvgContext, 150, 100, "Hello, NanoVG (GL2)!", nullptr);
+    nvgText(_nvgContext, 150, 100, "NanoVG (GL2)", nullptr);
 }
