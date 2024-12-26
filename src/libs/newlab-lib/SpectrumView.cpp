@@ -151,8 +151,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
 
                     int halign = NVG_ALIGN_LEFT;
                     
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
-                    
                     // First text: aligne left
                     drawText(nvgContext, tx, ty, FONT_SIZE,
                              text, axis->_labelColor,
@@ -166,8 +164,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     float ty = textOffset + axis->_offsetY*_height;
 
                     int halign = NVG_ALIGN_RIGHT;
-                    
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
                     
                     // Last text: align right
                     drawText(nvgContext, tx, ty,
@@ -243,7 +239,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     float ty = yLabel + FONT_SIZE*0.75;
 
                     int halign = NVG_ALIGN_LEFT;
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
                     
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
@@ -258,7 +253,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
                     float ty = yLabel - FONT_SIZE*1.5;
 
                     int halign = NVG_ALIGN_LEFT;
-                    applyViewOrientation(*axis, &tx, &ty, &halign);
                     
                     drawText(nvgContext, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
@@ -336,32 +330,6 @@ SpectrumView::drawSeparatorY0(NVGcontext *nvgContext)
     nvgStroke(nvgContext);
     
     nvgRestore(nvgContext);
-}
-
-// Apply -M_PI/2 rotation on coordinates
-void
-SpectrumView::applyViewOrientation(const Axis &axis,
-                                   float *x, float *y,
-                                   int *labelHAlign)
-{
-    if (axis._viewOrientation == Axis::VERTICAL)
-    {
-        // Rotate 90 degrees
-        *x = *x / _width;
-        *y = *y / _height;
-    
-        float  tmp = *x;
-        *x = *y;
-        *y = tmp;
-    
-        *x = _width;
-        *y = _height;
-    
-        *x = _width - *x;
-    }
-    
-    if (axis._forceLabelHAlign >= 0)
-        *labelHAlign = axis._forceLabelHAlign;
 }
 
 void

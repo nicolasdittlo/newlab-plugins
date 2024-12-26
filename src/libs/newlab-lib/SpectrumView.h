@@ -36,9 +36,6 @@ class SpectrumView
                   const char *text, int color[4],
                   int halign, int valign, float fontSizeCoeff);
     void drawSeparatorY0(NVGcontext *nvgContext);
-    void applyViewOrientation(const Axis &axis,
-                              float *x, float *y,
-                              int *labelHAlign);
     bool isCurveUndefined(const vector<float> &x,
                           const vector<float> &y,
                           int minNumValues);

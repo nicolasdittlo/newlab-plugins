@@ -31,11 +31,6 @@ Axis::Axis()
     _alignToScreenPixels = true;
 
     _offsetPixels = 0.0;
-
-    _alignBorderLabels = true;
-
-    _viewOrientation = HORIZONTAL;
-    _forceLabelHAlign = -1;
 }
 
 Axis::~Axis()
@@ -131,18 +126,6 @@ Axis::setAlignToScreenPixels(bool flag)
 }
 
 void
-Axis::setViewOrientation(ViewOrientation orientation)
-{
-    _viewOrientation = orientation;
-}
-
-void
-Axis::setForceLabelHAlign(int align)
-{
-    _forceLabelHAlign = align;
-}
-
-void
 Axis::setScaleType(Scale::Type scaleType)
 {
     _scaleType = scaleType;
@@ -152,12 +135,6 @@ void
 Axis::setOffsetPixels(float offsetPixels)
 {
     _offsetPixels = offsetPixels;
-}
-
-void
-Axis::setAlignBorderLabels(bool flag)
-{
-    _alignBorderLabels = flag;
 }
 
 void

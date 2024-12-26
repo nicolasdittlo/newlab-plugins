@@ -9,12 +9,6 @@ using namespace std;
 class Axis
 {
 public:
-    enum ViewOrientation
-    {
-        HORIZONTAL = 0,
-        VERTICAL
-    };
-    
     Axis();
     
     virtual ~Axis();
@@ -42,15 +36,6 @@ public:
     void setAlignToScreenPixels(bool flag);
 
     void setOffsetPixels(float offsetPixels);
-
-    // Align the first and last labels to the borders of the graph?
-    void setAlignBorderLabels(bool flag);
-
-    // View orientation (for Panogram)
-    void setViewOrientation(ViewOrientation orientation);
-    
-    // Set to -1 to not force (and keep th default)
-    void setForceLabelHAlign(int align);
 
     void setScaleType(Scale::Type scaleType);
     
@@ -93,12 +78,6 @@ protected:
 
     // For time axis scroll
     float _offsetPixels;
-
-    bool _alignBorderLabels;
-
-    ViewOrientation _viewOrientation;
-    
-    int _forceLabelHAlign;
 };
 
 #endif
