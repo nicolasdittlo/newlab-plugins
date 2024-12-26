@@ -70,8 +70,7 @@ OpenGLNanoVGComponent::renderOpenGL()
 void
 OpenGLNanoVGComponent::openGLContextClosing()
 {
-    // Handle context closing
-    nvgDeleteGL2(_nvgContext);
+    // Handle context closing if necessary
 }
    
 void
