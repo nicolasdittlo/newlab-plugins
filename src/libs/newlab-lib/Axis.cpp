@@ -20,8 +20,6 @@ Axis::Axis()
     _lineWidth = 1.0;
     
     _scale = new Scale();
-
-    _offsetPixels = 0.0;
 }
 
 Axis::~Axis()
@@ -101,12 +99,6 @@ void
 Axis::setScaleType(Scale::Type scaleType)
 {
     _scaleType = scaleType;
-}
-
-void
-Axis::setOffsetPixels(float offsetPixels)
-{
-    _offsetPixels = offsetPixels;
 }
 
 void

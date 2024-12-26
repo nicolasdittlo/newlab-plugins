@@ -64,9 +64,6 @@ protected:
     float _lineWidth;
 
     Scale *_scale;
-
-    // For time axis scroll
-    float _offsetPixels;
 };
 
 #endif

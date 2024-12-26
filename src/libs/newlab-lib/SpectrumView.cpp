@@ -99,8 +99,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
             float x = t*_width;
 
             float xLabel = x;
-            xLabel += axis->_offsetPixels;
-
+            
             if ((i > 0) && (i < axis->_values.size() - 1))
             {
                 if (lineLabelFlag)
@@ -176,7 +175,6 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
             y += axis->_offsetY*_height; // For Ghost
 
             float yLabel = y;
-            yLabel += axis->_offsetPixels;
             
             if ((i > 0) && (i < axis->_values.size() - 1))
                 // First and last: don't draw axis line
