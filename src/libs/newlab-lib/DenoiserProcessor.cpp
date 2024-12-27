@@ -24,8 +24,8 @@
 // 8 gives more gating, but less musical noise remaining
 #define SOFT_MASKING_HISTO_SIZE 8
 
-#define THRESHOLD_COEFF 1000.0
-
+#define THRESHOLD_MIN_DB -20.0
+#define THRESHOLD_MAX_DB 20.0
 
 DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshold)
 : _threshold(threshold)
@@ -665,9 +665,11 @@ DenoiserProcessor::threshold(vector<float> *ioSigMagns,
 
 void
 DenoiserProcessor::applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold)
-{
-    // Apply threshold not in dB
-    float thrs0 = threshold*THRESHOLD_COEFF;
+{    
+    // Apply threshold in dB
+    float thrsDB = THRESHOLD_MIN_DB + threshold*(THRESHOLD_MAX_DB - THRESHOLD_MIN_DB);
+    float thrs0 = Utils::DBToAmp(thrsDB);
+    
     for (int i = 0; i < ioNoiseCurve->size(); i++)
     {
         float sample = (*ioNoiseCurve)[i];

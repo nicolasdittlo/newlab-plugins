@@ -23,7 +23,7 @@ NLDenoiserAudioProcessor::NLDenoiserAudioProcessor()
                      std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"ratio", 700}, "Ratio", 0.0f, 100.0f, 100.0f),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"threshold", 700}, "Threshold", 0.0f, 100.0f, 0.1f),
+            juce::ParameterID{"threshold", 700}, "Threshold", 0.0f, 100.0f, 50.0f),
                      std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"transientBoost", 700}, "Transient Boost", 0.0f, 100.0f, 0.0f),
                      std::make_unique<juce::AudioParameterFloat>(
@@ -276,6 +276,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
         _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
 
+#if 0
         vector<float> noiseBuf;
         getNoiseBuf(&noiseBuf, channelData, outBuf);
 
@@ -283,6 +284,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
 
         if (noiseOnly > 0.5)
             outBuf = noiseBuf;
+#endif
         
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }

@@ -29,9 +29,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     addAndMakeVisible(*_ratioSlider);
 
     // Configure the threshold slider with units
-    _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider, 0.25);
-    _thresholdSlider->setRange(0.0, 100.0, 0.01);
-    _thresholdSlider->setDefaultValue(0.1);
+    _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
+    _thresholdSlider->setRange(0.0, 100.0, 0.1);
+    _thresholdSlider->setDefaultValue(50.0);
     _thresholdSlider->setTooltip("Threshold - Noise suppression threshold");
     _thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
         (_audioProcessor._parameters, "threshold", _thresholdSlider->getSlider());
