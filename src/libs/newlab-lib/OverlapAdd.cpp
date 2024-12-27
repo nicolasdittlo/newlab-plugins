@@ -46,11 +46,7 @@ OverlapAdd::setFftSize(int fftSize)
     _tmpSampBufOut.resize(_fftSize);
     _tmpCompBufOut.resize(_fftSize / 2 + 1);
 
-    _anaWin.resize(_fftSize);
-    Window::makeWindowHann(&_anaWin);
-
-    _synthWin.resize(_fftSize);
-    Window::makeWindowHann(&_synthWin);
+    makeWindows();
 }
 
 void
@@ -66,6 +62,8 @@ OverlapAdd::setOverlap(int overlap)
     _circSampBufsOut.setCapacity(_fftSize * 2);
 
     _circSampBufsOut.push(zeros.data(), zeros.size());
+
+    makeWindows();
 }
 
 void
@@ -129,9 +127,9 @@ OverlapAdd::feed(const vector<float> &samples)
                 _tmpSampBufIn[k] = ifftInput[k];
 
             // Apply resynth coeff
-            //double resynthCoeff = 1.0 / _fftSize;
-            //for (int k = 0; k < _tmpSampBufIn.size(); k++)
-            //    _tmpSampBufIn[k] *= resynthCoeff;
+            float resynthCoeff = 1.0 / _fftSize;
+            for (int k = 0; k < _tmpSampBufIn.size(); k++)
+                _tmpSampBufIn[k] *= resynthCoeff;
 
             // Apply synthesis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
@@ -214,4 +212,14 @@ OverlapAdd::processOutSamples(vector<float> *buff)
     int size = _outSamples.size();
     _outSamples.resize(size + _fftSize / _overlap);
     memcpy(&_outSamples.data()[size], buff->data(), (_fftSize / _overlap) * sizeof(float));
+}
+
+void
+OverlapAdd::makeWindows()
+{    
+    _anaWin.resize(_fftSize);
+    Window::makeWindowHann(&_anaWin);
+
+    _synthWin.resize(_fftSize);
+    Window::makeWindowHann(&_synthWin);
 }

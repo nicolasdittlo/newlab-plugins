@@ -36,6 +36,8 @@ protected:
     virtual void processFFT(vector<complex<float> > *compBuf);
     virtual void processOutSamples(vector<float> *buff);
 
+    void makeWindows();
+        
     vector<OverlapAddProcessor *> _processors;
     
     int _fftSize;
