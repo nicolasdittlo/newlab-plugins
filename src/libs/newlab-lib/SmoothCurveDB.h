@@ -21,7 +21,7 @@ class SmoothCurveDB
 
     void clearValues();
     
-    void setValues(const vector<float> &values, bool reset);
+    void setValues(const vector<float> &values);
 
  protected:
     float _minDB;

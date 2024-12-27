@@ -166,12 +166,12 @@ DenoiserSpectrum::updateCurves(const vector<float> &signal,
                                const vector<float> &noiseProfile,
                                bool isLearning)
 {
-    _signalCurveSmooth->setValues(signal, false);
+    _signalCurveSmooth->setValues(signal);
 
     if (!isLearning)
-        _noiseCurveSmooth->setValues(noise, false);
+        _noiseCurveSmooth->setValues(noise);
     else
         _noiseCurveSmooth->clearValues();
 
-    _noiseProfileCurveSmooth->setValues(noiseProfile, false);
+    _noiseProfileCurveSmooth->setValues(noiseProfile);
 }

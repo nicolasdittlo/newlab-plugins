@@ -46,7 +46,7 @@ SmoothCurveDB::clearValues()
 }
 
 void
-SmoothCurveDB::setValues(const vector<float> &values, bool reset)
+SmoothCurveDB::setValues(const vector<float> &values)
 {
     // Add the values
     int histoNumValues = _histogram->getNumValues();
@@ -57,17 +57,15 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
     bool useFilterBank = true;
     
     // Filter banks
-    if (!reset)
-    {
-        vector<float> &decimValues = _tmpBuf1;
+    vector<float> &decimValues = _tmpBuf1;
+    
+    Scale::FilterBankType type =
+        _curve->_scale->typeToFilterBankType(_curve->_xScale);
+    _curve->_scale->applyScaleFilterBank(type, &decimValues, values0,
+                                         _sampleRate, histoNumValues);
+    
+    values0 = decimValues;
 
-        Scale::FilterBankType type =
-            _curve->_scale->typeToFilterBankType(_curve->_xScale);
-        _curve->_scale->applyScaleFilterBank(type, &decimValues, values0,
-                                             _sampleRate, histoNumValues);
-        
-        values0 = decimValues;
-    }
     
     vector<float> &avgValues = _tmpBuf2;
     avgValues = values0;
@@ -84,18 +82,13 @@ SmoothCurveDB::setValues(const vector<float> &values, bool reset)
         (fabs(curveMaxY - _maxDB) < NL_EPS))
         sameScale = true;
         
-    if (!reset)
-    {
-        _histogram->addValues(values0);
-
-        // Process values and update curve
-        if (!sameScale)
-            _histogram->getValues(&avgValues);
-        else
-            _histogram->getValuesDB(&avgValues);
-    }
+    _histogram->addValues(values0);
+    
+    // Process values and update curve
+    if (!sameScale)
+        _histogram->getValues(&avgValues);
     else
-        _histogram->setValues(&values0, false);
+        _histogram->getValuesDB(&avgValues);
     
     _curve->clearValues();
     
