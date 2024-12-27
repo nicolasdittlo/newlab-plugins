@@ -313,14 +313,99 @@ juce::AudioProcessorEditor* NLDenoiserAudioProcessor::createEditor()
 
 void NLDenoiserAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
+    // Create a copy of the parameters state
+    juce::ValueTree stateToSave = _parameters.state.createCopy();
+
+    // Add a unified version number for parameters and noise profile
+    constexpr int version = 700; // Unified version number
+    stateToSave.setProperty("version", version, nullptr);
+
+    vector<vector< float> > noiseProfileArray;
+    noiseProfileArray.resize(_processors.size());
+    for (int i = 0; i < _processors.size(); i++)
+        _processors[i]->getNativeNoiseCurve(&noiseProfileArray[i]);
+    
+    // Serialize the noise profile array into a MemoryBlock
+    juce::MemoryBlock noiseProfileBlock;
+    {
+        juce::MemoryOutputStream noiseStream(noiseProfileBlock, true);
+
+        // Write the number of vectors
+        noiseStream.writeInt(static_cast<int>(noiseProfileArray.size()));
+
+        // Write each vector
+        for (const auto& vector : noiseProfileArray)
+        {
+            noiseStream.writeInt(static_cast<int>(vector.size()));
+            for (float value : vector)
+                noiseStream.writeFloat(value);
+        }
+    }
+
+    // Convert the noise profile binary data to a Base64 string and save it
+    stateToSave.setProperty("noiseProfile", noiseProfileBlock.toBase64Encoding(), nullptr);
+
+    // Serialize the entire state to destData
     juce::MemoryOutputStream stream(destData, true);
-    _parameters.state.writeToStream(stream);
+    stateToSave.writeToStream(stream);
 }
 
 void NLDenoiserAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
+    // Deserialize the state
     juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
-    _parameters.state = juce::ValueTree::readFromStream(stream);
+    if (auto newState = juce::ValueTree::readFromStream(stream); newState.isValid())
+    {
+        // Check the version number
+        int version = newState.getProperty("version", 0);
+        if (version == 700)
+        {
+            // Load the parameter state
+            _parameters.state = newState;
+
+            // Restore the noise profile from the binary blob
+            if (newState.hasProperty("noiseProfile"))
+            {
+                vector<vector<float> > noiseProfileArray;
+                
+                juce::String encodedBlob = newState["noiseProfile"].toString();
+                juce::MemoryBlock noiseProfileBlock;
+                if (noiseProfileBlock.fromBase64Encoding(encodedBlob))
+                {
+                    juce::MemoryInputStream noiseStream(noiseProfileBlock, false);
+
+                    // Clear existing data
+                    noiseProfileArray.clear();
+
+                    // Read the number of vectors
+                    int numVectors = noiseStream.readInt();
+
+                    // Read each vector
+                    for (int i = 0; i < numVectors; ++i)
+                    {
+                        int vectorSize = noiseStream.readInt();
+                        std::vector<float> vector;
+
+                        for (int j = 0; j < vectorSize; ++j)
+                            vector.push_back(noiseStream.readFloat());
+
+                        noiseProfileArray.push_back(std::move(vector));
+                    }
+                }
+
+                for (int i = 0; i < _processors.size(); i++)
+                {
+                    if (i < noiseProfileArray.size())
+                        _processors[i]->setNativeNoiseCurve(noiseProfileArray[i]);
+                }
+            }
+        }
+        else
+        {
+            // Handle unknown or future versions
+            jassertfalse; // Add migration code or defaults here
+        }
+    }
 }
 
 void
