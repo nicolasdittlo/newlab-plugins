@@ -1,8 +1,9 @@
 #ifndef OVERLAP_ADD_H
 #define OVERLAP_ADD_H
 
-#include "CircularBuffer.h"
 #include <juce_dsp/juce_dsp.h>
+
+#include "CircularBuffer.h"
 
 class OverlapAddProcessor
 {

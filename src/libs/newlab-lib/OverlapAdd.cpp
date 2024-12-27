@@ -99,11 +99,11 @@ OverlapAdd::feed(const vector<float> &samples)
                 fftInput[k] = _tmpSampBufIn[k];
             
             // Apply FFT
-            _forwardFFT->performRealOnlyForwardTransform(fftInput.get());
+            _forwardFFT->performRealOnlyForwardTransform(fftInput.get(), true);
             
             // Store output in temporary buffer
             for (int k = 0; k < _tmpCompBufOut.size(); k++)
-                _tmpCompBufOut[k] = complex(fftInput[k], fftInput[_fftSize + k]);
+                _tmpCompBufOut[k] = complex(fftInput[k*2], fftInput[k*2 + 1]);
         }
                     
         // Apply callback
@@ -115,8 +115,8 @@ OverlapAdd::feed(const vector<float> &samples)
             juce::HeapBlock<float> ifftInput(_fftSize * 2);
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
             {
-                ifftInput[k] = _tmpCompBufOut[k].real();
-                ifftInput[_fftSize + k] = _tmpCompBufOut[k].imag();
+                ifftInput[k*2] = _tmpCompBufOut[k].real();
+                ifftInput[k*2 + 1] = _tmpCompBufOut[k].imag();
             }
 
             // Apply inverse FFT
@@ -143,7 +143,7 @@ OverlapAdd::feed(const vector<float> &samples)
                 _tmpSampBufIn[k] += _tmpSampBufOut[k];
 
             _circSampBufsOut.poke(_tmpSampBufIn.data(),
-                                     _synthWin.size());
+                                  _synthWin.size());
 
             _circSampBufsOut.pop(synthShift);
 
