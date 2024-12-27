@@ -237,7 +237,15 @@ NLDenoiserAudioProcessorEditor::timerCallback()
     if (newBuffersAvailable)
     {
         bool isLearning = _audioProcessor._parameters.getRawParameterValue("learnModeParamID")->load();
-    
+
+        if (!isLearning)
+        {
+            float threshold = _audioProcessor._parameters.getRawParameterValue("threshold")->load();
+            threshold *= 0.01;
+            
+            DenoiserProcessor::applyThresholdValueToNoiseCurve(&noiseProfileBuffer, threshold);
+        }
+        
         _denoiserSpectrum->updateCurves(signalBuffer,
                                         noiseBuffer,
                                         noiseProfileBuffer,

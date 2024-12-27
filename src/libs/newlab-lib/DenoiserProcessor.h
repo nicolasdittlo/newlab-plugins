@@ -45,9 +45,10 @@ public:
 #endif
 
     int getLatency();
+
+    static void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
     
 protected:
-    void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
     
     // Residual denoise
     
