@@ -12,6 +12,12 @@ using namespace juce::gl;
 
 OpenGLNanoVGComponent::OpenGLNanoVGComponent()
 {
+    // Configure the OpenGL pixel format with a stencil buffer
+    juce::OpenGLPixelFormat pixelFormat;
+    pixelFormat.stencilBufferBits = 8; // Request an 8-bit stencil buffer
+
+    _openGLContext.setPixelFormat(pixelFormat);
+        
     _openGLContext.setRenderer(this);
     _openGLContext.attachTo(*this);
     //_openGLContext.setContinuousRepainting(true); // Optional, for continuous updates
@@ -52,7 +58,10 @@ OpenGLNanoVGComponent::renderOpenGL()
 {    
     // Clear the screen
     juce::OpenGLHelpers::clear(juce::Colours::black);
-    
+
+    //glClearStencil(0);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        
     // Get component size
     const int width = getWidth();
     const int height = getHeight();

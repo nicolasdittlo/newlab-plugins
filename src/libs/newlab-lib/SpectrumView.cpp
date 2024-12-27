@@ -367,11 +367,11 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
     bool curveUndefined = isCurveUndefined(curve->_xValues, curve->_yValues, 2);
     if (curveUndefined)
         return;
-    
+        
     // Offset used to draw the closing of the curve outside the viewport
     // Because we draw both stroke and fill at the same time
     float offset = curve->_lineWidth;
-        
+    
     nvgSave(nvgContext);
 
     setCurveDrawStyle(nvgContext, curve);
