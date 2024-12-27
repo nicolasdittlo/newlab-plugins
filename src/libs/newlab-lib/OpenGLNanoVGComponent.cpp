@@ -58,9 +58,6 @@ OpenGLNanoVGComponent::renderOpenGL()
 {    
     // Clear the screen
     juce::OpenGLHelpers::clear(juce::Colours::black);
-
-    //glClearStencil(0);
-    //glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         
     // Get component size
     const int width = getWidth();
