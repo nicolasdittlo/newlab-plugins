@@ -111,6 +111,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
     // Help button
     _helpButton = std::make_unique<HelpButton>();
+
+    _helpButton->setTooltip("Help - Display Help");
+    
     _helpButton->onStateChange = [] () { ManualPdfViewer::openEmbeddedPdf(); };
     addAndMakeVisible(*_helpButton);
 
