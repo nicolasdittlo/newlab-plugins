@@ -55,7 +55,7 @@ SmoothCurveDB::setValues(const vector<float> &values)
     values0 = values;
 
     bool useFilterBank = true;
-    
+
     // Filter banks
     vector<float> &decimValues = _tmpBuf1;
     
@@ -66,7 +66,6 @@ SmoothCurveDB::setValues(const vector<float> &values)
     
     values0 = decimValues;
 
-    
     vector<float> &avgValues = _tmpBuf2;
     avgValues = values0;
 
