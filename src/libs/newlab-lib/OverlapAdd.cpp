@@ -3,6 +3,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #include "Window.h"
+#include "Utils.h"
 #include "OverlapAdd.h"
 
 // OverlapAddProcessor
@@ -105,7 +106,13 @@ OverlapAdd::feed(const vector<float> &samples)
             for (int k = 0; k < _tmpCompBufOut.size(); k++)
                 _tmpCompBufOut[k] = complex(fftInput[k*2], fftInput[k*2 + 1]);
         }
-                    
+
+        // Apply analysis coeff
+        // Because fftw3 seems to scale the data when doint forward fft
+        float anaCoeff = 2.0 / (_fftSize / _overlap);
+        for (int k = 0; k < _tmpCompBufOut.size(); k++)
+            _tmpCompBufOut[k] *= anaCoeff;
+        
         // Apply callback
         processFFT(&_tmpCompBufOut);
         
@@ -127,10 +134,15 @@ OverlapAdd::feed(const vector<float> &samples)
                 _tmpSampBufIn[k] = ifftInput[k];
 
             // Apply resynth coeff
-            float resynthCoeff = 1.0 / _fftSize;
+            //float resynthCoeff = 1.0 / _fftSize;
+            //for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            //    _tmpSampBufIn[k] *= resynthCoeff;
+
+            // Apply resynth coeff
+            float resynthCoeff = 0.66*_fftSize / 2.0;
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= resynthCoeff;
-
+            
             // Apply synthesis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= _synthWin[k];
@@ -211,7 +223,7 @@ OverlapAdd::processOutSamples(vector<float> *buff)
 
     int size = _outSamples.size();
     _outSamples.resize(size + _fftSize / _overlap);
-    memcpy(&_outSamples.data()[size], buff->data(), (_fftSize / _overlap) * sizeof(float));
+    memcpy(&_outSamples.data()[size], buff->data(), _fftSize / _overlap * sizeof(float));
 }
 
 void
@@ -219,7 +231,27 @@ OverlapAdd::makeWindows()
 {    
     _anaWin.resize(_fftSize);
     Window::makeWindowHann(&_anaWin);
-
+    
     _synthWin.resize(_fftSize);
     Window::makeWindowHann(&_synthWin);
+
+    // Calculate combined contributions
+    vector<float> combinedWindow(_fftSize, 0.0f);
+    int hopSize = _fftSize / _overlap; // Hop size for overlap-add
+
+    for (int frame = 0; frame < _overlap; ++frame)
+    {
+        int startIndex = frame * hopSize; // Starting index for the current frame
+        for (int i = 0; i < _fftSize; ++i)
+        {
+            int wrappedIndex = (startIndex + i) % _fftSize; // Wrap around for circular buffer
+            combinedWindow[wrappedIndex] += _synthWin[i];
+        }
+    }
+
+    // Compute the normalization factor (maximum combined contribution)
+    float normalizationFactor = *std::max_element(combinedWindow.begin(), combinedWindow.end());
+    
+    Utils::multValue(&_anaWin, 1.0 / normalizationFactor);
+    Utils::multValue(&_synthWin, 1.0 / normalizationFactor);
 }
