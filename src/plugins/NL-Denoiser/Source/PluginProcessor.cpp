@@ -51,12 +51,14 @@ NLDenoiserAudioProcessor::~NLDenoiserAudioProcessor()
         delete _processors[i];
 }
 
-const juce::String NLDenoiserAudioProcessor::getName() const
+const juce::String
+NLDenoiserAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool NLDenoiserAudioProcessor::acceptsMidi() const
+bool
+NLDenoiserAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
     return true;
@@ -65,7 +67,8 @@ bool NLDenoiserAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool NLDenoiserAudioProcessor::producesMidi() const
+bool
+NLDenoiserAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
     return true;
@@ -74,7 +77,8 @@ bool NLDenoiserAudioProcessor::producesMidi() const
 #endif
 }
 
-bool NLDenoiserAudioProcessor::isMidiEffect() const
+bool
+NLDenoiserAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
     return true;
@@ -83,36 +87,43 @@ bool NLDenoiserAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double NLDenoiserAudioProcessor::getTailLengthSeconds() const
+double
+NLDenoiserAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int NLDenoiserAudioProcessor::getNumPrograms()
+int
+NLDenoiserAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int NLDenoiserAudioProcessor::getCurrentProgram()
+int
+NLDenoiserAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void NLDenoiserAudioProcessor::setCurrentProgram(int index)
+void
+NLDenoiserAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String NLDenoiserAudioProcessor::getProgramName(int index)
+const juce::String
+NLDenoiserAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void NLDenoiserAudioProcessor::changeProgramName(int index, const juce::String& newName)
+void
+NLDenoiserAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
-void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void
+NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     int numInputChannels = getTotalNumInputChannels();
     
@@ -183,14 +194,16 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     }
 }
 
-void NLDenoiserAudioProcessor::releaseResources()
+void
+NLDenoiserAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool NLDenoiserAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool
+NLDenoiserAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -215,7 +228,8 @@ bool NLDenoiserAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts
 }
 #endif
 
-void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void
+NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -517,7 +531,8 @@ NLDenoiserAudioProcessor::getLatency()
 }
 
 // This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+juce::AudioProcessor* JUCE_CALLTYPE
+createPluginFilter()
 {
     return new NLDenoiserAudioProcessor();
 }
