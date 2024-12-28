@@ -15,7 +15,8 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
     // Configure the OpenGL pixel format with a stencil buffer
     juce::OpenGLPixelFormat pixelFormat;
     pixelFormat.stencilBufferBits = 8; // Request an 8-bit stencil buffer
-
+    //pixelFormat.multisamplingLevel = 4; // Use 4x MSAA (or higher for better quality)
+ 
     _openGLContext.setPixelFormat(pixelFormat);
         
     _openGLContext.setRenderer(this);
@@ -76,7 +77,11 @@ OpenGLNanoVGComponent::renderOpenGL()
 void
 OpenGLNanoVGComponent::openGLContextClosing()
 {
-    // Handle context closing if necessary
+    if (_nvgContext)
+    {
+        nvgDeleteGL2(_nvgContext);
+        _nvgContext = nullptr;
+    }
 }
    
 void
@@ -85,7 +90,7 @@ OpenGLNanoVGComponent::drawNanoVGGraphics()
     // Example NanoVG drawing: a rectangle and text
     nvgBeginPath(_nvgContext);
     nvgRect(_nvgContext, 50, 50, 200, 100);
-    nvgFillColor(_nvgContext, nvgRGBA(255, 255, 0, 0));
+    nvgFillColor(_nvgContext, nvgRGBA(255, 0, 0, 255));
     nvgFill(_nvgContext);
     
     nvgFontSize(_nvgContext, 24.0f);

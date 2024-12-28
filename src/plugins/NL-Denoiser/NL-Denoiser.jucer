@@ -11,7 +11,7 @@
               defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1">
   <MAINGROUP id="LE9YKO" name="NL-Denoiser">
     <GROUP id="{A7E4A4B9-0F14-99AB-E614-E8A83EECBBF2}" name="nanovg">
-      <FILE id="FkvJgi" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
+      <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
     </GROUP>
     <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
       <FILE id="ceVi8O" name="background.png" compile="0" resource="1" file="Resources/background.png"/>
