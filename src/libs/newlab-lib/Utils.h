@@ -38,6 +38,9 @@ class Utils
 
     static float computeSum(const vector<float> &buf);
 
+    static void insertValues(vector<float> *buf, int index, int numValues, float value);
+    static void removeValuesCyclic(vector<float> *buf, int index, int numValues);
+        
     static float ampToDB(float sampleVal);
     static float ampToDB(float sampleVal, float eps, float minDB);
 

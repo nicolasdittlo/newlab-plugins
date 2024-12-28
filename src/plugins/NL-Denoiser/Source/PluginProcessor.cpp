@@ -141,6 +141,10 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
         _processors.clear();
+
+        for (int i = 0; i < _delays.size(); i++)
+            delete _delays[i];
+        _delays.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
@@ -150,7 +154,11 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
             overlapAdd->addProcessor(processor);
             _overlapAdds.push_back(overlapAdd);
-        }
+
+            int latency = getLatency();
+            Delay *delay = new Delay(latency);
+            _delays.push_back(delay);
+        } 
     }
 
     for (int i = 0; i < _overlapAdds.size(); i++)
@@ -165,9 +173,14 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     // Update latency
     if (!_processors.empty())
     {
-        int latency = _processors[0]->getLatency();
+        int latency = getLatency();
+
+#if 0
         setLatencySamples(latency);
         updateHostDisplay();
+#endif
+        for (int i = 0; i < _delays.size(); i++)
+            _delays[i]->setDelay(latency);
     }
 }
 
@@ -243,52 +256,62 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         _processors[i]->setResNoiseThrs(residualNoise);
         _processors[i]->setBuildingNoiseStatistics(learnMode);
         _processors[i]->setAutoResNoise(softDenoise);
-
+        
         if (qualityChanged)
         {            
             int overlap = getOverlap(quality);
-
+            
             _processors[i]->setOverlap(overlap);
             _overlapAdds[i]->setOverlap(overlap);
-
-            // Update latency
-            if (!_processors.empty())
-            {
-                int latency = _processors[0]->getLatency();
-                setLatencySamples(latency);
-                updateHostDisplay();
-            }
         }
+    }
+    
+    if (qualityChanged)
+    {            
+        // Update latency
+        int latency = getLatency();
+#if 0
+        setLatencySamples(latency);
+        updateHostDisplay();
+#endif
+        
+        for (int i = 0; i < _delays.size(); i++)
+            _delays[i]->setDelay(latency);
     }
     
     // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer(channel);
-
+        
+        vector<float> channelDataDelay;
+        channelDataDelay.resize(buffer.getNumSamples());
+        memcpy(channelDataDelay.data(), channelData, buffer.getNumSamples()*sizeof(float));
+        _delays[channel]->processSamples(&channelDataDelay);
+        
         vector<float> vecBuf;
         vecBuf.resize(buffer.getNumSamples());
         memcpy(vecBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
         
         _overlapAdds[channel]->feed(vecBuf);
-
+        
         vector<float> outBuf;
         int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
         _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
-
-#if 0
+        
+        // Ratio
         vector<float> noiseBuf;
-        getNoiseBuf(&noiseBuf, channelData, outBuf);
-
-        applyRatio(ratio, &outBuf, channelData, noiseBuf);
-
+        getNoiseBuf(&noiseBuf, channelDataDelay.data(), outBuf);
+        
+        applyRatio(ratio, &outBuf, noiseBuf);
+        
+        // Noise only
         if (noiseOnly > 0.5)
             outBuf = noiseBuf;
-#endif
         
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
-
+    
     // Get curves
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
@@ -296,7 +319,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         _processors[0]->getSignalBuffer(&_signalBuffer);
         _processors[0]->getNoiseBuffer(&_noiseBuffer);
         _processors[0]->getNoiseCurve(&_noiseProfileBuffer);
-
+        
         _newBuffersAvailble = true;
     }
 }
@@ -470,10 +493,28 @@ NLDenoiserAudioProcessor::getNoiseBuf(vector<float> *noiseBuf, float *inputBuf, 
 
 void
 NLDenoiserAudioProcessor::applyRatio(float ratio, vector<float> *outputBuf,
-                                     float *channelData, const vector<float> &noiseBuf)
+                                     const vector<float> &noiseBuf)
 {
     for (int i = 0; i < outputBuf->size(); i++)
-        (*outputBuf)[i] = channelData[i] + ratio*noiseBuf[i];
+        (*outputBuf)[i] = (*outputBuf)[i] + (1.0 - ratio)*noiseBuf[i];
+}
+
+int
+NLDenoiserAudioProcessor::getLatency()
+{
+    if (_processors.empty())
+        return 0;
+    
+    //int latency = _processors[0]->getLatency();
+
+    int fftSize = juce::nextPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
+
+    auto quality = _parameters.getRawParameterValue("quality")->load();
+    int overlap = getOverlap(quality);
+
+    int latency = fftSize + fftSize/overlap;
+    
+    return latency;
 }
 
 // This creates new instances of the plugin..

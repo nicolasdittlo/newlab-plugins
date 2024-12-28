@@ -4,6 +4,7 @@
 
 #include <OverlapAdd.h>
 #include <DenoiserProcessor.h>
+#include <Delay.h>
 
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
@@ -56,11 +57,14 @@ private:
     void getNoiseBuf(vector<float> *noiseBuf, float *inputBuf, const vector<float> &outputBuf);
 
     void applyRatio(float ratio, vector<float> *outputBuf,
-                    float *channelData, const vector<float> &noiseBuf);
-        
+                    const vector<float> &noiseBuf);
+
+    int getLatency();
+    
     vector<OverlapAdd *> _overlapAdds;
     vector<DenoiserProcessor *> _processors;
-
+    vector<Delay *> _delays;
+    
     int _prevQualityParam = 0;
 
     double _sampleRate = 0.0;

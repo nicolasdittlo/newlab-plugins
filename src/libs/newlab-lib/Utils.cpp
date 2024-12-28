@@ -135,6 +135,59 @@ Utils::computeSum(const vector<float> &buf)
     return result;
 }
 
+void
+Utils::insertValues(vector<float> *buf, int index, int numValues, float value)
+{
+    for (int i = 0; i < numValues; i++)
+        buf->insert(buf->begin() + index, value);
+}
+
+void
+Utils::removeValuesCyclic(vector<float> *buf, int index, int numValues)
+{
+    // Remove too many => empty the result
+    if (numValues >= buf->size())
+    {
+        buf->resize(0);
+        
+        return;
+    }
+    
+    // Manage negative index
+    if (index < 0)
+        index += buf->size();
+    
+    // Prepare the result with the new size
+    vector<float> result;
+    result.resize(buf->size() - numValues);
+    Utils::fillZero(&result);
+    
+    // Copy cyclicly
+    int bufPos = index + 1;
+    int resultPos = index + 1 - numValues;
+    if (resultPos < 0)
+        resultPos += result.size();
+    
+    int resultSize = result.size();
+    float *resultData = result.data();
+    int bufSize = buf->size();
+    float *bufData = buf->data();
+    
+    for (int i = 0; i < resultSize; i++)
+    {
+        bufPos = bufPos % bufSize;
+        resultPos = resultPos % resultSize;
+        
+        float val = bufData[bufPos];
+        resultData[resultPos] = val;
+        
+        bufPos++;
+        resultPos++;
+    }
+    
+    *buf = result;
+}
+
 float
 Utils::ampToDB(float sampleVal)
 {

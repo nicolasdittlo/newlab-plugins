@@ -48,6 +48,9 @@
             file="../../libs/newlab-lib/CustomComboBox.h"/>
       <FILE id="AGYI23" name="CustomLookAndFeel.h" compile="0" resource="0"
             file="../../libs/newlab-lib/CustomLookAndFeel.h"/>
+      <FILE id="vUwWwX" name="Defines.h" compile="0" resource="0" file="../../libs/newlab-lib/Defines.h"/>
+      <FILE id="kzUsUj" name="Delay.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Delay.cpp"/>
+      <FILE id="fCHKIT" name="Delay.h" compile="0" resource="0" file="../../libs/newlab-lib/Delay.h"/>
       <FILE id="i5qcjk" name="DemoTextDrawer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/DemoTextDrawer.h"/>
       <FILE id="HSNapt" name="DenoiserProcessor.cpp" compile="1" resource="0"
