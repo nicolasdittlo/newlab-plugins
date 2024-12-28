@@ -175,10 +175,9 @@ void NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
     {
         int latency = getLatency();
 
-#if 0
         setLatencySamples(latency);
         updateHostDisplay();
-#endif
+
         for (int i = 0; i < _delays.size(); i++)
             _delays[i]->setDelay(latency);
     }
@@ -270,10 +269,9 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     {            
         // Update latency
         int latency = getLatency();
-#if 0
+
         setLatencySamples(latency);
         updateHostDisplay();
-#endif
         
         for (int i = 0; i < _delays.size(); i++)
             _delays[i]->setDelay(latency);
@@ -308,7 +306,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         // Noise only
         if (noiseOnly > 0.5)
             outBuf = noiseBuf;
-        
+
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
     
