@@ -152,10 +152,6 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
         _processors.clear();
-
-        for (int i = 0; i < _delays.size(); i++)
-            delete _delays[i];
-        _delays.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
@@ -165,10 +161,6 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
             overlapAdd->addProcessor(processor);
             _overlapAdds.push_back(overlapAdd);
-
-            int latency = getLatency();
-            Delay *delay = new Delay(latency);
-            _delays.push_back(delay);
         } 
     }
 
@@ -188,9 +180,6 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
         setLatencySamples(latency);
         updateHostDisplay();
-
-        for (int i = 0; i < _delays.size(); i++)
-            _delays[i]->setDelay(latency);
     }
 }
 
@@ -286,20 +275,12 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
 
         setLatencySamples(latency);
         updateHostDisplay();
-        
-        for (int i = 0; i < _delays.size(); i++)
-            _delays[i]->setDelay(latency);
     }
     
     // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer(channel);
-        
-        vector<float> channelDataDelay;
-        channelDataDelay.resize(buffer.getNumSamples());
-        memcpy(channelDataDelay.data(), channelData, buffer.getNumSamples()*sizeof(float));
-        _delays[channel]->processSamples(&channelDataDelay);
         
         vector<float> vecBuf;
         vecBuf.resize(buffer.getNumSamples());
@@ -313,7 +294,7 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         
         // Ratio
         vector<float> noiseBuf;
-        getNoiseBuf(&noiseBuf, channelDataDelay.data(), outBuf);
+        getNoiseBuf(&noiseBuf, channelData, outBuf);
                             
         applyRatio(ratio, &outBuf, noiseBuf);
         

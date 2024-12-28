@@ -4,7 +4,6 @@
 
 #include <OverlapAdd.h>
 #include <DenoiserProcessor.h>
-#include <Delay.h>
 
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
@@ -63,7 +62,6 @@ private:
     
     vector<OverlapAdd *> _overlapAdds;
     vector<DenoiserProcessor *> _processors;
-    vector<Delay *> _delays;
     
     int _prevQualityParam = 0;
 
