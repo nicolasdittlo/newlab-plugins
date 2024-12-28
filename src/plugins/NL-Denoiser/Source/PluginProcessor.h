@@ -53,11 +53,6 @@ public:
 private:
     int getOverlap(int quality);
 
-    void getNoiseBuf(vector<float> *noiseBuf, const float *inputBuf, const vector<float> &outputBuf);
-
-    void applyRatio(float ratio, vector<float> *outputBuf,
-                    const vector<float> &noiseBuf);
-
     int getLatency();
     
     vector<OverlapAdd *> _overlapAdds;

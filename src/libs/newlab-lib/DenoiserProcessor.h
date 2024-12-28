@@ -44,6 +44,10 @@ public:
     void setAutoResNoise(bool autoResNoiseFlag);
 #endif
 
+    void setRatio(float ratio);
+
+    void setNoiseOnly(bool noiseOnly);
+    
     int getLatency();
 
     static void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
@@ -112,6 +116,10 @@ protected:
     bool _autoResNoise;
     WienerSoftMasking *_softMasking;
 #endif
+
+    float _ratio;
+
+    bool _noiseOnly;
     
     // Noise capture
     bool _isBuildingNoiseStatistics;

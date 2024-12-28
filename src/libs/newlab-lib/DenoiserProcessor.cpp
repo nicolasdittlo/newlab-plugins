@@ -41,6 +41,9 @@ DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshol
 #if USE_AUTO_RES_NOISE
     _autoResNoise = true;
 #endif
+
+    _ratio = 1.0;
+    _noiseOnly = false;
     
     // Noise capture
     _isBuildingNoiseStatistics = false;
@@ -101,6 +104,8 @@ DenoiserProcessor::processFFT(vector<complex<float> > *ioBuffer)
     vector<float> &sigMagns = _tmpBuf0;
     vector<float> &sigPhases = _tmpBuf1;
     Utils::complexToMagnPhase(&sigMagns, &sigPhases, *ioBuffer);
+
+    vector<float> inputMagns = sigMagns;
     
     _signalBuf = sigMagns;
     
@@ -135,10 +140,21 @@ DenoiserProcessor::processFFT(vector<complex<float> > *ioBuffer)
     if (!_isBuildingNoiseStatistics)
         autoResidualDenoise(&sigMagns, &sigPhases, noiseMagns);
 #endif
-       
-    Utils::magnPhaseToComplex(ioBuffer, sigMagns, sigPhases);
-    
+
+    vector<float> resultMagns;
+    resultMagns.resize(sigMagns.size());
+
+    // Apply ratio
+    for (int i = 0; i < sigMagns.size(); i++)
+        resultMagns[i] = sigMagns[i] + (1.0 - _ratio)*noiseMagns[i];
+
+    // Apply noise only
+    if (_noiseOnly)
+        resultMagns = noiseMagns;
+
     _noiseBuf = noiseMagns;
+    
+    Utils::magnPhaseToComplex(ioBuffer, resultMagns, sigPhases);
 }
 
 void
@@ -229,6 +245,18 @@ DenoiserProcessor::setAutoResNoise(bool flag)
         _softMasking->setProcessingEnabled(_autoResNoise);
 }
 #endif
+
+void
+DenoiserProcessor::setRatio(float ratio)
+{
+    _ratio = ratio;
+}
+
+void
+DenoiserProcessor::setNoiseOnly(bool noiseOnly)
+{
+    _noiseOnly = noiseOnly;
+}
 
 int
 DenoiserProcessor::getLatency()

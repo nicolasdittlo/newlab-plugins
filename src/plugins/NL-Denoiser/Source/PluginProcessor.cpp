@@ -258,6 +258,8 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         _processors[i]->setResNoiseThrs(residualNoise);
         _processors[i]->setBuildingNoiseStatistics(learnMode);
         _processors[i]->setAutoResNoise(softDenoise);
+        _processors[i]->setRatio(ratio);
+        _processors[i]->setNoiseOnly((noiseOnly > 0.5));
         
         if (qualityChanged)
         {            
@@ -291,16 +293,6 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         vector<float> outBuf;
         int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
         _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
-        
-        // Ratio
-        vector<float> noiseBuf;
-        getNoiseBuf(&noiseBuf, channelData, outBuf);
-                            
-        applyRatio(ratio, &outBuf, noiseBuf);
-        
-        // Noise only
-        if (noiseOnly > 0.5)
-            outBuf = noiseBuf;
 
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
@@ -473,24 +465,6 @@ NLDenoiserAudioProcessor::getOverlap(int quality)
         default:
             return OVERLAP_0;
     }
-}
-
-void
-NLDenoiserAudioProcessor::getNoiseBuf(vector<float> *noiseBuf,
-                                      const float *inputBuf, const vector<float> &outputBuf)
-{
-    noiseBuf->resize(outputBuf.size());
-
-    for (int i = 0; i < noiseBuf->size(); i++)
-        (*noiseBuf)[i] = inputBuf[i] - outputBuf[i];
-}
-
-void
-NLDenoiserAudioProcessor::applyRatio(float ratio, vector<float> *outputBuf,
-                                     const vector<float> &noiseBuf)
-{
-    for (int i = 0; i < outputBuf->size(); i++)
-        (*outputBuf)[i] = (*outputBuf)[i] + (1.0 - ratio)*noiseBuf[i];
 }
 
 int
