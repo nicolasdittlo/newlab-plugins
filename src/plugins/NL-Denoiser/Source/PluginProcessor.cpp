@@ -214,7 +214,7 @@ bool NLDenoiserAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts
 #endif
 }
 #endif
-    
+
 void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -300,7 +300,7 @@ void NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
         // Ratio
         vector<float> noiseBuf;
         getNoiseBuf(&noiseBuf, channelDataDelay.data(), outBuf);
-        
+                            
         applyRatio(ratio, &outBuf, noiseBuf);
         
         // Noise only
@@ -481,7 +481,8 @@ NLDenoiserAudioProcessor::getOverlap(int quality)
 }
 
 void
-NLDenoiserAudioProcessor::getNoiseBuf(vector<float> *noiseBuf, float *inputBuf, const vector<float> &outputBuf)
+NLDenoiserAudioProcessor::getNoiseBuf(vector<float> *noiseBuf,
+                                      const float *inputBuf, const vector<float> &outputBuf)
 {
     noiseBuf->resize(outputBuf.size());
 
