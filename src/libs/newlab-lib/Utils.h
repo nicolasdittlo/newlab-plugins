@@ -60,6 +60,18 @@ class Utils
     static float normalizedYTodBInv(float y, float mindB, float maxdB);
         
     static float applyGamma(float t, float gamma);
+
+    static void clipMax(vector<float> *values, float maxValue);
+
+    static void clipMin(vector<float> *values, FLOAT_TYPE minVal);
+        
+    static void FftIdsToSamplesIds(const vector<float> &phases, vector<float> *samplesIds);
+
+    static void reverse(vector<int> *values);
+
+    static void append(vector<float> *vec, float *buf, int size);
+
+    static void copyBuf(float *toBuf, const float *fromData, int fromSize);
 };
 
 #endif

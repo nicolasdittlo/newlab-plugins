@@ -304,3 +304,98 @@ Utils::applyGamma(float t, float gamma)
     float bA = t/((1.0/gamma - 2.0)*(1.0 - t) + 1.0);
     return bA;
 }
+
+void
+Utils::clip(vector<float> *values, float maxValue)
+{
+    int valuesSize = values->size();
+    float *valuesBuf = values->dataet();
+        
+    for (int i = 0; i < valuesSize; i++)
+    {
+        float val = valuesBuf[i];
+        
+        if (val > maxValue)
+            val = maxValue;
+        
+        valuesBuf[i] = val;
+    }
+}
+
+void
+Utils::clipMin(vector<float> *values, FLOAT_TYPE minVal)
+{
+    int valuesSize = values->size();
+    float *valuesData = values->data();
+       
+    for (int i = 0; i < valuesSize; i++)
+    {
+        float val = valuesData[i];
+        if (val < minVal)
+            val = minVal;
+        
+        valuesData[i] = val;
+    }
+}
+
+void
+Utils::FftIdsToSamplesIds(const vector<float> &phases, vector<float> *samplesIds)
+{
+    samplesIds->resize(phases.size());
+    Utils::fillZero(samplesIds);
+    
+    int bufSize = phases.size();
+    float *phasesData = phases.data();
+    int *samplesIdsData = samplesIds->data();
+    
+    float prev = 0.0;
+    for (int i = 0; i < bufSize; i++)
+    {
+        float phase = phasesData[i];
+        
+        float phaseDiff = phase - prev;
+        prev = phase;
+        
+        // Avoid having a big phase diff due to prev == 0
+        if (i == 0)
+            continue;
+        
+        // TODO: optimize this !
+        while(phaseDiff < 0.0)
+            phaseDiff += 2.0*M_PI;
+        
+        float samplePos = ((float)bufSize)*phaseDiff/(2.0*M_PI);
+        
+        samplesIdsData[i] = (int)samplePos;
+    }
+}
+
+void
+Utils::reverse(vector<int> *values)
+{    
+    int valuesHalfSize = values->size()/2;
+    for (int i = 0; i < valuesHalfSize; i++)
+    {
+        int val0 = values->data()[i];
+        int idx = values->size() - i - 1;
+        int val1 = values->data()[idx];
+
+        values->data()[i] = val1;
+        values->data()[idx] = val0;
+    }
+}
+
+void
+Utils::append(vector<float> *vec, float *buf, int size)
+{
+    int prevSize = vec->size();
+    vec->resize(prevSize + size);
+
+    memcpy(&vec.data[prevSize], buf, size*sizeof(float));
+}
+
+void
+Utils::copyBuf(float *toBuf, const float *fromData, int fromSize)
+{
+    memcpy(toBuf, fromData, fromSize*sizeof(float));
+}
