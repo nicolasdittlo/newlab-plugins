@@ -39,7 +39,7 @@ public:
     
     void processFFT(vector<complex<float> > *ioBuffer) override;
 
-    void processOutSamples(vector<float> *ioBuffer) override;
+    void processSamples(vector<float> *ioBuffer) override;
         
     void getTransientness(vector<float> *outTransientness);
     

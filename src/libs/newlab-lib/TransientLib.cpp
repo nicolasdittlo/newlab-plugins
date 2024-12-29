@@ -35,6 +35,7 @@ TransientLib::~TransientLib()
     delete _smoother;
 }
 
+#include "NLDebug.h"
 void
 TransientLib::computeTransientness(const vector<float> &magns,
                                    const vector<float> &phases,
@@ -43,7 +44,7 @@ TransientLib::computeTransientness(const vector<float> &magns,
                                    float smoothFactor,
                                    float sampleRate,
                                    vector<float> *transientness)
-{
+{    
 #define DB_THRESHOLD_TR -64.0
     
 #define DB_EPS_TR 1e-15

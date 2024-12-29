@@ -266,7 +266,7 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, buffer.getNumSamples());
 
     // Retrieve parameter values
     auto ratio = _parameters.getRawParameterValue("ratio")->load();
@@ -285,7 +285,9 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     
     bool qualityChanged = (quality != _prevQualityParam);
     _prevQualityParam = quality;
-                    
+
+    int overlap = getOverlap(quality);
+    
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -298,8 +300,6 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         
         if (qualityChanged)
         {            
-            int overlap = getOverlap(quality);
-            
             _processors[i]->setOverlap(overlap);
             _overlapAdds[i]->setOverlap(overlap);
         }

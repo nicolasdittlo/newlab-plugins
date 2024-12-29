@@ -33,6 +33,9 @@ void
 OverlapAddProcessor::processFFT(vector<complex<float> > *compBuf) {}
 
 void
+OverlapAddProcessor::processSamples(vector<float> *buff) {}
+
+void
 OverlapAddProcessor::processOutSamples(vector<float> *buff) {}
 
 // OverlapAdd
@@ -150,7 +153,7 @@ OverlapAdd::feed(const vector<float> &samples)
             // Convert back to real samples
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] = ifftInput[k];
-
+            
             // Apply resynth coeff
             //float resynthCoeff = 1.0 / _fftSize;
             //for (int k = 0; k < _tmpSampBufIn.size(); k++)
@@ -160,6 +163,8 @@ OverlapAdd::feed(const vector<float> &samples)
             float resynthCoeff = 0.66*_fftSize / 2.0;
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= resynthCoeff;
+
+            processSamples(&_tmpSampBufIn);
             
             // Apply synthesis window
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
@@ -227,6 +232,16 @@ OverlapAdd::processFFT(vector<complex<float> > *compBuf)
     {
         OverlapAddProcessor *processor = _processors[i];
         processor->processFFT(compBuf);
+    }
+}
+
+void
+OverlapAdd::processSamples(vector<float> *buff)
+{
+    for (int i = 0; i < _processors.size(); i++)
+    {
+        OverlapAddProcessor *processor = _processors[i];
+        processor->processSamples(buff);
     }
 }
 

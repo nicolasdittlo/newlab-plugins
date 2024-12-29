@@ -29,7 +29,7 @@
 TransientShaperProcessor::TransientShaperProcessor(float sampleRate)
 {
     _sampleRate = sampleRate;
-        
+    
     _transLib = new TransientLib();
     
     _precision = 0.0;
@@ -73,16 +73,22 @@ processFFT(vector<complex<float> > *ioBuffer)
     // Seems hard to take half of fft, since we work in sample space too...
     
     vector<complex<float> > &fftBuffer = _tmpBuf1;
-    Utils::fillSecondFftHalf(*ioBuffer, &fftBuffer);
+
+    // Remove the +1
+    vector<complex<float> > bufferResized = *ioBuffer;
+    bufferResized.resize(bufferResized.size() - 1);
+    Utils::fillSecondFftHalf(bufferResized, &fftBuffer);
     
     vector<float> &magns = _tmpBuf2;
     vector<float> &phases = _tmpBuf3;
     Utils::complexToMagnPhase(&magns, &phases, fftBuffer);
-    
+
+    // Fix magnitudes ammplitudes for TransientLib
+    Utils::multValue(&magns, magns.size()/4);
+        
     // Compute the transientness
     vector<float> &transientness = _tmpBuf4;
 
-    // Final: good for 88200Hz + buffer size 4096
     _transLib->computeTransientness(magns, phases,
                                     &_prevPhases,
                                     _freqAmpRatio,
@@ -97,7 +103,7 @@ processFFT(vector<complex<float> > *ioBuffer)
 }
 
 void
-TransientShaperProcessor::processOutSamples(vector<float> *ioBuffer)
+TransientShaperProcessor::processSamples(vector<float> *ioBuffer)
 {        
     applyTransientness(ioBuffer, _transientness);
 }

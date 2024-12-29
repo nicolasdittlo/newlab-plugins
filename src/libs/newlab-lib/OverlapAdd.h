@@ -30,6 +30,11 @@ public:
     virtual ~OverlapAddProcessor();
     
     virtual void processFFT(vector<complex<float> > *compBuf);
+
+    // After ifft
+    virtual void processSamples(vector<float> *buf);
+
+    // After resynth
     virtual void processOutSamples(vector<float> *buf);
 };
 
@@ -52,9 +57,10 @@ public:
     void flushOutSamples(int numToFlush);
     
 protected:
-    virtual void processFFT(vector<complex<float> > *compBuf);
-    virtual void processOutSamples(vector<float> *buff);
-
+    void processFFT(vector<complex<float> > *compBuf);
+    void processSamples(vector<float> *buf);
+    void processOutSamples(vector<float> *buff);
+    
     void makeWindows();
         
     vector<OverlapAddProcessor *> _processors;
