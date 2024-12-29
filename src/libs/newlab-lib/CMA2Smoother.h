@@ -38,3 +38,5 @@ private:
     // Tmp buffers
     vector<float> _tmpBuf0;
 };
+
+#endif

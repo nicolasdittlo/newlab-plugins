@@ -41,6 +41,11 @@
             file="../../libs/newlab-lib/BitmapCheckBox.h"/>
       <FILE id="M3SesC" name="CircularBuffer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/CircularBuffer.h"/>
+      <FILE id="sIRBCO" name="CMA2Smoother.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/CMA2Smoother.cpp"/>
+      <FILE id="bFBZdI" name="CMA2Smoother.h" compile="0" resource="0" file="../../libs/newlab-lib/CMA2Smoother.h"/>
+      <FILE id="txdpl6" name="CMASmoother.cpp" compile="1" resource="0" file="../../libs/newlab-lib/CMASmoother.cpp"/>
+      <FILE id="WVf3Cb" name="CMASmoother.h" compile="0" resource="0" file="../../libs/newlab-lib/CMASmoother.h"/>
       <FILE id="LDmlKX" name="Config.h" compile="0" resource="0" file="../../libs/newlab-lib/Config.h"/>
       <FILE id="LHF1Xa" name="Curve.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Curve.cpp"/>
       <FILE id="tDoq1F" name="Curve.h" compile="0" resource="0" file="../../libs/newlab-lib/Curve.h"/>
@@ -98,6 +103,13 @@
       <FILE id="hCydn8" name="SpectrumView.cpp" compile="1" resource="0"
             file="../../libs/newlab-lib/SpectrumView.cpp"/>
       <FILE id="I5bmkP" name="SpectrumView.h" compile="0" resource="0" file="../../libs/newlab-lib/SpectrumView.h"/>
+      <FILE id="zG8dlS" name="TransientLib.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/TransientLib.cpp"/>
+      <FILE id="KqAZH5" name="TransientLib.h" compile="0" resource="0" file="../../libs/newlab-lib/TransientLib.h"/>
+      <FILE id="EzolSM" name="TransientShaperProcessor.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/TransientShaperProcessor.cpp"/>
+      <FILE id="nFUcpz" name="TransientShaperProcessor.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/TransientShaperProcessor.h"/>
       <FILE id="pvXG4y" name="Utils.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Utils.cpp"/>
       <FILE id="EylLDV" name="Utils.h" compile="0" resource="0" file="../../libs/newlab-lib/Utils.h"/>
       <FILE id="G8LejO" name="VersionTextDrawer.h" compile="0" resource="0"

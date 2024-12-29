@@ -1,3 +1,4 @@
+#include "Defines.h"
 #include "OverlapAdd.h"
 #include "Utils.h"
 #include "TransientLib.h"
@@ -9,6 +10,8 @@
 
 TransientShapeProcessor::TransientShapeProcessor(float sampleRate)
 {
+    _sampleRate = sampleRate;
+        
     _transLib = new TransientLib();
     
     _precision = 0.0;
@@ -57,13 +60,13 @@ processFFT(vector<complex<float> > *ioBuffer)
     
     vector<float> &magns = _tmpBuf2;
     vector<float> &phases = _tmpBuf3;
-    Utils::ComplexToMagnPhase(&magns, &phases, fftBuffer);
+    Utils::complexToMagnPhase(&magns, &phases, fftBuffer);
     
     // Compute the transientness
     vector<float> &transientness = _tmpBuf4;
 
     // Final: good for 88200Hz + buffer size 4096
-    mTransLib->computeTransientness(magns, phases,
+    _transLib->computeTransientness(magns, phases,
                                     &_prevPhases,
                                     _freqAmpRatio,
                                     1.0 - _precision,
@@ -71,7 +74,7 @@ processFFT(vector<complex<float> > *ioBuffer)
                                     &transientness);
     
     _transientness = transientness;
-    Utils::MultValues(&_transientness, (float)TRANSIENTNESS_COEFF);
+    Utils::multValue(&_transientness, (float)TRANSIENTNESS_COEFF);
     
     _prevPhases = phases;
 }
@@ -110,7 +113,7 @@ TransientShapeProcessor::computeMaxTransientness()
 
 
 void
-TransientShapeProcessor::AaplyTransientness(vector<float> *ioSamples,
+TransientShapeProcessor::applyTransientness(vector<float> *ioSamples,
                                             const vector<float> &transientness)
 {
     if (transientness.size() != ioSamples->size())
@@ -121,7 +124,7 @@ TransientShapeProcessor::AaplyTransientness(vector<float> *ioSamples,
     
     // Avoid clipping (intelligently)
     float maxTransientness = computeMaxTransientness();
-    Utils::clip(&trans, maxTransientness);
+    Utils::clipMax(&trans, maxTransientness);
     
     float gainDB = MAX_GAIN*_softHard;
     

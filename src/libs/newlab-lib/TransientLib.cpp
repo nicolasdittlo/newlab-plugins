@@ -1,3 +1,5 @@
+#include "Defines.h"
+#include "Utils.h"
 #include "CMA2Smoother.h"
 
 #include "TransientLib.h"
@@ -35,26 +37,26 @@ TransientLib::computeTransientness(const vector<float> &magns,
     transientness->resize(phases.size());
     Utils::fillZero(transientness);
     
-    vector<float> &transientnessS = _tmpBuf23;
+    vector<float> &transientnessS = _tmpBuf0;
     transientnessS.resize(phases.size());
     Utils::fillZero(&transientnessS);
     
-    vector<float> &transientnessP = _tmpBuf24;
+    vector<float> &transientnessP = _tmpBuf1;
     transientnessP.resize(phases.size());
     Utils::fillZero(&transientnessP);
     
-    vector<int> &sampleIds = _tmpBuf25;
+    vector<int> &sampleIds = _tmpBuf2;
     Utils::FftIdsToSamplesIds(phases, &sampleIds);
 
     int sampleIdsSize = sampleIds.size();
     int *sampleIdsBuf = sampleIds.data();
-    float *magnsBuf = magns.data();
+    const float *magnsBuf = magns.data();
     
     float DB_THRESHOLD_TR_INV = 1.0/DB_THRESHOLD_TR;
     float TRANS_COEFF_FREQ_TR_GLOBAL =
         TRANS_COEFF_FREQ_TR*TRANS_COEFF_GLOBAL_TR;
     
-    float *phasesBuf = phases.data();
+    const float *phasesBuf = phases.data();
     
     float TRANS_COEFF_AMP_TR_GLOBAL =
         TRANS_COEFF_AMP_TR*TRANS_COEFF_GLOBAL_TR;
@@ -90,7 +92,7 @@ TransientLib::computeTransientness(const vector<float> &magns,
         if ((prevPhases != NULL) && (prevPhases->size() == sampleIdsSize))
         {
             int prevPhasesSize = prevPhases->size();
-            float *prevPhasesBuf = prevPhases->data();
+            const float *prevPhasesBuf = prevPhases->data();
     
             // Use additional method: compute derivative of phase over time
             // This is a very good indicator of transientness !
@@ -130,7 +132,7 @@ TransientLib::computeTransientness(const vector<float> &magns,
     // CMA
     // Works well
     
-#define NATIVE_BUFFER_SIZE_TR6 2048
+#define NATIVE_BUFFER_SIZE_TR 2048
     float bufCoeff = ((float)phases.size())/NATIVE_BUFFER_SIZE_TR;
     
     smoothTransients(&transientnessS, smoothFactor);
@@ -175,8 +177,8 @@ TransientLib::smoothTransients(vector<float> *transients,
     {
 #define SMOOTH_FACTOR_TR 4.0
         
-        vector<float> &smoothTransients = _tmpBuf36;
-        smoothTransients.Resize(transients->size());
+        vector<float> &smoothTransients = _tmpBuf3;
+        smoothTransients.resize(transients->size());
         
         float cmaCoeff = smoothFactor*transients->size()/SMOOTH_FACTOR_TR;
         

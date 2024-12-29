@@ -1,6 +1,9 @@
 #ifndef TRANSIENT_LIB_H
 #define TRANSIENT_LIB_H
 
+#include <vector>
+using namespace std;
+
 class CMA2Smoother;
 class TransientLib
 {
@@ -18,6 +21,13 @@ class TransientLib
                               vector<float> *transientness);
  protected:
     void smoothTransients(vector<float> *transients, float smoothFactor);
+
+    CMA2Smoother *_smoother;
+
+    vector<float> _tmpBuf0;
+    vector<float> _tmpBuf1;
+    vector<int> _tmpBuf2;
+    vector<float> _tmpBuf3;
 };
 
 #endif

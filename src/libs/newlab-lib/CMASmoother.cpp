@@ -1,6 +1,7 @@
+#include <string.h>
+
 #include "Utils.h"
-#
-include "CMASmoother.h"
+#include "CMASmoother.h"
 
 CMASmoother::CMASmoother(int bufferSize, int windowSize)
 {
@@ -38,7 +39,7 @@ CMASmoother::reset(int bufferSize, int windowSize)
 }
 
 bool
-CMASmoother::Process(const float *data, float *smoothedData, int nFrames)
+CMASmoother::process(const float *data, float *smoothedData, int nFrames)
 {
     if (_firstTime)
         // Process one time with zeros (for continuity after).
@@ -76,10 +77,10 @@ CMASmoother::processInternal(const float *data, float *smoothedData, int nFrames
     if (processed)
     {
         // Add out data
-        Utils::append(&mOutData, outData.data(), outData.size()); 
+        Utils::append(&_outData, outData.data(), outData.size()); 
         
         int outDataSize = outData.size();
-        int inDataSize = mInData.size();
+        int inDataSize = _inData.size();
         
         // Consume in data
         vector<float> newInData;
@@ -93,7 +94,7 @@ CMASmoother::processInternal(const float *data, float *smoothedData, int nFrames
         
             // Consume out data
             vector<float> newOutData;
-            Utils::append(&newOutData, &_outData.data()[nFrames], outDataSize - nFrames)
+            Utils::append(&newOutData, &_outData.data()[nFrames], outDataSize - nFrames);
             _outData = newOutData;
         
             return true;
@@ -142,7 +143,7 @@ CMASmoother::processOne(const float *data, float *smoothedData,
     inDataBuf = inData.data();
     for (int i = 0; i < windowSize; i++)
     {
-        BL_FLOAT val = data[nFrames - i - 1];
+        float val = data[nFrames - i - 1];
         
         inDataBuf[prevSize2 + i] = val;
     }
@@ -191,7 +192,7 @@ CMASmoother::centralMovingAverage(vector<float> &inData, vector<float> &outData,
     // Centered moving average
     for (int i = windowSize/2; i < inData.size() - windowSize/2; i++)
     {
-        float xn = mPrevVal + (inData.data()[i + windowSize/2] - inData.data()[i - windowSize/2])/windowSize;
+        float xn = _prevVal + (inData.data()[i + windowSize/2] - inData.data()[i - windowSize/2])/windowSize;
 
         outData.push_back(xn);
         

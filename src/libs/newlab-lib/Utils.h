@@ -16,15 +16,18 @@ class Utils
     static void magnPhaseToComplex(vector<complex<float> > *complexBuf,
                                    const vector<float> &magns,
                                    const vector<float> &phases);
-        
+
+    static void fillZero(vector<int> *buf);
     static void fillZero(vector<float> *buf);
     static void fillZero(vector<complex<float> > *buf);
-
+    static void fillZero(vector<float> *ioBuf, int numZeros);
+        
     static void fillValue(vector<float> *buf, float value);
     
     static void resizeFillZeros(vector<float> *buf, int newSize);
 
     static void addBuffers(vector<float> *buf0, const vector<float> &buf1);
+    static void multBuffers(vector<float> *buf, const vector<float> &values);
     static void multBuffers(vector<complex<float>> *buf0, const vector<float> &buf1);
     static void multBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
     static void substractBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
@@ -45,7 +48,8 @@ class Utils
     static float ampToDB(float sampleVal, float eps, float minDB);
 
     static float DBToAmp(float dbVal);
-    
+    static void DBToAmp(vector<float> *ioBuf);
+        
     static void ampToDB(vector<float> *dBBuf, const vector<float> &ampBuf, float eps, float minDB);
 
     static void ampToDB(float *dBBuf, const float *ampBuf, int bufSize,
@@ -63,13 +67,13 @@ class Utils
 
     static void clipMax(vector<float> *values, float maxValue);
 
-    static void clipMin(vector<float> *values, FLOAT_TYPE minVal);
+    static void clipMin(vector<float> *values, float minVal);
         
-    static void FftIdsToSamplesIds(const vector<float> &phases, vector<float> *samplesIds);
+    static void FftIdsToSamplesIds(const vector<float> &phases, vector<int> *samplesIds);
 
-    static void reverse(vector<int> *values);
+    static void reverse(vector<float> *values);
 
-    static void append(vector<float> *vec, float *buf, int size);
+    static void append(vector<float> *vec, const float *buf, int size);
 
     static void copyBuf(float *toBuf, const float *fromData, int fromSize);
 };

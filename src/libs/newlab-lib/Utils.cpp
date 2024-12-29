@@ -32,6 +32,12 @@ Utils::magnPhaseToComplex(vector<complex<float> > *complexBuf,
 }
 
 void
+Utils::fillZero(vector<int> *buf)
+{
+    memset(buf->data(), 0, buf->size()*sizeof(int));
+}
+
+void
 Utils::fillZero(vector<float> *buf)
 {
     memset(buf->data(), 0, buf->size()*sizeof(float));
@@ -41,6 +47,15 @@ void
 Utils::fillZero(vector<complex<float> > *buf)
 {
     memset(buf->data(), 0, buf->size()*sizeof(complex<float>));
+}
+
+void
+Utils::fillZero(vector<float> *ioBuf, int numZeros)
+{
+    if (numZeros > ioBuf->size())
+        numZeros = ioBuf->size();
+    
+    memset(ioBuf->data(), 0, numZeros*sizeof(float));
 }
 
 void
@@ -81,6 +96,21 @@ Utils::multBuffers(vector<complex<float> > *buf0, const vector<complex<float> > 
 {
     for (int i = 0; i < buf0->size(); i++)
         (*buf0)[i] *= buf1[i];
+}
+
+void
+Utils::multBuffers(vector<float> *buf,
+                   const vector<float> &values)
+{
+    int bufSize = buf->size();
+    float  *bufData = buf->data();
+    const float *valuesData = values.data();
+     
+    for (int i = 0; i < bufSize; i++)
+    {
+        float val = valuesData[i];
+        bufData[i] *= val;
+    }
 }
 
 void
@@ -222,6 +252,22 @@ Utils::DBToAmp(float dbVal)
 }
 
 void
+Utils::DBToAmp(vector<float> *ioBuf)
+{
+    int ioBufSize = ioBuf->size();
+    float *ioBufData = ioBuf->data();
+    
+    for (int i = 0; i < ioBufSize; i++)
+    {
+        float db = ioBufData[i];
+        
+        float amp = Utils::DBToAmp(db);
+        
+        ioBufData[i] = amp;
+    }
+}
+
+void
 Utils::ampToDB(vector<float> *dBBuf, const vector<float> &ampBuf, float eps, float minDB)
 {
     dBBuf->resize(ampBuf.size());
@@ -306,10 +352,10 @@ Utils::applyGamma(float t, float gamma)
 }
 
 void
-Utils::clip(vector<float> *values, float maxValue)
+Utils::clipMax(vector<float> *values, float maxValue)
 {
     int valuesSize = values->size();
-    float *valuesBuf = values->dataet();
+    float *valuesBuf = values->data();
         
     for (int i = 0; i < valuesSize; i++)
     {
@@ -323,7 +369,7 @@ Utils::clip(vector<float> *values, float maxValue)
 }
 
 void
-Utils::clipMin(vector<float> *values, FLOAT_TYPE minVal)
+Utils::clipMin(vector<float> *values, float minVal)
 {
     int valuesSize = values->size();
     float *valuesData = values->data();
@@ -339,13 +385,13 @@ Utils::clipMin(vector<float> *values, FLOAT_TYPE minVal)
 }
 
 void
-Utils::FftIdsToSamplesIds(const vector<float> &phases, vector<float> *samplesIds)
+Utils::FftIdsToSamplesIds(const vector<float> &phases, vector<int> *samplesIds)
 {
     samplesIds->resize(phases.size());
     Utils::fillZero(samplesIds);
     
     int bufSize = phases.size();
-    float *phasesData = phases.data();
+    const float *phasesData = phases.data();
     int *samplesIdsData = samplesIds->data();
     
     float prev = 0.0;
@@ -371,14 +417,14 @@ Utils::FftIdsToSamplesIds(const vector<float> &phases, vector<float> *samplesIds
 }
 
 void
-Utils::reverse(vector<int> *values)
+Utils::reverse(vector<float> *values)
 {    
     int valuesHalfSize = values->size()/2;
     for (int i = 0; i < valuesHalfSize; i++)
     {
-        int val0 = values->data()[i];
+        float val0 = values->data()[i];
         int idx = values->size() - i - 1;
-        int val1 = values->data()[idx];
+        float val1 = values->data()[idx];
 
         values->data()[i] = val1;
         values->data()[idx] = val0;
@@ -386,12 +432,12 @@ Utils::reverse(vector<int> *values)
 }
 
 void
-Utils::append(vector<float> *vec, float *buf, int size)
+Utils::append(vector<float> *vec, const float *buf, int size)
 {
     int prevSize = vec->size();
     vec->resize(prevSize + size);
 
-    memcpy(&vec.data[prevSize], buf, size*sizeof(float));
+    memcpy(&vec->data()[prevSize], buf, size*sizeof(float));
 }
 
 void

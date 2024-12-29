@@ -33,7 +33,7 @@ protected:
     
     bool _firstTime;
     
-    BL_FLOAT _prevVal;
+    float _prevVal;
     
     vector<float> _inData;
     vector<float> _outData;

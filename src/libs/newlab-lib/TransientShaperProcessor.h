@@ -19,7 +19,9 @@ public:
     void setFreqAmpRatio(float ratio);
     
     void processFFT(vector<complex<float> > *ioBuffer) override;
-    
+
+    void processOutSamples(vector<float> *ioBuffer) override;
+        
     void getTransientness(vector<float> *outTransientness);
     
     void applyTransientness(vector<float> *ioSamples,
@@ -28,6 +30,8 @@ public:
 protected:
     float computeMaxTransientness();
 
+    float _sampleRate;
+    
     float _softHard;
     float _precision;
     
