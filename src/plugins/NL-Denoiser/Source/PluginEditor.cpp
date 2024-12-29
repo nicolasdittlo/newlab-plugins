@@ -18,11 +18,12 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Config.h"
-#include "CustomLookAndFeel.h"
-#include "VersionTextDrawer.h"
-#include "ManualPdfViewer.h"
-#include "DemoTextDrawer.h"
+#include <Config.h>
+#include <CustomLookAndFeel.h>
+#include <VersionTextDrawer.h>
+#include <ManualPdfViewer.h>
+#include <DemoTextDrawer.h>
+#include <DenoiserProcessor.h>
 
 #define VERSION_STR "7.0.0"
 

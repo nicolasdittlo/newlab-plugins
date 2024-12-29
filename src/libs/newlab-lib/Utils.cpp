@@ -463,3 +463,25 @@ Utils::copyBuf(float *toBuf, const float *fromData, int fromSize)
 {
     memcpy(toBuf, fromData, fromSize*sizeof(float));
 }
+
+void
+Utils::fillSecondFftHalf(const vector<complex<float> > &inHalfBuf,
+                         vector<complex<float> > *outBuf)
+{
+    if (inHalfBuf.size() < 1)
+        return;
+    outBuf->resize(inHalfBuf.size()*2);
+
+    memcpy(outBuf->data(), inHalfBuf.data(), inHalfBuf.size()*sizeof(complex<float>));
+    
+    int ioBufferSize2 = inHalfBuf.size();
+    complex<float> *ioBufferData = outBuf->data();
+    
+    for (int i = 0; i < ioBufferSize2; i++)
+    {
+        int id0 = i + ioBufferSize2;
+        int id1 = ioBufferSize2 - i;
+        
+        ioBufferData[id0] = conj(ioBufferData[id1]);
+    }
+}

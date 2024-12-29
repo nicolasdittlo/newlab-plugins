@@ -86,6 +86,9 @@ class Utils
     static void clipMax(vector<float> *values, float maxValue);
 
     static void clipMin(vector<float> *values, float minVal);
+
+    static void fillSecondFftHalf(const vector<complex<float> > &inHalfBuf,
+                                  vector<complex<float> > *outBuf);
         
     static void FftIdsToSamplesIds(const vector<float> &phases, vector<int> *samplesIds);
 

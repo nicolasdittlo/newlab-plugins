@@ -21,12 +21,13 @@
 
 #include "OverlapAdd.h"
 
-class TransientShapeProcessor : public OverlapAddProcessor
+class TransientLib;
+class TransientShaperProcessor : public OverlapAddProcessor
 {
 public:
-    TransientShapeProcessor(float sampleRate);
+    TransientShaperProcessor(float sampleRate);
     
-    virtual ~TransientShapeProcessor();
+    virtual ~TransientShaperProcessor();
 
     void reset(float sampleRate);
     

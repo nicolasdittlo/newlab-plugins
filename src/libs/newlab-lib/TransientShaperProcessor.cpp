@@ -26,7 +26,7 @@
 // Detection + correction
 #define TRANSIENTNESS_COEFF 5.0
 
-TransientShapeProcessor::TransientShapeProcessor(float sampleRate)
+TransientShaperProcessor::TransientShaperProcessor(float sampleRate)
 {
     _sampleRate = sampleRate;
         
@@ -34,47 +34,46 @@ TransientShapeProcessor::TransientShapeProcessor(float sampleRate)
     
     _precision = 0.0;
     _softHard = 0.0;
-    
     _freqAmpRatio = 0.5;
 }
 
-TransientShapeProcessor::~TransientShapeProcessor()
+TransientShaperProcessor::~TransientShaperProcessor()
 {
     delete _transLib;
 }
 
 void
-TransientShapeProcessor::reset(float sampleRate)
+TransientShaperProcessor::reset(float sampleRate)
 {
     _sampleRate = sampleRate;
 }
 
 void
-TransientShapeProcessor::setPrecision(float precision)
+TransientShaperProcessor::setPrecision(float precision)
 {
     _precision = precision;
 }
 
 void
-TransientShapeProcessor::setSoftHard(float softHard)
+TransientShaperProcessor::setSoftHard(float softHard)
 {
     _softHard = softHard;
 }
 
 void
-TransientShapeProcessor::setFreqAmpRatio(float ratio)
+TransientShaperProcessor::setFreqAmpRatio(float ratio)
 {
     _freqAmpRatio = ratio;
 }
 
 void
-TransientShapeProcessor::
+TransientShaperProcessor::
 processFFT(vector<complex<float> > *ioBuffer)
 {    
-    // Seems hard to take half, since we work in sample space too...
+    // Seems hard to take half of fft, since we work in sample space too...
     
     vector<complex<float> > &fftBuffer = _tmpBuf1;
-    fftBuffer = *ioBuffer;
+    Utils::fillSecondFftHalf(*ioBuffer, &fftBuffer);
     
     vector<float> &magns = _tmpBuf2;
     vector<float> &phases = _tmpBuf3;
@@ -98,20 +97,20 @@ processFFT(vector<complex<float> > *ioBuffer)
 }
 
 void
-TransientShapeProcessor::processOutSamples(vector<float> *ioBuffer)
+TransientShaperProcessor::processOutSamples(vector<float> *ioBuffer)
 {        
     applyTransientness(ioBuffer, _transientness);
 }
 
 void
-TransientShapeProcessor::
+TransientShaperProcessor::
 getTransientness(vector<float> *outTransientness)
 {
     *outTransientness = _transientness;
 }
 
 float
-TransientShapeProcessor::computeMaxTransientness()
+TransientShaperProcessor::computeMaxTransientness()
 {
 #define MAX_GAIN 50.0
 #define MAX_GAIN_CLIP 6.0
@@ -131,8 +130,8 @@ TransientShapeProcessor::computeMaxTransientness()
 
 
 void
-TransientShapeProcessor::applyTransientness(vector<float> *ioSamples,
-                                            const vector<float> &transientness)
+TransientShaperProcessor::applyTransientness(vector<float> *ioSamples,
+                                             const vector<float> &transientness)
 {
     if (transientness.size() != ioSamples->size())
         return;

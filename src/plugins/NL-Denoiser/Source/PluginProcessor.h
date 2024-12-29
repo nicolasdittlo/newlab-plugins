@@ -18,11 +18,14 @@
 
 #pragma once
 
+#include <vector>
+using namespace std;
+
 #include <JuceHeader.h>
 
-#include <OverlapAdd.h>
-#include <DenoiserProcessor.h>
-
+class OverlapAdd;
+class DenoiserProcessor;
+class TransientShaperProcessor;
 class NLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -75,6 +78,7 @@ private:
     
     vector<OverlapAdd *> _overlapAdds;
     vector<DenoiserProcessor *> _processors;
+    vector<TransientShaperProcessor *> _transientProcessors;
     
     int _prevQualityParam = 0;
 

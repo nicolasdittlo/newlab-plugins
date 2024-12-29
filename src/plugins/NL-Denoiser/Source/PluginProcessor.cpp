@@ -16,6 +16,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <OverlapAdd.h>
+#include <DenoiserProcessor.h>
+#include <TransientShaperProcessor.h>
+
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -23,6 +27,9 @@
 #define OVERLAP_1 8
 #define OVERLAP_2 16
 #define OVERLAP_3 32
+
+// Half amp, half freq
+#define TRANSIENT_FREQ_AMP_RATIO 0.5
 
 #define FFT_SIZE_COEFF 23
 
@@ -67,6 +74,9 @@ NLDenoiserAudioProcessor::~NLDenoiserAudioProcessor()
 
     for (int i = 0; i < _processors.size(); i++)
         delete _processors[i];
+
+    for (int i = 0; i < _transientProcessors.size(); i++)
+        delete _transientProcessors[i];
 }
 
 const juce::String
@@ -170,14 +180,22 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
         _processors.clear();
+
+        for (int i = 0; i < _transientProcessors.size(); i++)
+            delete _transientProcessors[i];
+        _transientProcessors.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
             DenoiserProcessor *processor = new DenoiserProcessor(fftSize/2 + 1, overlap, threshold);
             _processors.push_back(processor);
+
+            TransientShaperProcessor *transientProcessor = new TransientShaperProcessor(sampleRate);
+            _transientProcessors.push_back(transientProcessor);
             
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
             overlapAdd->addProcessor(processor);
+            overlapAdd->addProcessor(transientProcessor);
             _overlapAdds.push_back(overlapAdd);
         } 
     }
@@ -191,14 +209,13 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     for (int i = 0; i < _processors.size(); i++)
         _processors[i]->reset(fftSize/2 + 1, overlap, sampleRate);
 
+    for (int i = 0; i < _transientProcessors.size(); i++)
+        _transientProcessors[i]->reset(sampleRate);
+    
     // Update latency
-    if (!_processors.empty())
-    {
-        int latency = getLatency();
-
-        setLatencySamples(latency);
-        updateHostDisplay();
-    }
+    int latency = getLatency();
+    setLatencySamples(latency);
+    updateHostDisplay();
 }
 
 void
@@ -287,12 +304,17 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
             _overlapAdds[i]->setOverlap(overlap);
         }
     }
+
+    for (int i = 0; i < _transientProcessors.size(); i++)
+    {
+        _transientProcessors[i]->setFreqAmpRatio(TRANSIENT_FREQ_AMP_RATIO);
+        _transientProcessors[i]->setSoftHard(transientBoost);
+    }
     
     if (qualityChanged)
     {            
         // Update latency
         int latency = getLatency();
-
         setLatencySamples(latency);
         updateHostDisplay();
     }
