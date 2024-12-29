@@ -28,13 +28,18 @@ using namespace juce::gl;
 
 #include "OpenGLNanoVGComponent.h"
 
+// Use MSAA 4x gives better antialiasing results than nanovg
+#define USE_MSAA 1
+
 OpenGLNanoVGComponent::OpenGLNanoVGComponent()
 {
     // Configure the OpenGL pixel format with a stencil buffer
     juce::OpenGLPixelFormat pixelFormat;
     pixelFormat.stencilBufferBits = 8; // Request an 8-bit stencil buffer
-    //pixelFormat.multisamplingLevel = 4; // Use 4x MSAA (or higher for better quality)
- 
+
+#if USE_MSAA
+    pixelFormat.multisamplingLevel = 4; // Use 4x MSAA
+#endif
     _openGLContext.setPixelFormat(pixelFormat);
         
     _openGLContext.setRenderer(this);
@@ -57,7 +62,22 @@ OpenGLNanoVGComponent::newOpenGLContextCreated()
     juce::gl::loadFunctions();
     juce::gl::loadExtensions();
     
+#if !USE_MSAA
     _nvgContext = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#else
+    // Check MSAA support
+    GLint samples = 0;
+    GLint sampleBuffers = 0;
+    glGetIntegerv(GL_SAMPLES, &samples);
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &sampleBuffers);
+
+    if (samples >= 4)
+        // Use MSAA antialiasing
+        _nvgContext = nvgCreateGL2(NVG_STENCIL_STROKES);
+    else
+        // Fallback, use nanovg antialiasing
+        _nvgContext = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#endif
     jassert(_nvgContext != nullptr);
 
     // Load font from memory
