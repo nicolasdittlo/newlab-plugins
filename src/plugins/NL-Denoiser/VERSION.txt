@@ -1,4 +1,5 @@
 v7.0.0
+- optimized performances
 - fixed spectrum values that were not exactly correct
 - optimized ratio and noise only
 - fixed transient boost
