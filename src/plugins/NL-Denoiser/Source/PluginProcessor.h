@@ -74,7 +74,7 @@ public:
 private:
     int getOverlap(int quality);
 
-    int getLatency();
+    int getLatency(int blockSize);
     
     vector<OverlapAdd *> _overlapAdds;
     vector<DenoiserProcessor *> _processors;

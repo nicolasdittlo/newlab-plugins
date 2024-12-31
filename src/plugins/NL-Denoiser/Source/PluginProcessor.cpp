@@ -213,7 +213,7 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         _transientProcessors[i]->reset(sampleRate);
     
     // Update latency
-    int latency = getLatency();
+    int latency = getLatency(samplesPerBlock);
     setLatencySamples(latency);
     updateHostDisplay();
 }
@@ -314,7 +314,7 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     if (qualityChanged)
     {            
         // Update latency
-        int latency = getLatency();
+        int latency = getLatency(buffer.getNumSamples());
         setLatencySamples(latency);
         updateHostDisplay();
     }
@@ -508,20 +508,24 @@ NLDenoiserAudioProcessor::getOverlap(int quality)
 }
 
 int
-NLDenoiserAudioProcessor::getLatency()
+NLDenoiserAudioProcessor::getLatency(int blockSize)
 {
     if (_processors.empty())
         return 0;
     
-    int processorLatency = _processors[0]->getLatency();
-
     int fftSize = juce::nextPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
-    int latency = fftSize - fftSize/overlap;
-
-    latency += processorLatency;
+    int hopSize = fftSize/overlap;
     
+    int latency = fftSize - hopSize;
+
+    if (blockSize < hopSize)
+        latency += hopSize - blockSize;
+
+    int processorLatency = _processors[0]->getLatency();
+    latency += processorLatency;
+
     return latency;
 }
 
