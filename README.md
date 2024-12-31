@@ -1,6 +1,6 @@
 # newlab-plugins
 
-## This is the NewLab | Audio Plugins sources repository.
+### This is the NewLab | Audio Plugins sources repository.
 
 This is a work in progress rework of the BlueLab plugins.
 This rework includes:
@@ -12,13 +12,13 @@ This rework includes:
 The plugins here are for sale on the site www.newlab-plugins.com
 So please do not build them and put the builds online.
 
-## To build the plugins on Linux:
+### To build the plugins on Linux:
 
 cd src/libs
 git clone https://github.com/juce-framework/JUCE.git  
 build Projucer  
 
-download fftw-3.3.10 and unzip it in src/libs  
+download fftw-3.3.10.tar.gz and extract it in src/libs  
 cd fftw-3.3.10  
 mkdir build-linux  
 cd build-linux  
