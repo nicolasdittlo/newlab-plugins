@@ -94,10 +94,6 @@ OverlapAdd::addProcessor(OverlapAddProcessor *processor)
 void
 OverlapAdd::feed(const vector<float> &samples)
 {
-    int synthShift = _fftSize / _overlap;
-    _tmpSynthZeroBuf.resize(synthShift);
-    memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
-
     _circSampBufsIn.push(samples.data(), samples.size());
 
     while (_circSampBufsIn.getSize() >= _fftSize)
@@ -176,9 +172,12 @@ OverlapAdd::feed(const vector<float> &samples)
 
             _circSampBufsOut.poke(_tmpSampBufIn.data(),
                                   _synthWin.size());
+            
+            _circSampBufsOut.pop(_fftSize / _overlap);
 
-            _circSampBufsOut.pop(synthShift);
-
+            _tmpSynthZeroBuf.resize(_fftSize / _overlap);
+            memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
+            
             _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
                                   _tmpSynthZeroBuf.size());
             
