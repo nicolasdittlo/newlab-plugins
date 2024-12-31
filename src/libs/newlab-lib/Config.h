@@ -16,5 +16,4 @@
  * Boston, MA 02111-1307, USA.
  */
 
-// Please be kind, do not modify this code and share binaries
 #define DEMO_VERSION 0 //1
