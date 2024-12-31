@@ -1,6 +1,7 @@
 # newlab-plugins
 
-This is the NewLab | Audio Plugins sources repository.
+## This is the NewLab | Audio Plugins sources repository.
+
 This is a work in progress rework of the BlueLab plugins.
 This rework includes:
 - port to JUCE
@@ -11,7 +12,7 @@ This rework includes:
 The plugins here are for sale on the site www.newlab-plugins.com
 So please do not build them and put the builds online.
 
-** To build the plugins on Linux: **
+## To build the plugins on Linux:
 
 cd src/libs
 git clone https://github.com/juce-framework/JUCE.git  
