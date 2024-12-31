@@ -513,14 +513,14 @@ NLDenoiserAudioProcessor::getLatency()
     if (_processors.empty())
         return 0;
     
-    //int latency = _processors[0]->getLatency();
+    int processorLatency = _processors[0]->getLatency();
 
     int fftSize = juce::nextPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
-
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
+    int latency = fftSize - fftSize/overlap;
 
-    int latency = fftSize + fftSize/overlap;
+    latency += processorLatency;
     
     return latency;
 }
