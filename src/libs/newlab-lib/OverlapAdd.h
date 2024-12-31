@@ -33,9 +33,6 @@ public:
 
     // After ifft
     virtual void processSamples(vector<float> *buf);
-
-    // After resynth
-    virtual void processOutSamples(vector<float> *buf);
 };
 
 class OverlapAdd
@@ -59,7 +56,6 @@ public:
 protected:
     void processFFT(vector<complex<float> > *compBuf);
     void processSamples(vector<float> *buf);
-    void processOutSamples(vector<float> *buff);
     
     void makeWindows();
         

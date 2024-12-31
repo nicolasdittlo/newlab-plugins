@@ -35,9 +35,6 @@ OverlapAddProcessor::processFFT(vector<complex<float> > *compBuf) {}
 void
 OverlapAddProcessor::processSamples(vector<float> *buff) {}
 
-void
-OverlapAddProcessor::processOutSamples(vector<float> *buff) {}
-
 // OverlapAdd
 OverlapAdd::OverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
 : _overlap(overlap), _fftFlag(fft), _ifftFlag(ifft)
@@ -185,8 +182,9 @@ OverlapAdd::feed(const vector<float> &samples)
             _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
                                   _tmpSynthZeroBuf.size());
             
-            // Apply callback
-            processOutSamples(&_tmpSampBufIn);
+            int size = _outSamples.size();
+            _outSamples.resize(size + _fftSize / _overlap);
+            memcpy(&_outSamples.data()[size], _tmpSampBufIn.data(), _fftSize / _overlap * sizeof(float));
         }
     }
 }
@@ -243,20 +241,6 @@ OverlapAdd::processSamples(vector<float> *buff)
         OverlapAddProcessor *processor = _processors[i];
         processor->processSamples(buff);
     }
-}
-
-void
-OverlapAdd::processOutSamples(vector<float> *buff)
-{
-    for (int i = 0; i < _processors.size(); i++)
-    {
-        OverlapAddProcessor *processor = _processors[i];
-        processor->processOutSamples(buff);
-    }
-
-    int size = _outSamples.size();
-    _outSamples.resize(size + _fftSize / _overlap);
-    memcpy(&_outSamples.data()[size], buff->data(), _fftSize / _overlap * sizeof(float));
 }
 
 void
