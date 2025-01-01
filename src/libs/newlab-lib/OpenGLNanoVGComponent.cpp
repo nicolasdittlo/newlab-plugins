@@ -50,7 +50,10 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
 OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
 {
     if (_nvgContext)
+    {
         nvgDeleteGL2(_nvgContext);
+        _nvgContext = nullptr;
+    }
     
     _openGLContext.detach();
 }
