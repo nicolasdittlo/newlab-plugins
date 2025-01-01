@@ -314,7 +314,7 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         _transientProcessors[i]->setFreqAmpRatio(TRANSIENT_FREQ_AMP_RATIO);
         _transientProcessors[i]->setSoftHard(transientBoost);
     }
-    
+
     if (qualityChanged || softDenoiseChanged)
     {            
         // Update latency
