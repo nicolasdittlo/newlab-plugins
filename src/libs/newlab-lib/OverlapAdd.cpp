@@ -134,7 +134,7 @@ OverlapAdd::feed(const vector<float> &samples)
         {
             // Convert to JUCE real format for inverse FFT
             juce::HeapBlock<float> ifftInput(_fftSize * 2);
-            for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            for (int k = 0; k < _tmpCompBufOut.size(); k++)
             {
                 ifftInput[k*2] = _tmpCompBufOut[k].real();
                 ifftInput[k*2 + 1] = _tmpCompBufOut[k].imag();
