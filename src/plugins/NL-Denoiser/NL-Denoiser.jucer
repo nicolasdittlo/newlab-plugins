@@ -8,7 +8,7 @@
               pluginDesc="Noise removal plugin" pluginManufacturerCode="Nlpl"
               pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
               headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib&#10;../../../../libs/fftw-3.3.10/api&#10;../../../../libs/nanovg/src"
-              defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1">
+              defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1&#10;">
   <MAINGROUP id="LE9YKO" name="NL-Denoiser">
     <GROUP id="{A7E4A4B9-0F14-99AB-E614-E8A83EECBBF2}" name="nanovg">
       <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
@@ -149,7 +149,7 @@
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"
-               JUCE_DSP_USE_STATIC_FFTW="1"/>
+               JUCE_DSP_USE_STATIC_FFTW="1" JUCE_USE_CURL="0"/>
   <EXPORTFORMATS>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="fftw3f"
                 extraLinkerFlags="-L../../../../libs/fftw-3.3.10/build-linux&#10;">
