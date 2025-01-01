@@ -81,7 +81,8 @@ private:
     vector<TransientShaperProcessor *> _transientProcessors;
     
     int _prevQualityParam = 0;
-
+    bool _prevSoftDenoiseParam = false;
+    
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;
 

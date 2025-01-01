@@ -287,6 +287,9 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     _prevQualityParam = quality;
 
     int overlap = getOverlap(quality);
+
+    bool softDenoiseChanged = (softDenoise > 0.5) != _prevSoftDenoiseParam;
+    _prevSoftDenoiseParam = (softDenoise > 0.5);
     
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
@@ -311,7 +314,7 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         _transientProcessors[i]->setSoftHard(transientBoost);
     }
     
-    if (qualityChanged)
+    if (qualityChanged || softDenoiseChanged)
     {            
         // Update latency
         int latency = getLatency(buffer.getNumSamples());
