@@ -107,8 +107,9 @@ OpenGLNanoVGComponent::renderOpenGL()
     
     // Set NanoVG viewport
     glViewport(0, 0, width, height);
-    nvgBeginFrame(_nvgContext, width, height, static_cast<float>(width) / height);
     
+    nvgBeginFrame(_nvgContext, width, height, static_cast<float>(width) / height);
+
     // Draw using NanoVG
     drawNanoVGGraphics();
     
