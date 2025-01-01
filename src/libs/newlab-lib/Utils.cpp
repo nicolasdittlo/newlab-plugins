@@ -485,3 +485,17 @@ Utils::fillSecondFftHalf(const vector<complex<float> > &inHalfBuf,
         ioBufferData[id0] = conj(ioBufferData[id1]);
     }
 }
+
+int
+Utils::nearestPowerOfTwo(int value)
+{
+    // Calculate lower and upper powers of two
+    int lowerPower = pow(2, floor(log2(value)));
+    int upperPower = pow(2, ceil(log2(value)));
+
+    // Return the closer power of two
+    if (abs(value - lowerPower) < abs(value - upperPower))
+        return lowerPower;
+    else
+        return upperPower;
+}

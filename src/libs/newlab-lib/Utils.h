@@ -97,6 +97,8 @@ class Utils
     static void append(vector<float> *vec, const float *buf, int size);
 
     static void copyBuf(float *toBuf, const float *fromData, int fromSize);
+
+    static int nearestPowerOfTwo(int value);
 };
 
 #endif

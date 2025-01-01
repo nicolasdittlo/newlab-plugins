@@ -19,6 +19,7 @@
 #include <OverlapAdd.h>
 #include <DenoiserProcessor.h>
 #include <TransientShaperProcessor.h>
+#include <Utils.h>
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -155,8 +156,8 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     int numInputChannels = getTotalNumInputChannels();
     
-    int fftSize = juce::nextPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
-
+    int fftSize = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
+    
     if (sampleRate != _sampleRate)
     {
         _sampleRate = sampleRate;
@@ -516,7 +517,7 @@ NLDenoiserAudioProcessor::getLatency(int blockSize)
     if (_processors.empty())
         return 0;
     
-    int fftSize = juce::nextPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
+    int fftSize = Utils::nearestPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
     int hopSize = fftSize/overlap;
