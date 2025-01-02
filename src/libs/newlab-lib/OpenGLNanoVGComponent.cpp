@@ -32,7 +32,7 @@ using namespace juce::gl;
 #define USE_MSAA 1
 
 OpenGLNanoVGComponent::OpenGLNanoVGComponent()
-{
+{    
     // Configure the OpenGL pixel format with a stencil buffer
     juce::OpenGLPixelFormat pixelFormat;
     pixelFormat.stencilBufferBits = 8; // Request an 8-bit stencil buffer
@@ -40,11 +40,13 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
 #if USE_MSAA
     pixelFormat.multisamplingLevel = 4; // Use 4x MSAA
 #endif
-    _openGLContext.setPixelFormat(pixelFormat);
-        
-    _openGLContext.setRenderer(this);
-    _openGLContext.attachTo(*this);
-    //_openGLContext.setContinuousRepainting(true); // Optional, for continuous updates
+    
+    _openGLContext = std::make_unique<juce::OpenGLContext>();
+    _openGLContext->setPixelFormat(pixelFormat);
+    _openGLContext->setRenderer(this);
+    _openGLContext->attachTo(*this);
+    
+    //_openGLContext->setContinuousRepainting(true); // Optional, for continuous updates
 }
 
 OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
@@ -55,7 +57,7 @@ OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
         _nvgContext = nullptr;
     }
     
-    _openGLContext.detach();
+    _openGLContext->detach();
 }
 
 // OpenGLRenderer callbacks

@@ -41,7 +41,7 @@ protected:
     virtual void drawNanoVGGraphics();
     
 private:
-    juce::OpenGLContext _openGLContext;
+    std::unique_ptr<juce::OpenGLContext> _openGLContext;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenGLNanoVGComponent)
 };
