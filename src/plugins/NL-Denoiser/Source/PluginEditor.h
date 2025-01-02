@@ -85,7 +85,7 @@ private:
 
     std::unique_ptr<SpectrumComponent> _spectrumComponent;
 
-    std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum;
+    std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum = nullptr;
     std::unique_ptr<SpectrumView> _spectrumView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessorEditor)

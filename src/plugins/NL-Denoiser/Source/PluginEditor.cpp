@@ -161,6 +161,8 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
 {
+    _audioProcessor.setSampleRateChangeListener(nullptr);
+        
     stopTimer();
     
     // Reset the LookAndFeel to avoid dangling references
@@ -239,7 +241,8 @@ void NLDenoiserAudioProcessorEditor::resized()
 
 void NLDenoiserAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
 {
-    _denoiserSpectrum->reset(bufferSize, sampleRate);
+    if (_denoiserSpectrum != nullptr)
+        _denoiserSpectrum->reset(bufferSize, sampleRate);
 }
 
 void

@@ -163,7 +163,7 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         _sampleRate = sampleRate;
         
         // Notify listener
-        if (_sampleRateChangeListener)
+        if (_sampleRateChangeListener != nullptr)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
     }
     
