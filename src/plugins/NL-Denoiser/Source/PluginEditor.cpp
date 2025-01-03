@@ -156,7 +156,7 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
         });
     });
     
-    startTimer(15);
+    startTimerHz(30);
 }
 
 NLDenoiserAudioProcessorEditor::~NLDenoiserAudioProcessorEditor()
@@ -176,9 +176,7 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 
     // Draw the background image
     if (_backgroundImage.isValid())
-    {
         g.drawImageAt(_backgroundImage, 0, 0);
-    }
 
     // Call the function to draw the version text
     VersionTextDrawer::drawVersionText(*this, g, VERSION_STR);

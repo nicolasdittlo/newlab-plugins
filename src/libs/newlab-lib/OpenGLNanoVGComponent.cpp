@@ -43,6 +43,7 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
     
     _openGLContext = std::make_unique<juce::OpenGLContext>();
     _openGLContext->setPixelFormat(pixelFormat);
+    //_openGLContext->setSwapInterval(0);
     _openGLContext->setRenderer(this);
     _openGLContext->attachTo(*this);
     
