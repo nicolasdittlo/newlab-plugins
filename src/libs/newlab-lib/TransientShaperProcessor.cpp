@@ -69,12 +69,14 @@ TransientShaperProcessor::setFreqAmpRatio(float ratio)
 void
 TransientShaperProcessor::
 processFFT(vector<complex<float> > *ioBuffer)
-{    
+{
+    if (fabs(_softHard) < NL_EPS)
+        return;
+    
     // Seems hard to take half of fft, since we work in sample space too...
     
     vector<complex<float> > &fftBuffer = _tmpBuf1;
 
-    // Remove the +1
     vector<complex<float> > bufferResized = *ioBuffer;
     bufferResized.resize(bufferResized.size() - 1);
     Utils::fillSecondFftHalf(bufferResized, &fftBuffer);
@@ -104,7 +106,10 @@ processFFT(vector<complex<float> > *ioBuffer)
 
 void
 TransientShaperProcessor::processSamples(vector<float> *ioBuffer)
-{        
+{
+    if (fabs(_softHard) < NL_EPS)
+        return;
+    
     applyTransientness(ioBuffer, _transientness);
 }
 
