@@ -355,12 +355,17 @@ NLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     // Get curves
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
-        
-        _processors[0]->getSignalBuffer(&_signalBuffer);
-        _processors[0]->getNoiseBuffer(&_noiseBuffer);
-        _processors[0]->getNoiseCurve(&_noiseProfileBuffer);
-        
-        _newBuffersAvailble = true;
+
+        if (_processors[0]->newCurvesAvailable())
+        {
+            _processors[0]->getSignalBuffer(&_signalBuffer);
+            _processors[0]->getNoiseBuffer(&_noiseBuffer);
+            _processors[0]->getNoiseCurve(&_noiseProfileBuffer);
+
+            _newBuffersAvailble = true;
+            
+            _processors[0]->touchNewCurves();
+        }
     }
 }
 

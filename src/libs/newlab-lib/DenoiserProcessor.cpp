@@ -72,6 +72,8 @@ DenoiserProcessor::DenoiserProcessor(int bufferSize, int overlap, float threshol
 #endif
     
     resetResNoiseHistory();
+
+    _newCurvesAvailable = false;
 }
 
 DenoiserProcessor::~DenoiserProcessor()
@@ -173,6 +175,8 @@ DenoiserProcessor::processFFT(vector<complex<float> > *ioBuffer)
     _noiseBuf = noiseMagns;
     
     Utils::magnPhaseToComplex(ioBuffer, resultMagns, sigPhases);
+
+    _newCurvesAvailable = true;
 }
 
 void
@@ -245,6 +249,8 @@ DenoiserProcessor::setNativeNoiseCurve(const vector<float> &noiseCurve)
     _nativeNoiseCurve = noiseCurve;
     
     resampleNoiseCurve();
+
+    _newCurvesAvailable = true;
 }
 
 void
@@ -274,6 +280,18 @@ void
 DenoiserProcessor::setNoiseOnly(bool noiseOnly)
 {
     _noiseOnly = noiseOnly;
+}
+
+bool
+DenoiserProcessor::newCurvesAvailable()
+{
+    return _newCurvesAvailable;
+}
+
+void
+DenoiserProcessor::touchNewCurves()
+{
+    _newCurvesAvailable = false;
 }
 
 int

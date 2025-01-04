@@ -68,6 +68,9 @@ public:
     
     int getLatency();
 
+    bool newCurvesAvailable();
+    void touchNewCurves();
+    
     static void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
     
 protected:
@@ -158,6 +161,8 @@ protected:
     
     vector<float> _hanningKernel;
 
+    bool _newCurvesAvailable;
+    
 private:
     // Tmp buffers
     vector<float> _tmpBuf0;
