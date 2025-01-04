@@ -92,6 +92,9 @@ private:
     
     std::mutex _curvesMutex;
     bool _newBuffersAvailble = false;
+
+    vector<vector<float> > _nativeNoiseProfiles;
+    bool _mustSetNativeNoiseProfiles = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLDenoiserAudioProcessor)
 };

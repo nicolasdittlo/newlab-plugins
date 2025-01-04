@@ -201,6 +201,17 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         } 
     }
 
+    if (_mustSetNativeNoiseProfiles)
+    {
+        for (int i = 0; i < _processors.size(); i++)
+        {
+            if (i < _nativeNoiseProfiles.size())
+                _processors[i]->setNativeNoiseCurve(_nativeNoiseProfiles[i]);
+        }
+
+        _mustSetNativeNoiseProfiles = false;
+    }
+    
     for (int i = 0; i < _overlapAdds.size(); i++)
     {
         _overlapAdds[i]->setFftSize(fftSize);
@@ -449,6 +460,13 @@ void NLDenoiserAudioProcessor::setStateInformation(const void* data, int sizeInB
                 {
                     if (i < noiseProfileArray.size())
                         _processors[i]->setNativeNoiseCurve(noiseProfileArray[i]);
+                }
+
+                if (_processors.empty())
+                    // prepareToPlay has not been called yet
+                {
+                    _nativeNoiseProfiles = noiseProfileArray;
+                    _mustSetNativeNoiseProfiles = true;
                 }
             }
         }
