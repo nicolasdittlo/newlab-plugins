@@ -21,6 +21,8 @@
 
 #include <cmath>
 
+#include "Defines.h"
+
 // 140ms => coeff 0.999 at 44100Hz
 #define DEFAULT_SMOOTHING_TIME_MS 140.0
 
@@ -77,7 +79,7 @@ public:
         _targetValue = val;
     }
 
-    inline void eesetToTargetValue(float val)
+    inline void resetToTargetValue(float val)
     {
         _targetValue = val;
         _z = _targetValue;
