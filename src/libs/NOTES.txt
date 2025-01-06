@@ -1,2 +1,6 @@
 build fftw3 on linux:
 cmake .. -DBUILD_STATIC_LIBS=ON -DENABLE_FLOAT=ON -D CMAKE_C_FLAGS="-fPIC"
+
+build fftw3 on windows:
+ cmake .. -G "Visual Studio 16 2019" -A x64 -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=OFF -DENABLE_FLOAT=ON
+ 
