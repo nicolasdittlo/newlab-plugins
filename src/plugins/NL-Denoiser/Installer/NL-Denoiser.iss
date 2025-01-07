@@ -5,7 +5,7 @@ AppCopyright=Copyright (C) 2021 NewLab | Audio Plugins
 AppPublisher=NewLab | Audio Plugins
 AppPublisherURL=http://www.newlab-plugins.com
 AppSupportURL=http://www.newlab-plugins.com
-AppVersion=6.2.4
+AppVersion=7.0.0
 VersionInfoVersion=1.0.0
 DefaultDirName={pf}\NewLab\NL-Denoiser
 DefaultGroupName=NewLab\NL-Denoiser
@@ -13,15 +13,15 @@ Compression=lzma2
 SolidCompression=yes
 OutputDir=.\
 ArchitecturesInstallIn64BitMode=x64
-OutputBaseFilename=NL-Denoiser-v6.2.4-Installer
+OutputBaseFilename=NL-Denoiser-v7.0.0-Installer
 LicenseFile=license.rtf
 SetupLogging=yes
 ShowComponentSizes=no
 ; WizardImageFile=installer_bg-win.bmp
 ; WizardSmallImageFile=installer_icon-win.bmp
 
-SetupIconFile=..\resources\NL-Denoiser.ico
-UninstallIconFile=..\resources\NL-Denoiser.ico
+SetupIconFile=.\NL-Denoiser.ico
+UninstallIconFile=.\NL-Denoiser.ico
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -95,27 +95,8 @@ begin
     False, '');
     VST2DirPage_64.Add('');
     VST2DirPage_64.Values[0] := ExpandConstant('{reg:HKLM\SOFTWARE\VST,VSTPluginsPath|{pf}\VSTPlugins}\');
-
-    ;VST2DirPage_32 := CreateInputDirPage(wpSelectDir,
-    ;  'Confirm 32-Bit VST2 Plugin Directory', '',
-    ;  'Select the folder in which setup should install the 32-bit VST2 Plugin, then click Next.',
-    ;  False, '');
-    ;VST2DirPage_32.Add('');
-    ;VST2DirPage_32.Values[0] := ExpandConstant('{reg:HKLM\SOFTWARE\WOW6432NODE\VST,VSTPluginsPath|{pf32}\VSTPlugins}\');
-  end else begin
-    ;VST2DirPage_32 := CreateInputDirPage(wpSelectDir,
-    ;  'Confirm 32-Bit VST2 Plugin Directory', '',
-    ;  'Select the folder in which setup should install the 32-bit VST2 Plugin, then click Next.',
-    ;  False, '');
-    ;VST2DirPage_32.Add('');
-    ;VST2DirPage_32.Values[0] := ExpandConstant('{reg:HKLM\SOFTWARE\VST,VSTPluginsPath|{pf}\VSTPlugins}\');
   end;
 end;
-
-;function GetVST2Dir_32(Param: String): String;
-;begin
-;  Result := VST2DirPage_32.Values[0]
-;end;
 
 function GetVST2Dir_64(Param: String): String;
 begin
