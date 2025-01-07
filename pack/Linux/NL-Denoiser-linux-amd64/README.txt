@@ -1,0 +1,2 @@
+- copy the content of the vst2 folder to your ~/.vst folder
+- copy the content of the vst3 folder to your ~/.vst3 folder
