@@ -30,7 +30,7 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 [Messages]
 WelcomeLabel1=Welcome to the NL-Denoiser installer
 SetupWindowTitle=NL-Denoiser installer
-SelectDirLabel3=The standalone application and supporting files will be installed in the following folder.
+SelectDirLabel3=The supporting files will be installed in the following folder.
 SelectDirBrowseLabel=To continue, click Next. If you would like to select a different folder (not recommended), click Browse.
 
 [Components]
