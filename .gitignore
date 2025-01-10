@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+src/plugins/NL-Denoiser/codesign-plugins.bat
+src/plugins/NL-Denoiser/codesign-installer.bat
+src/plugins/NL-Air/codesign-plugins.bat
+src/plugins/NL-Air/codesign-installer.bat
