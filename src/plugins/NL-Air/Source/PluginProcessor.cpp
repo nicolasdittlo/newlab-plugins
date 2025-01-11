@@ -24,10 +24,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-#define OVERLAP_0 4
-#define OVERLAP_1 8
-#define OVERLAP_2 16
-#define OVERLAP_3 32
+#define OVERLAP 4
 
 // Half amp, half freq
 #define TRANSIENT_FREQ_AMP_RATIO 0.5
@@ -47,22 +44,17 @@ NLAirAudioProcessor::NLAirAudioProcessor()
       _parameters(*this, nullptr, "PARAMETERS",
                  {
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"ratio", 700}, "Ratio", 0.0f, 100.0f, 100.0f),
+            juce::ParameterID{"threshold", 700}, "Threshold", -120.0f, 0.0f, -100.0f),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"threshold", 700}, "Threshold", 0.0f, 100.0f, 50.0f),
+            juce::ParameterID{"harmoAirMix", 700}, "Harmo Air Mix", -100.0f, 100.0f, 0.0f),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"transientBoost", 700}, "Transient Boost", 0.0f, 100.0f, 0.0f),
+            juce::ParameterID{"outGain", 700}, "Out Gain", -12.0f, 12.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"smartResynth", 700}, "Smart Resynth", false),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"residualNoise", 700}, "Residual Noise", 0.0f, 100.0f, 0.0f),
-                     std::make_unique<juce::AudioParameterBool>(
-            juce::ParameterID{"learnModeParamID", 700}, "Learn Mode", false),
-                     std::make_unique<juce::AudioParameterBool>(
-            juce::ParameterID{"noiseOnlyParamID", 700}, "Noise Only", false),
-                     std::make_unique<juce::AudioParameterBool>(
-            juce::ParameterID{"softDenoiseParamID", 700}, "Soft Denoise", false),
-                     std::make_unique<juce::AudioParameterChoice>(
-            juce::ParameterID{"quality", 700}, "Quality",
-            juce::StringArray{"1 - Fast", "2", "3", "4 - Best"}, 0)
+            juce::ParameterID{"wetFreq", 700}, "Wet Freq", 20.0f, 20000.0f, 20.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"wetGain", 700}, "Wet Gain", -12.0f, 12.0f, 0.0f)
                  })
 #endif
 {
@@ -167,11 +159,6 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
     }
     
-    auto quality = _parameters.getRawParameterValue("quality")->load();
-    int overlap = getOverlap(quality);
-
-    auto threshold = _parameters.getRawParameterValue("threshold")->load();
-    
     if (_overlapAdds.size() != numInputChannels)
     {
         for (int i = 0; i < _overlapAdds.size(); i++)
@@ -188,13 +175,13 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         
         for (int i = 0; i < numInputChannels; i++)
         {
-            AirProcessor *processor = new AirProcessor(fftSize/2 + 1, overlap, threshold);
+            AirProcessor *processor = new AirProcessor(fftSize/2 + 1, OVERLAP);
             _processors.push_back(processor);
 
             TransientShaperProcessor *transientProcessor = new TransientShaperProcessor(sampleRate);
             _transientProcessors.push_back(transientProcessor);
             
-            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, overlap, true, true);
+            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, true);
             overlapAdd->addProcessor(processor);
             overlapAdd->addProcessor(transientProcessor);
             _overlapAdds.push_back(overlapAdd);
@@ -215,11 +202,11 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     for (int i = 0; i < _overlapAdds.size(); i++)
     {
         _overlapAdds[i]->setFftSize(fftSize);
-        _overlapAdds[i]->setOverlap(overlap);
+        _overlapAdds[i]->setOverlap(OVERLAP);
     }
 
     for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->reset(fftSize/2 + 1, overlap, sampleRate);
+        _processors[i]->reset(fftSize/2 + 1, OVERLAP, sampleRate);
 
     for (int i = 0; i < _transientProcessors.size(); i++)
         _transientProcessors[i]->reset(sampleRate);
@@ -281,28 +268,23 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         buffer.clear(i, 0, buffer.getNumSamples());
 
     // Retrieve parameter values
-    auto ratio = _parameters.getRawParameterValue("ratio")->load();
     auto threshold = _parameters.getRawParameterValue("threshold")->load();
-    auto transientBoost = _parameters.getRawParameterValue("transientBoost")->load();
-    auto residualNoise = _parameters.getRawParameterValue("residualNoise")->load();
-    auto learnMode = _parameters.getRawParameterValue("learnModeParamID")->load();
-    auto noiseOnly = _parameters.getRawParameterValue("noiseOnlyParamID")->load();
-    auto softDenoise = _parameters.getRawParameterValue("softDenoiseParamID")->load();
-    auto quality = _parameters.getRawParameterValue("quality")->load();
+    auto harmoAirMix = _parameters.getRawParameterValue("harmoAirMix")->load();
+    auto outGain = _parameters.getRawParameterValue("outGain")->load();
+    auto smartResynth = _parameters.getRawParameterValue("smartResynth")->load();
+    auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
+    auto wetGain = _parameters.getRawParameterValue("wetGain")->load();
     
-    ratio *= 0.01;
-    threshold *= 0.01;
-    transientBoost *= 0.01;
-    residualNoise *= 0.01;
-    
-    bool qualityChanged = (quality != _prevQualityParam);
-    _prevQualityParam = quality;
+    harmoAirMix *= 0.01;
+    harmoAirMix = -harmoAirMix;
+    outGain = Utils::DBToAmp(outGain);
 
-    int overlap = getOverlap(quality);
+    bool smartResynthChanged = (smartResynth > 0.5) != _prevSmartResynthParam;
+    _prevSmartResynthParam = (smartResynth > 0.5);
 
-    bool softDenoiseChanged = (softDenoise > 0.5) != _prevSoftDenoiseParam;
-    _prevSoftDenoiseParam = (softDenoise > 0.5);
-    
+    wetGain = Utils::DBToAmp(wetGain);
+
+#if 0
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -333,6 +315,7 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         setLatencySamples(latency);
         updateHostDisplay();
     }
+#endif
     
     // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
@@ -509,41 +492,13 @@ NLAirAudioProcessor::getBuffers(vector<float> *signalBuffer,
 }
 
 int
-NLAirAudioProcessor::getOverlap(int quality)
-{
-    switch(quality)
-    {
-        case 0:
-            return OVERLAP_0;
-            break;
-            
-        case 1:
-            return OVERLAP_1;
-            break;
-            
-        case 2:
-            return OVERLAP_2;
-            break;
-
-        case 3:
-            return OVERLAP_3;
-            break;
-            
-        default:
-            return OVERLAP_0;
-    }
-}
-
-int
 NLAirAudioProcessor::getLatency(int blockSize)
 {
     if (_processors.empty())
         return 0;
     
     int fftSize = Utils::nearestPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
-    auto quality = _parameters.getRawParameterValue("quality")->load();
-    int overlap = getOverlap(quality);
-    int hopSize = fftSize/overlap;
+    int hopSize = fftSize/OVERLAP;
     
     int latency = fftSize - hopSize;
 

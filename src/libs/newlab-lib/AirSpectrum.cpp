@@ -181,15 +181,11 @@ AirSpectrum::reset(int bufferSize, float sampleRate)
 void
 AirSpectrum::updateCurves(const vector<float> &signal,
                           const vector<float> &noise,
-                          const vector<float> &noiseProfile,
-                          bool isLearning)
+                          const vector<float> &noiseProfile)
 {
     _signalCurveSmooth->setValues(signal);
 
-    if (!isLearning)
-        _noiseCurveSmooth->setValues(noise);
-    else
-        _noiseCurveSmooth->clearValues();
+    _noiseCurveSmooth->setValues(noise);
 
     _noiseProfileCurveSmooth->setValues(noiseProfile);
 }

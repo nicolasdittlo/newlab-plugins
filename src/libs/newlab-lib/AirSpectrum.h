@@ -41,8 +41,7 @@ class AirSpectrum
 
     void updateCurves(const vector<float> &signal,
                       const vector<float> &noise,
-                      const vector<float> &noiseProfile,
-                      bool isLearning);
+                      const vector<float> &noiseProfile);
         
  protected:
     void createAxes(SpectrumView *spectrumView,

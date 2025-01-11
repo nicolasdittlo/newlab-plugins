@@ -72,16 +72,13 @@ public:
     juce::AudioProcessorValueTreeState _parameters;
     
 private:
-    int getOverlap(int quality);
-
     int getLatency(int blockSize);
     
     vector<OverlapAdd *> _overlapAdds;
     vector<AirProcessor *> _processors;
     vector<TransientShaperProcessor *> _transientProcessors;
     
-    int _prevQualityParam = 0;
-    bool _prevSoftDenoiseParam = false;
+    bool _prevSmartResynthParam = false;
     
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;

@@ -45,8 +45,7 @@
 #define THRESHOLD_MIN_DB -20.0
 #define THRESHOLD_MAX_DB 20.0
 
-AirProcessor::AirProcessor(int bufferSize, int overlap, float threshold)
-: _threshold(threshold)
+AirProcessor::AirProcessor(int bufferSize, int overlap)
 {
     _bufferSize = bufferSize;
     _overlap = overlap;

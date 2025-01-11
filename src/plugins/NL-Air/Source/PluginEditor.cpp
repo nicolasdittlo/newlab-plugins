@@ -36,90 +36,69 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     // Load the background image from binary resources
     _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
 
-    // Configure the ratio slider with units
-    _ratioSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
-    _ratioSlider->setRange(0.0, 100.0, 0.1);
-    _ratioSlider->setDefaultValue(100.0);
-    _ratioSlider->setTooltip("Ratio - Noise suppression ratio");
-    _ratioAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
-        (_audioProcessor._parameters, "ratio", _ratioSlider->getSlider());
-    
-    // Add the rotary slider to the editor
-    addAndMakeVisible(*_ratioSlider);
-
     // Configure the threshold slider with units
-    _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    _thresholdSlider->setRange(0.0, 100.0, 0.1);
-    _thresholdSlider->setDefaultValue(50.0);
-    _thresholdSlider->setTooltip("Threshold - Noise suppression threshold");
+    _thresholdSlider = std::make_unique<RotarySliderWithValue>("", "dB", SliderSize::SmallSlider);
+    _thresholdSlider->setRange(-120.0, 0.0, 0.1);
+    _thresholdSlider->setDefaultValue(-100.0);
+    _thresholdSlider->setTooltip("Threshold - Harmonic detection threshold");
     _thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
         (_audioProcessor._parameters, "threshold", _thresholdSlider->getSlider());
     
     // Add the rotary slider to the editor
     addAndMakeVisible(*_thresholdSlider);
 
-    // Configure the transient boost slider with units
-    _transBoostSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    _transBoostSlider->setRange(0.0, 100.0, 0.1);
-    _transBoostSlider->setDefaultValue(0.0);
-    _transBoostSlider->setTooltip("Transient Boost - Boost output transients");
-    _transBoostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
-        (_audioProcessor._parameters, "transientBoost", _transBoostSlider->getSlider());
+    // Configure the harmo air mix slider with units
+    _harmoAirMixSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
+    _harmoAirMixSlider->setRange(-100.0, 100.0, 0.1);
+    _harmoAirMixSlider->setDefaultValue(0.0);
+    _harmoAirMixSlider->setTooltip("Harmonic/Air - Mix between harmonic and air");
+    _harmoAirMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "harmoAirMix", _harmoAirMixSlider->getSlider());
     
     // Add the rotary slider to the editor
-    addAndMakeVisible(*_transBoostSlider);
+    addAndMakeVisible(*_harmoAirMixSlider);
 
-    // Configure the residual noise threshold slider with units
-    _resNoiseThrsSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::SmallSlider);
-    _resNoiseThrsSlider->setRange(0.0, 100.0, 0.1);
-    _resNoiseThrsSlider->setDefaultValue(0.0);
-    _resNoiseThrsSlider->setTooltip("Residual Noise - Residual denoise threshold");
-    _resNoiseThrsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
-        (_audioProcessor._parameters, "residualNoise", _resNoiseThrsSlider->getSlider());
+    // Configure the out gain slider with units
+    _outGainSlider = std::make_unique<RotarySliderWithValue>("", "dB", SliderSize::SmallSlider);
+    _outGainSlider->setRange(-12.0, 12.0, 0.1);
+    _outGainSlider->setDefaultValue(0.0);
+    _outGainSlider->setTooltip("Out Gain - Output gain");
+    _outGainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "outGain", _outGainSlider->getSlider());
     
     // Add the rotary slider to the editor
-    addAndMakeVisible(*_resNoiseThrsSlider);
+    addAndMakeVisible(*_outGainSlider);
 
-    // learn check box
-    _learnCheckBox.setTooltip("Learn Mode - Learn the noise profile");
+    // smart resynth check box
+    _smartResynthCheckBox.setTooltip("Smart Resynthesis - Higher quality resynthesis");
 
-    _learnCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
-        (_audioProcessor._parameters, "learnModeParamID", _learnCheckBox);
+    _smartResynthCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
+        (_audioProcessor._parameters, "smartResynth", _smartResynthCheckBox);
 
-    // Add the learn check box to the editor
-    addAndMakeVisible(_learnCheckBox);
+    // Add the smart resynth check box to the editor
+    addAndMakeVisible(_smartResynthCheckBox);
     
-    // noise only check box
-    _noiseOnlyCheckBox.setTooltip("Noise Only - Output the suppressed noise instead of the signal");
-
-     _noiseOnlyCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
-         (_audioProcessor._parameters, "noiseOnlyParamID", _noiseOnlyCheckBox);
-     
-     // Add the noise only check box to the editor
-    addAndMakeVisible(_noiseOnlyCheckBox);
-
-    // soft denoise checkbox
-    _autoResNoiseCheckBox.setTooltip("Soft Denoise - Automatically remove residual noise");
-
-    _autoResNoiseCheckBoxAttachment = std::make_unique<BitmapCheckBoxAttachment>
-        (_audioProcessor._parameters, "softDenoiseParamID", _autoResNoiseCheckBox);
+    // Configure the wet freq slider with units
+    _wetFreqSlider = std::make_unique<RotarySliderWithValue>("", "Hz", SliderSize::SmallSlider);
+    _wetFreqSlider->setRange(20.0, 20000.0, 0.1);
+    _wetFreqSlider->setDefaultValue(20.0);
+    _wetFreqSlider->setTooltip("Wet Limit Frequency - Signal is untouched before");
+    _wetFreqAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "wetFreq", _wetFreqSlider->getSlider());
     
-    // Add the soft denoise check box to the editor
-    addAndMakeVisible(_autoResNoiseCheckBox);
-
-    // quality combo box
-    _qualityComboBox = std::make_unique<CustomComboBox>();
-    _qualityComboBox->addItem("1 - Fast", 1);
-    _qualityComboBox->addItem("2", 2);
-    _qualityComboBox->addItem("3", 3);
-    _qualityComboBox->addItem("4 - Best", 4);
-
-    _qualityComboBox->setTooltip("Quality - Processing quality");
-
-    _qualityComboBoxAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>
-        (_audioProcessor._parameters, "quality", *_qualityComboBox);
+    // Add the rotary slider to the editor
+    addAndMakeVisible(*_wetFreqSlider);
     
-    addAndMakeVisible(*_qualityComboBox);
+    // Configure the wet gain slider with units
+    _wetGainSlider = std::make_unique<RotarySliderWithValue>("", "dB", SliderSize::SmallSlider);
+    _wetGainSlider->setRange(-12.0, 12.0, 0.1);
+    _wetGainSlider->setDefaultValue(0.0);
+    _wetGainSlider->setTooltip("Wet Gain - Gain applied to wet signal");
+    _wetGainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+        (_audioProcessor._parameters, "wetGain", _wetGainSlider->getSlider());
+    
+    // Add the rotary slider to the editor
+    addAndMakeVisible(*_wetGainSlider);
 
     // Tooltip window
     _tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);
@@ -145,7 +124,7 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     _spectrumComponent->setSpectrumView(_spectrumView.get());
     
     // Set the editor's size
-    setSize(464, 520);
+    setSize(456, 520);
 
     // Register the sample rate change listener
     _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
@@ -185,47 +164,37 @@ void NLAirAudioProcessorEditor::paint(juce::Graphics& g)
 #if DEMO_VERSION
     DemoTextDrawer::drawDemoText(*this, g, "DEMO");
 #endif
-
-    // Grey out the res noise threshold slider if we use auto residual denoise
-    auto* autoResNoiseValue = _audioProcessor._parameters.getRawParameterValue("softDenoiseParamID");
-    if (autoResNoiseValue != nullptr)
-    {
-        float paramValue = autoResNoiseValue->load(); // Read the parameter value
-
-        _resNoiseThrsSlider->setEnabled(paramValue < 0.5);
-    }
 }
 
 void NLAirAudioProcessorEditor::resized()
 {
-    auto bigSliderWidth = 72;
-    auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
-    _ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
-
     auto smallSliderWidth = 72; // Updated width to match the label width for small sliders
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
-    _thresholdSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
-                                316,
+    _thresholdSlider->setBounds(60 - (smallSliderWidth - 36) / 2, // Center the slider
+                                374,
                                 smallSliderWidth,
                                 smallSliderHeight);
 
-    _transBoostSlider->setBounds(281 - (smallSliderWidth - 36) / 2, // Center the slider
-                                 218,
-                                 smallSliderWidth,
-                                 smallSliderHeight);
+    auto bigSliderWidth = 72;
+    auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
+    _harmoAirMixSlider->setBounds(150, 338, bigSliderWidth, bigSliderHeight);
+    
+    _outGainSlider->setBounds(360 - (smallSliderWidth - 36) / 2, // Center the slider
+                              274,
+                              smallSliderWidth,
+                              smallSliderHeight);
 
-    _resNoiseThrsSlider->setBounds(372 - (smallSliderWidth - 36) / 2, // Center the slider
-                                   316,
-                                   smallSliderWidth,
-                                   smallSliderHeight);
+    _smartResynthCheckBox.setBounds(40, 282, 20, 20);
+    
+    _wetFreqSlider->setBounds(270 - (smallSliderWidth - 36) / 2, // Center the slider
+                              374,
+                              smallSliderWidth,
+                              smallSliderHeight);
 
-    _learnCheckBox.setBounds(32, 234, 20, 20);
-
-    _noiseOnlyCheckBox.setBounds(32, 283, 20, 20);
-
-    _autoResNoiseCheckBox.setBounds(32, 332, 20, 20);
-
-    _qualityComboBox->setBounds(348, 255, 90, 20);
+    _wetGainSlider->setBounds(360 - (smallSliderWidth - 36) / 2, // Center the slider
+                              374,
+                              smallSliderWidth,
+                              smallSliderHeight);
 
     _plugNameComponent->setBounds(getWidth()/2 - _plugNameComponent->getWidth()/2,
                                   getHeight() - _plugNameComponent->getHeight() - 15.0,
@@ -234,10 +203,11 @@ void NLAirAudioProcessorEditor::resized()
 
     _helpButton->setBounds(getWidth() - 20 - 14, getHeight() - 20 - 10, 20, 20);
 
-    _spectrumComponent->setBounds(0, 0, 464, 198);
+    _spectrumComponent->setBounds(0, 0, 456, 236);
 }
 
-void NLAirAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
+void
+NLAirAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
 {
     if (_airSpectrum != nullptr)
         _airSpectrum->reset(bufferSize, sampleRate);
@@ -256,20 +226,9 @@ NLAirAudioProcessorEditor::timerCallback()
 
     if (newBuffersAvailable)
     {
-        bool isLearning = _audioProcessor._parameters.getRawParameterValue("learnModeParamID")->load();
-
-        if (!isLearning)
-        {
-            float threshold = _audioProcessor._parameters.getRawParameterValue("threshold")->load();
-            threshold *= 0.01;
-            
-            AirProcessor::applyThresholdValueToNoiseCurve(&noiseProfileBuffer, threshold);
-        }
-        
         _airSpectrum->updateCurves(signalBuffer,
                                    noiseBuffer,
-                                   noiseProfileBuffer,
-                                   isLearning);
+                                   noiseProfileBuffer);
     }
     
     _spectrumComponent->repaint();

@@ -28,7 +28,7 @@ class WienerSoftMasking;
 class AirProcessor : public OverlapAddProcessor
 {
 public:
-    AirProcessor(int bufferSize, int overlap, float threshold);
+    AirProcessor(int bufferSize, int overlap);
     
     virtual ~AirProcessor();
 

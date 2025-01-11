@@ -53,29 +53,23 @@ private:
 
     juce::Image _backgroundImage;
     
-    std::unique_ptr<RotarySliderWithValue> _ratioSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _ratioAttachment;
-    
     std::unique_ptr<RotarySliderWithValue> _thresholdSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _thresholdAttachment;
     
-    std::unique_ptr<RotarySliderWithValue> _transBoostSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _transBoostAttachment;
+    std::unique_ptr<RotarySliderWithValue> _harmoAirMixSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _harmoAirMixAttachment;
     
-    std::unique_ptr<RotarySliderWithValue> _resNoiseThrsSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _resNoiseThrsAttachment;
-    
-    BitmapCheckBox _learnCheckBox;
-    std::unique_ptr<BitmapCheckBoxAttachment> _learnCheckBoxAttachment;
-    
-    BitmapCheckBox _noiseOnlyCheckBox;
-    std::unique_ptr<BitmapCheckBoxAttachment> _noiseOnlyCheckBoxAttachment;
-    
-    BitmapCheckBox _autoResNoiseCheckBox;
-    std::unique_ptr<BitmapCheckBoxAttachment> _autoResNoiseCheckBoxAttachment;
-    
-    std::unique_ptr<CustomComboBox> _qualityComboBox;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> _qualityComboBoxAttachment;
+    std::unique_ptr<RotarySliderWithValue> _outGainSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _outGainAttachment;
+
+    BitmapCheckBox _smartResynthCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _smartResynthCheckBoxAttachment;
+
+    std::unique_ptr<RotarySliderWithValue> _wetFreqSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _wetFreqAttachment;
+
+    std::unique_ptr<RotarySliderWithValue> _wetGainSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _wetGainAttachment;
     
     std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
 
