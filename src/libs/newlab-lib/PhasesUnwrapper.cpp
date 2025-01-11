@@ -16,21 +16,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <BLUtils.h>
-#include <BLUtilsMath.h>
-#include <BLUtilsPhases.h>
-
+#include "Defines.h"
+#include "Utils.h"
 #include "PhasesUnwrapper.h"
-
-#define INF 1e15
-
-#define NORMALIZE_TIME_PER_BIN 1
-
-// Without this, the value will always be 1 (maximum)
-#define TIME_TAKE_MIDDLE_VALUE 1
-
-// Compute difference from the theorical phase
-#define FREQ_COMPUTE_DIFF 1
 
 // Compute a global min and max diff val for phase freq
 // Because we don't know how to compute the theorical min and max value.
@@ -39,328 +27,274 @@
 
 PhasesUnwrapper::PhasesUnwrapper(long historySize)
 {
-    mHistorySize = historySize;
+    _historySize = historySize;
     
 #if FREQ_GLOBAL_MIN_MAX
-    mGlobalMinDiff = INF;
-    mGlobalMaxDiff = -INF;
+    _globalMinDiff = INF;
+    _globalMaxDiff = -INF;
 #endif
 }
 
 PhasesUnwrapper::~PhasesUnwrapper() {}
 
 void
-PhasesUnwrapper::Reset()
+PhasesUnwrapper::reset()
 {
-    mUnwrappedPhasesTime.clear();
-    mUnwrappedPhasesFreqs.clear();
+    _unwrappedPhasesTime.clear();
+    _unwrappedPhasesFreqs.clear();
     
 #if FREQ_GLOBAL_MIN_MAX
-    mGlobalMinDiff = INF;
-    mGlobalMaxDiff = -INF;
+    _globalMinDiff = INF;
+    _globalMaxDiff = -INF;
 #endif
 }
 
 void
-PhasesUnwrapper::SetHistorySize(long historySize)
+PhasesUnwrapper::setHistorySize(long historySize)
 {
-    mHistorySize = historySize;
+    _historySize = historySize;
     
-    while(mUnwrappedPhasesTime.size() > mHistorySize)
-        mUnwrappedPhasesTime.pop_front();
+    while(_unwrappedPhasesTime.size() > _historySize)
+        _unwrappedPhasesTime.pop_front();
     
-    while(mUnwrappedPhasesFreqs.size() > mHistorySize)
-        mUnwrappedPhasesFreqs.pop_front();
+    while(_unwrappedPhasesFreqs.size() > _historySize)
+        _unwrappedPhasesFreqs.pop_front();
 }
 
 void
-PhasesUnwrapper::UnwrapPhasesFreq(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::unwrapPhasesFreq(WDL_TypedBuf<float> *phases)
 {
-    //
-    BLUtilsPhases::UnwrapPhases(phases, false);
+    Utils::unwrapPhases(phases, false);
 }
 
 void
-PhasesUnwrapper::NormalizePhasesFreq(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::normalizePhasesFreq(WDL_TypedBuf<float> *phases)
 {
-    // Old method, very simple, bad
-    //BLUtils::Normalize(phases);
-    
     if (phases->GetSize() == 0)
         return;
     
-#if !FREQ_COMPUTE_DIFF
-    BL_FLOAT startVal = phases->Get()[0];
-    BLUtils::AddValues(phases, -startVal);
-    
-    BL_FLOAT coeff = 1.0/(2.0*M_PI);
-    
-    // IMPORTANT: we potentially increase by Pi at each bin!
-    coeff /= phases->GetSize();
-    
-    BLUtils::MultValues(phases, coeff);
-#else
     // If we display the phases for bins [1-1024],
     // we see a line with factor 3.14, with very slight changes
     // over this line for each bin
     
     // Compute the phase diffs
-    BL_FLOAT theoricalPhase = 0.0;
-    for (int i = 0; i < phases->GetSize(); i++)
+    float theoricalPhase = 0.0;
+    for (int i = 0; i < phases->size(); i++)
     {
-        BL_FLOAT phase = phases->Get()[i];
+        float phase = phases->data()[i];
         
-        BL_FLOAT diff = phase - theoricalPhase;
+        float diff = phase - theoricalPhase;
         
-        // TEST
-        //diff = std::fabs(diff);
-        
-        phases->Get()[i] = diff;
+        phases->data()[i] = diff;
         
         theoricalPhase += M_PI;
     }
     
 #if !FREQ_GLOBAL_MIN_MAX
-    // BAD: makes jumps in color and y if we don't use fabs on diff
-    
     // Compute the global extrema (for normalization)
-    BL_FLOAT minDiffVal = INF;
-    BL_FLOAT maxDiffVal = -INF;
-    for (int i = 0; i < mUnwrappedPhasesFreqs.size(); i++)
+    float minDiffVal = INF;
+    float maxDiffVal = -INF;
+    for (int i = 0; i < _unwrappedPhasesFreqs.size(); i++)
     {
-        const WDL_TypedBuf<BL_FLOAT> &line = mUnwrappedPhasesFreqs[i];
+        const vector<float> &line = _unwrappedPhasesFreqs[i];
 
-        BL_FLOAT minimum = BLUtils::ComputeMin(line);
+        float minimum = Utils::computeMin(line);
         if (minimum < minDiffVal)
             minDiffVal = minimum;
         
-        BL_FLOAT maximum = BLUtils::ComputeMax(line);
+        float maximum = Utils::computeMax(line);
         if (maximum > maxDiffVal)
             maxDiffVal = maximum;
     }
 #else
-    // Good take the min and max diff over all the time
+    // Take the min and max diff over all the time
     // => avoid jumps
-    // (because we don't know how to compute them mathematically...)
-    BL_FLOAT minimum = BLUtils::ComputeMin(*phases);
-    if (minimum < mGlobalMinDiff)
-        mGlobalMinDiff = minimum;
+    float minimum = Utils::computeMin(*phases);
+    if (minimum < _globalMinDiff)
+        _globalMinDiff = minimum;
     
-    BL_FLOAT maximum = BLUtils::ComputeMax(*phases);
-    if (maximum > mGlobalMaxDiff)
-        mGlobalMaxDiff = maximum;
+    float maximum = Utils::computeMax(*phases);
+    if (maximum > _globalMaxDiff)
+        _globalMaxDiff = maximum;
 
-    BL_FLOAT minDiffVal = mGlobalMinDiff;
-    BL_FLOAT maxDiffVal = mGlobalMaxDiff;
+    float minDiffVal = _globalMinDiff;
+    float maxDiffVal = _globalMaxDiff;
 #endif
     
     // Add to history for next time
-    mUnwrappedPhasesFreqs.push_back(*phases);
-    while(mUnwrappedPhasesFreqs.size() > mHistorySize)
-        mUnwrappedPhasesFreqs.pop_front();
+    _unwrappedPhasesFreqs.push_back(*phases);
+    while(_unwrappedPhasesFreqs.size() > _historySize)
+        _unwrappedPhasesFreqs.pop_front();
     
     // Normalize
-    BLUtils::Normalize(phases, minDiffVal, maxDiffVal);
-#endif
+    Utils::normalize(phases, minDiffVal, maxDiffVal);
 }
 
 void
-PhasesUnwrapper::ComputePhasesGradientFreqs(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::computePhasesGradientFreqs(vector<float> *phases)
 {
-    WDL_TypedBuf<BL_FLOAT> result;
-    result.Resize(phases->GetSize());
+    vector<float> result;
+    result.resize(phases->size());
     
-    result.Get()[0] = 0.0;
-    for (int i = 1; i < phases->GetSize(); i++)
+    result.data()[0] = 0.0;
+    for (int i = 1; i < phases->size(); i++)
     {
-        BL_FLOAT prevPhase = phases->Get()[i - 1];
-        BL_FLOAT currentPhase = phases->Get()[i];
+        float prevPhase = phases->data()[i - 1];
+        float currentPhase = phases->data()[i];
         
-        BL_FLOAT diff = std::fabs(currentPhase - prevPhase);
-        result.Get()[i] = diff;
+        float diff = fabs(currentPhase - prevPhase);
+        result.data()[i] = diff;
     }
     
     *phases = result;
 }
 
 void
-PhasesUnwrapper::NormalizePhasesGradientFreqs(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::normalizePhasesGradientFreqs(vector<float> *phases)
 {
-    BLUtils::Normalize(phases);
+    Utils::normalize(phases);
 }
 
 void
-PhasesUnwrapper::UnwrapPhasesTime(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::unwrapPhasesTime(vector<float> *phases)
 {
-    if (mUnwrappedPhasesTime.empty())
+    if (_unwrappedPhasesTime.empty())
     {
         // Unwrap the first value
-        BLUtilsPhases::UnwrapPhases(phases);
+        Utils::unwrapPhases(phases);
         
-        mUnwrappedPhasesTime.push_back(*phases);
+        _unwrappedPhasesTime.push_back(*phases);
         
         return;
     }
     
     // Prev line
-    const WDL_TypedBuf<BL_FLOAT> &prevUnwrapPhases =
-        mUnwrappedPhasesTime[mUnwrappedPhasesTime.size() - 1];
+    const vector<float> &prevUnwrapPhases =
+        _unwrappedPhasesTime[_unwrappedPhasesTime.size() - 1];
     
-    for (int i = 0; i < phases->GetSize(); i++)
+    for (int i = 0; i < phases->size(); i++)
     {
-        BL_FLOAT prevPhase = prevUnwrapPhases.Get()[i];
-        BLUtilsPhases::FindNextPhase(&prevPhase, (BL_FLOAT)0.0);
+        float prevPhase = prevUnwrapPhases.Get()[i];
+        Utils::findNextPhase(&prevPhase, (float)0.0);
                 
-        BL_FLOAT phase = phases->Get()[i];
-        BLUtilsPhases::FindNextPhase(&phase, prevPhase);
-        phases->Get()[i] = phase;
+        float phase = phases->data()[i];
+        Utils::findNextPhase(&phase, prevPhase);
+        phases->data()[i] = phase;
     }
     
-    mUnwrappedPhasesTime.push_back(*phases);
-    while(mUnwrappedPhasesTime.size() > mHistorySize)
-        mUnwrappedPhasesTime.pop_front();
+    _unwrappedPhasesTime.push_back(*phases);
+    while(_unwrappedPhasesTime.size() > _historySize)
+        _unwrappedPhasesTime.pop_front();
 }
 
 // See: http://kth.diva-portal.org/smash/get/diva2:1381398/FULLTEXT01.pdf
 // "Pitch-shifting algorithm design and applications in musicé - THEO ROYER
 // (phase unwrapping in time very well explained)
 void
-PhasesUnwrapper::ComputeUwPhasesDiffTime(WDL_TypedBuf<BL_FLOAT> *diff,
-                                         const WDL_TypedBuf<BL_FLOAT> &phases0,
-                                         const WDL_TypedBuf<BL_FLOAT> &phases1,
-                                         BL_FLOAT sampleRate, int bufferSize,
+PhasesUnwrapper::computeUwPhasesDiffTime(vector<float> *diff,
+                                         const vector<float> &phases0,
+                                         const vector<float> &phases1,
+                                         float sampleRate, int bufferSize,
                                          int overlapping)
 {
-    diff->Resize(phases0.GetSize());
+    diff->resize(phases0.GetSize());
 
-    BL_FLOAT hzPerBin = sampleRate/bufferSize;
+    float hzPerBin = sampleRate/bufferSize;
     // Interval between 2 measurements
-    BL_FLOAT h = (bufferSize/sampleRate)/overlapping;
+    float h = (bufferSize/sampleRate)/overlapping;
         
     for (int i = 0; i < diff->GetSize(); i++)
     {
-        BL_FLOAT p0 = phases0.Get()[i];
-        BL_FLOAT p1 = phases1.Get()[i];
+        float p0 = phases0.data()[i];
+        float p1 = phases1.data()[i];
 
         // Frequency of current bin
-        BL_FLOAT fk = i*hzPerBin;
+        float fk = i*hzPerBin;
 
-        // Origin
-        //BL_FLOAT omegaK = h*2.0*M_PI*fk;
-
-        //BL_FLOAT omegaK = (2.0*M_PI*overlapping*i)/bufferSize;
-        //BL_FLOAT omegaK = (2.0*M_PI*(bufferSize/overlapping)*i)/bufferSize;
-        //BL_FLOAT omegaK = 2.0*M_PI*bufferSize/overlapping*i*bufferSize/2;
-
-        // From: https://github.com/eevah/matlab/blob/master/VX_pitch_pv.m
-        //
-        // and maybe also:
-        // https://dadorran.wordpress.com/2014/06/02/audio-time-scale-modification-phase-vocoder-implementation-in-matlab
-        //
-        //BL_FLOAT omegaK = 2.0*M_PI*(bufferSize/overlapping)*
-        //    ((BL_FLOAT)i)/diff->GetSize();
-        BL_FLOAT omegaK = 2.0*M_PI*(bufferSize/overlapping)*
-            ((BL_FLOAT)i)/bufferSize;
+        float omegaK = 2.0*M_PI*(bufferSize/overlapping)*
+            ((float)i)/bufferSize;
         
-        BL_FLOAT dp = omegaK + BLUtilsPhases::princarg(p1 - p0 - omegaK);
+        float dp = omegaK + Utils::princarg(p1 - p0 - omegaK);
         
-        diff->Get()[i] = dp;
+        diff->data()[i] = dp;
     }
 }
 
 void
-PhasesUnwrapper::NormalizePhasesTime(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::normalizePhasesTime(vector<float> *phases)
 {
-    if (mUnwrappedPhasesTime.empty())
+    if (_unwrappedPhasesTime.empty())
     {
-        BLUtils::Normalize(phases);
+        Utils::Normalize(phases);
         
         return;
     }
     
-    const WDL_TypedBuf<BL_FLOAT> &oldPhases = mUnwrappedPhasesTime[0];
-    const WDL_TypedBuf<BL_FLOAT> &newPhases =
-                            mUnwrappedPhasesTime[mUnwrappedPhasesTime.size() - 1];
+    const vector<float> &oldPhases = _unwrappedPhasesTime[0];
+    const vector<float> &newPhases = _unwrappedPhasesTime[_unwrappedPhasesTime.size() - 1];
     
-#if !NORMALIZE_TIME_PER_BIN
-    BL_FLOAT min = BLUtils::ComputeMin(oldPhases);
-    BL_FLOAT max = BLUtils::ComputeMax(newPhases);
-    
-    BLUtils::Normalize(phases, min, max);
-#else
-
-#if TIME_TAKE_MIDDLE_VALUE
-    // GOOD: but we will have a shift in time
-    int middle = mUnwrappedPhasesTime.size()/2;
+    // we will have a shift in time
+    int middle = _unwrappedPhasesTime.size()/2;
     
     if (middle < 0)
         middle = 0;
-    const WDL_TypedBuf<BL_FLOAT> &middlePhases = mUnwrappedPhasesTime[middle];
-#endif
-    for (int i = 0; i < phases->GetSize(); i++)
-    {
-        BL_FLOAT minimum = oldPhases.Get()[i];
-        BL_FLOAT maximum = newPhases.Get()[i];
-        
-#if !TIME_TAKE_MIDDLE_VALUE
-        // If we don't take the middle, phase wil always be the maximum
-        //  (always 1 after normalization)
-        // and we won't get display
-        BL_FLOAT phase = phases->Get()[i];
-#else
-        BL_FLOAT phase = middlePhases.Get()[i];
-#endif
-        
-        phase = BLUtils::Normalize(phase, minimum, maximum);
+    const vector<float> &middlePhases = _unwrappedPhasesTime[middle];
 
-        phases->Get()[i] = phase;
+    for (int i = 0; i < phases->size(); i++)
+    {
+        float minimum = oldPhases.data()[i];
+        float maximum = newPhases.data()[i];
+        
+        float phase = middlePhases.data()[i];
+        
+        phase = Utils::normalize(phase, minimum, maximum);
+
+        phases->data()[i] = phase;
     }
-#endif
 }
 
 void
-PhasesUnwrapper::UnwrapPhasesTime(const WDL_TypedBuf<BL_FLOAT> &phases0,
-                                  WDL_TypedBuf<BL_FLOAT> *phases1)
+PhasesUnwrapper::unwrapPhasesTime(const vector<float> &phases0,
+                                  vector<float> *phases1)
 {
-    for (int i = 0; i < phases1->GetSize(); i++)
+    for (int i = 0; i < phases1->size(); i++)
     {
-        BL_FLOAT p0 = phases0.Get()[i];
-        //BLUtilsPhases::FindNextPhase(&p0, (BL_FLOAT)0.0);
+        float p0 = phases0.data()[i];
                 
-        BL_FLOAT p1 = phases1->Get()[i];
-        BLUtilsPhases::FindNextPhase(&p1, p0);
+        float p1 = phases1->data()[i];
+        Utils::findNextPhase(&p1, p0);
 
-        phases1->Get()[i] = p1;
+        phases1->data()[i] = p1;
     }
 }
 
 void
-PhasesUnwrapper::ComputePhasesGradientTime(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::computePhasesGradientTime(vector<float> *phases)
 {
-    if (mUnwrappedPhasesTime.size() < 2)
+    if (_unwrappedPhasesTime.size() < 2)
     {
-        BLUtils::FillAllZero(phases);
+        Utils::fillZero(phases);
         
         return;
     }
     
-    const WDL_TypedBuf<BL_FLOAT> &currentPhases = *phases;
-    const WDL_TypedBuf<BL_FLOAT> &prevPhases =
-                    mUnwrappedPhasesTime[mUnwrappedPhasesTime.size() - 2];
+    const vector<float> &currentPhases = *phases;
+    const vector<float> &prevPhases =
+                    _unwrappedPhasesTime[_unwrappedPhasesTime.size() - 2];
     
-    phases->Get()[0] = 0.0;
+    phases->data()[0] = 0.0;
     for (int i = 1; i < currentPhases.GetSize(); i++)
     {
-        BL_FLOAT prevPhase = prevPhases.Get()[i];
-        BL_FLOAT currentPhase = currentPhases.Get()[i];
+        float prevPhase = prevPhases.Get()[i];
+        float currentPhase = currentPhases.Get()[i];
         
-        BL_FLOAT diff = std::fabs(currentPhase - prevPhase);
-        phases->Get()[i] = diff;
+        float diff = fabs(currentPhase - prevPhase);
+        phases->data()[i] = diff;
     }
 }
 
 void
-PhasesUnwrapper::NormalizePhasesGradientTime(WDL_TypedBuf<BL_FLOAT> *phases)
+PhasesUnwrapper::normalizePhasesGradientTime(vector<float> *phases)
 {
-     BLUtils::Normalize(phases);
+     Utils::normalize(phases);
 }

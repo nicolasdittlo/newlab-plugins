@@ -16,14 +16,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
-
 #include "Partial.h"
 
 // Kalman
 // "How much do we expect to our measurement vary"
 //
-// 200Hz (previously tested with 50Hz)
 #define PT5_KF_E_MEA 0.01 // 200.0Hz
 #define PT5_KF_E_EST PT5_KF_E_MEA
 
@@ -32,99 +29,98 @@
 // If too low: predicted values move too slowly
 // If too high: predicted values go straight
 //
-// 0.01: "oohoo" => fails when "EEAAooaa"
-#define PT5_KF_Q 5.0 //2.0 // Was 1.0
+#define PT5_KF_Q 5.0
 
 
-unsigned long Partial::mCurrentId = 0;
+unsigned long Partial::_currentId = 0;
 
 Partial::Partial()
-: mKf(PT5_KF_E_MEA, PT5_KF_E_EST, PT5_KF_Q)
+: _kf(PT5_KF_E_MEA, PT5_KF_E_EST, PT5_KF_Q)
 {
-    mPeakIndex = 0;
-    mLeftIndex = 0;
-    mRightIndex = 0;
+    _peakIndex = 0;
+    _leftIndex = 0;
+    _rightIndex = 0;
     
-    mFreq = 0.0;
-    mAmp = 0.0;    
-    mPhase = 0.0;
+    _freq = 0.0;
+    _amp = 0.0;    
+    _phase = 0.0;
     
-    mState = ALIVE;
+    _state = ALIVE;
     
-    mId = -1;
-    mLinkedId = -1;
+    _id = -1;
+    _linkedId = -1;
     
-    mWasAlive = false;
-    mZombieAge = 0;
+    _wasAlive = false;
+    _zombieAge = 0;
     
-    mAge = 0;
+    _age = 0;
     
-    mCookie = 0.0;
+    _cookie = 0.0;
 
-    mBinIdxF = 0.0;
-    mAlpha0 = 0.0;
-    mBeta0 = 0.0;
+    _binIdxF = 0.0;
+    _alpha0 = 0.0;
+    _beta0 = 0.0;
 }
 
     
 Partial::Partial(const Partial &other)
-: mKf(other.mKf)
+: _kf(other._kf)
 {
-    mPeakIndex = other.mPeakIndex;
-    mLeftIndex = other.mLeftIndex;
-    mRightIndex = other.mRightIndex;
+    _peakIndex = other._peakIndex;
+    _leftIndex = other._leftIndex;
+    _rightIndex = other._rightIndex;
     
-    mFreq = other.mFreq;
-    mAmp = other.mAmp;
+    _freq = other._freq;
+    _amp = other._amp;
     
-    mPhase = other.mPhase;
+    _phase = other._phase;
         
-    mState = other.mState;;
+    _state = other._state;
         
-    mId = other.mId;
-    mLinkedId = other.mLinkedId;
+    _id = other._id;
+    _linkedId = other._linkedId;
     
-    mWasAlive = other.mWasAlive;
-    mZombieAge = other.mZombieAge;
+    _wasAlive = other._wasAlive;
+    _zombieAge = other._zombieAge;
     
-    mAge = other.mAge;
+    _age = other._age;
     
-    mCookie = other.mCookie;
+    _cookie = other._cookie;
 
     // QIFFT
-    mBinIdxF = other.mBinIdxF;
-    mAlpha0 = other.mAlpha0;
-    mBeta0 = other.mBeta0;
+    _binIdxF = other._binIdxF;
+    _alpha0 = other._alpha0;
+    _beta0 = other._beta0;
 }
 
 Partial::~Partial() {}
 
 void
-Partial::GenNewId()
+Partial::genNewId()
 {
-    mId = mCurrentId++;
+    _id = _currentId++;
 }
     
 bool
-Partial::FreqLess(const Partial &p1, const Partial &p2)
+Partial::freqLess(const Partial &p1, const Partial &p2)
 {
-    return (p1.mFreq < p2.mFreq);
+    return (p1._freq < p2._freq);
 }
 
 bool
-Partial::AmpLess(const Partial &p1, const Partial &p2)
+Partial::ampLess(const Partial &p1, const Partial &p2)
 {
-    return (p1.mAmp < p2.mAmp);
+    return (p1._amp < p2._amp);
 }
 
 bool
-Partial::IdLess(const Partial &p1, const Partial &p2)
+Partial::idLess(const Partial &p1, const Partial &p2)
 {
-    return (p1.mId < p2.mId);
+    return (p1._id < p2._id);
 }
 
 bool
-Partial::CookieLess(const Partial &p1, const Partial &p2)
+Partial::cookieLess(const Partial &p1, const Partial &p2)
 {
-    return (p1.mCookie < p2.mCookie);
+    return (p1._cookie < p2._cookie);
 }

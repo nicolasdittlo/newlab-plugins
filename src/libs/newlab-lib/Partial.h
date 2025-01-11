@@ -40,59 +40,59 @@ class Partial
         
     virtual ~Partial();
         
-    void GenNewId();
+    void genNewId();
         
-    static bool FreqLess(const Partial &p1, const Partial &p2);
+    static bool freqLess(const Partial &p1, const Partial &p2);
         
-    static bool AmpLess(const Partial &p1, const Partial &p2);
+    static bool ampLess(const Partial &p1, const Partial &p2);
         
-    static bool IdLess(const Partial &p1, const Partial &p2);
+    static bool idLess(const Partial &p1, const Partial &p2);
         
-    static bool CookieLess(const Partial &p1, const Partial &p2);
+    static bool cookieLess(const Partial &p1, const Partial &p2);
 
  public:
-    int mPeakIndex;
-    int mLeftIndex;
-    int mRightIndex;
+    int _peakIndex;
+    int _leftIndex;
+    int _rightIndex;
         
-    // When detecting and filtering, mFreq and mAmp are "scaled and normalized"
+    // When detecting and filtering, _freq and _amp are "scaled and normalized"
     // After processing, we can compute the real frequencies in Hz and amp in dB.
-    BL_FLOAT mFreq;
+    float _freq;
     union{
-        // Inside PartialTracker6
-        BL_FLOAT mAmp;
+        // Inside PartialTracker
+        float _amp;
             
-        // After, outside PartialTracker6, if external classes need amp in dB
-        // Need to call DenormPartials() then PartialsAmpToAmpDB()
-        BL_FLOAT mAmpDB;
+        // After, outside PartialTracker, if external classes need amp in dB
+        // Need to call denormPartials() then partialsAmpToAmpDB()
+        float _ampDB;
     };
-    BL_FLOAT mPhase;
+    float _phase;
 
     // Partial id
-    long mId;
-    // Index of the linked partial in the current array (for associating)
-    long mLinkedId;
+    long _id;
     
-    enum State mState;
+    // Index of the linked partial in the current array (for associating)
+    long _linkedId;
+    
+    enum State _state;
         
-    bool mWasAlive;
-    long mZombieAge;
+    bool _wasAlive;
+    long _zombieAge;
         
-    long mAge;
+    long _age;
         
     // All-purpose field
-    BL_FLOAT mCookie;
+    float _cookie;
 
-    // Used e.g for PartialFilterMarchand
-    SimpleKalmanFilter mKf;
+    KalmanFilter _kf;
 
     // QIFFT
-    BL_FLOAT mBinIdxF;
-    BL_FLOAT mAlpha0;
-    BL_FLOAT mBeta0;
+    float _binIdxF;
+    float _alpha0;
+    float _beta0;
     
  protected:
-    static unsigned long mCurrentId;
+    static unsigned long _currentId;
 };
 
 #endif

@@ -24,50 +24,46 @@ using namespace std;
 
 #include "PartialFilterMarchand.h"
 
-// Seems better without, not sure...
-#define USE_KALMAN_FOR_ASSOC 0 //1 //0
-
 #define MAX_ZOMBIE_AGE 2
 
-// Seems better with 200Hz (tested on "oohoo")
 #define DELTA_FREQ_ASSOC 0.01 // For normalized freqs. Around 100Hz
 
 #define PARTIALS_HISTORY_SIZE 2
 
-PartialFilterMarchand::PartialFilterMarchand(int bufferSize, BL_FLOAT sampleRate)
+PartialFilterMarchand::PartialFilterMarchand(int bufferSize, float sampleRate)
 {
-    mBufferSize = bufferSize;
+    _bufferSize = bufferSize;
 }
 
 PartialFilterMarchand::~PartialFilterMarchand() {}
 
 void
-PartialFilterMarchand::Reset(int bufferSize, BL_FLOAT sampleRate)
+PartialFilterMarchand::reset(int bufferSize, float sampleRate)
 {
-    mBufferSize = bufferSize;
+    _bufferSize = bufferSize;
 
-    mPartials.clear();
+    _partials.clear();
 }
            
 void
-PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
+PartialFilterMarchand::filterPartials(vector<Partial> *partials)
 {    
-    mPartials.push_front(*partials);
+    _partials.push_front(*partials);
     
-    while(mPartials.size() > PARTIALS_HISTORY_SIZE)
-        mPartials.pop_back();
+    while(_partials.size() > PARTIALS_HISTORY_SIZE)
+        _partials.pop_back();
     
     partials->clear();
     
-    if (mPartials.empty())
+    if (_partials.empty())
         return;
     
-    if (mPartials.size() == 1)
+    if (_partials.size() == 1)
         // Assigne ids to the first series of partials
     {
-        for (int j = 0; j < mPartials[0].size(); j++)
+        for (int j = 0; j < _partials[0].size(); j++)
         {
-            Partial &currentPartial = mPartials[0][j];
+            Partial &currentPartial = _partials[0][j];
             currentPartial.GenNewId();
         }
         
@@ -75,18 +71,18 @@ PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
         return;
     }
     
-    if (mPartials.size() < 2)
+    if (_partials.size() < 2)
         return;
     
-    const vector<Partial> &prevPartials = mPartials[1];
-    vector<Partial> &currentPartials = mTmpPartials0;
-    currentPartials = mPartials[0];
+    const vector<Partial> &prevPartials = _partials[1];
+    vector<Partial> &currentPartials = _tmpPartials0;
+    currentPartials = _partials[0];
     
     // Partials that was not associated at the end
-    vector<Partial> &remainingPartials = mTmpPartials1;
+    vector<Partial> &remainingPartials = _tmpPartials1;
     remainingPartials.resize(0);
     
-    AssociatePartialsPARSHL(prevPartials, &currentPartials, &remainingPartials);
+    associatePartialsPARSHL(prevPartials, &currentPartials, &remainingPartials);
     
     // Add the new zombie and dead partials
     for (int i = 0; i < prevPartials.size(); i++)
@@ -98,7 +94,7 @@ PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
         {
             const Partial &currentPartial = currentPartials[j];
             
-            if (currentPartial.mId == prevPartial.mId)
+            if (currentPartial._id == prevPartial._id)
             {
                 found = true;
                 
@@ -108,17 +104,16 @@ PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
 
         if (!found)
         {
-            if (prevPartial.mState == Partial::ALIVE)
+            if (prevPartial._state == Partial::ALIVE)
             {
                 // We set zombie for 1 frame only
                 Partial newPartial = prevPartial;
-                newPartial.mState = Partial::ZOMBIE;
-                newPartial.mZombieAge = 0;
+                newPartial._state = Partial::ZOMBIE;
+                newPartial._zombieAge = 0;
                 
                 // Kalman:
-                // GOOD: extrapolate the zombies
-                //newPartial.mPredictedFreq =
-                newPartial.mFreq = newPartial.mKf.updateEstimate(newPartial.mFreq);
+                // Extrapolate the zombies
+                newPartial._freq = newPartial._kf.updateEstimate(newPartial._freq);
                 
                 currentPartials.push_back(newPartial);
             }
@@ -126,14 +121,13 @@ PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
             {
                 Partial newPartial = prevPartial;
                 
-                newPartial.mZombieAge++;
-                if (newPartial.mZombieAge >= MAX_ZOMBIE_AGE)
-                    newPartial.mState = Partial::DEAD;
+                newPartial._zombieAge++;
+                if (newPartial._zombieAge >= MAX_ZOMBIE_AGE)
+                    newPartial._state = Partial::DEAD;
   
                 // Kalman
-                // GOOD: extrapolate the zombies
-                //newPartial.mPredictedFreq =
-                newPartial.mFreq = newPartial.mKf.updateEstimate(newPartial.mFreq);
+                // extrapolate the zombies
+                newPartial._freq = newPartial._kf.updateEstimate(newPartial._freq);
 
                 currentPartials.push_back(newPartial);
             }
@@ -154,54 +148,53 @@ PartialFilterMarchand::FilterPartials(vector<Partial> *partials)
     {
         Partial p = remainingPartials[i];
         
-        p.GenNewId();
+        p.genNewId();
         
         currentPartials.push_back(p);
     }
     
     // Then sort the new partials by frequency
-    sort(currentPartials.begin(), currentPartials.end(), Partial::FreqLess);
+    sort(currentPartials.begin(), currentPartials.end(), Partial::freqLess);
     
     //
     // Update: add the partials to the history
     // (except the dead ones)
-    mPartials[0].clear();
+    _partials[0].clear();
     for (int i = 0; i < currentPartials.size(); i++)
     {
         const Partial &currentPartial = currentPartials[i];
         
-        // TEST: do not skip the dead partials:
-        // they will be used for fade out !
+        // Do not skip the dead partials: they will be used for fade out !
         //if (currentPartial.mState != Partial::DEAD)
-        mPartials[0].push_back(currentPartial);
+        _partials[0].push_back(currentPartial);
     }
 
-    *partials = mPartials[0];
+    *partials = _partials[0];
 }
 
 // Use method similar to SAS
 void
 PartialFilterMarchand::
-AssociatePartials(const vector<Partial> &prevPartials,
+associatePartials(const vector<Partial> &prevPartials,
                   vector<Partial> *currentPartials,
                   vector<Partial> *remainingPartials)
 {
     // Sort current partials and prev partials by decreasing amplitude
-    vector<Partial> &currentPartialsSort = mTmpPartials2;
+    vector<Partial> &currentPartialsSort = _tmpPartials2;
     currentPartialsSort = *currentPartials;
-    sort(currentPartialsSort.begin(), currentPartialsSort.end(), Partial::AmpLess);
+    sort(currentPartialsSort.begin(), currentPartialsSort.end(), Partial::ampLess);
     reverse(currentPartialsSort.begin(), currentPartialsSort.end());
     
-    vector<Partial> &prevPartialsSort = mTmpPartials3;
+    vector<Partial> &prevPartialsSort = _tmpPartials3;
     prevPartialsSort = prevPartials;
     
-    sort(prevPartialsSort.begin(), prevPartialsSort.end(), Partial::AmpLess);
+    sort(prevPartialsSort.begin(), prevPartialsSort.end(), Partial::ampLess);
     reverse(prevPartialsSort.begin(), prevPartialsSort.end());
  
     // Associate
     
     // Associated partials
-    vector<Partial> &currentPartialsAssoc = mTmpPartials4;
+    vector<Partial> &currentPartialsAssoc = _tmpPartials4;
     currentPartialsAssoc.resize(0);
     
     for (int i = 0; i < prevPartialsSort.size(); i++)
@@ -216,29 +209,23 @@ AssociatePartials(const vector<Partial> &prevPartials,
                 // Already assigned
                 continue;
             
-#if USE_KALMAN_FOR_ASSOC
-            BL_FLOAT diffFreq =
-                std::fabs(prevPartial.mPredictedFreq - currentPartial.mFreq);
-#else
-            BL_FLOAT diffFreq = std::fabs(prevPartial.mFreq - currentPartial.mFreq);
-#endif
+            float diffFreq = fabs(prevPartial._freq - currentPartial._freq);
             
-            int binNum = currentPartial.mFreq*mBufferSize*0.5;
-            BL_FLOAT diffCoeff = GetDeltaFreqCoeff(binNum);
+            int binNum = currentPartial._freq*_bufferSize*0.5;
+            float diffCoeff = GetDeltaFreqCoeff(binNum);
             if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
             // Associated !
             {
-                currentPartial.mId = prevPartial.mId;
-                currentPartial.mState = Partial::ALIVE;
-                currentPartial.mWasAlive = true;
+                currentPartial._id = prevPartial._id;
+                currentPartial._state = Partial::ALIVE;
+                currentPartial._wasAlive = true;
                 
-                currentPartial.mAge = prevPartial.mAge + 1;
+                currentPartial._age = prevPartial._age + 1;
             
                 // Kalman
-                currentPartial.mKf = prevPartial.mKf;
-                //currentPartial.mPredictedFreq =
-                currentPartial.mFreq =
-                    currentPartial.mKf.updateEstimate(currentPartial.mFreq);
+                currentPartial._kf = prevPartial._kf;
+                currentPartial._freq =
+                    currentPartial._kf.updateEstimate(currentPartial._freq);
 
                 currentPartialsAssoc.push_back(currentPartial);
                 
@@ -250,7 +237,7 @@ AssociatePartials(const vector<Partial> &prevPartials,
         }
     }
     
-    sort(currentPartialsAssoc.begin(), currentPartialsAssoc.end(), Partial::IdLess);
+    sort(currentPartialsAssoc.begin(), currentPartialsAssoc.end(), Partial::idLess);
      *currentPartials = currentPartialsAssoc;
     
     // Add the remaining partials
@@ -266,16 +253,16 @@ AssociatePartials(const vector<Partial> &prevPartials,
 // Use PARSHL method
 void
 PartialFilterMarchand::
-AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
+associatePartialsPARSHL(const vector<Partial> &prevPartials,
                         vector<Partial> *currentPartials,
                         vector<Partial> *remainingPartials)
 {
     // Sort current partials and prev partials by increasing frequency
-    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
+    sort(currentPartials->begin(), currentPartials->end(), Partial::freqLess);
     
-    vector<Partial> &prevPartials0 = mTmpPartials5;
+    vector<Partial> &prevPartials0 = _tmpPartials5;
     prevPartials0 = prevPartials;
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
+    sort(prevPartials0.begin(), prevPartials0.end(), Partial::freqLess);
     
     // Associated partials
     bool stopFlag = true;
@@ -288,33 +275,29 @@ AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
             for (int j = 0; j < currentPartials->size(); j++)
             {
                 Partial &currentPartial = (*currentPartials)[j];
-                if (currentPartial.mId != -1)
+                if (currentPartial._id != -1)
                     // Already associated, nothing to do on this step!
                     continue;
                 
-#if USE_KALMAN_FOR_ASSOC
-                BL_FLOAT diffFreq =
-                    std::fabs(prevPartial.mPredictedFreq - currentPartial.mFreq);
-#else
-                BL_FLOAT diffFreq =
-                    std::fabs(prevPartial.mFreq - currentPartial.mFreq);
-#endif
-                int binNum = currentPartial.mFreq*mBufferSize*0.5;
-                BL_FLOAT diffCoeff = GetDeltaFreqCoeff(binNum);
+                float diffFreq =
+                    std::fabs(prevPartial._freq - currentPartial._freq);
+                
+                int binNum = currentPartial._freq*_bufferSize*0.5;
+                float diffCoeff = GetDeltaFreqCoeff(binNum);
             
                 if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
                     // Associate!
                 {
                     int otherIdx =
-                        FindPartialById(*currentPartials, (int)prevPartial.mId);
+                        findPartialById(*currentPartials, (int)prevPartial._id);
                     
                     if (otherIdx == -1)
                         // This partial is not yet associated
                         // => No fight
                     {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
-                        currentPartial.mKf = prevPartial.mKf; //
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
+                        currentPartial._kf = prevPartial._kf;
                         
                         stopFlag = false;
                     }
@@ -322,24 +305,17 @@ AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
                     {
                         Partial &otherPartial = (*currentPartials)[otherIdx];
                         
-#if USE_KALMAN_FOR_ASSOC
-                        BL_FLOAT otherDiffFreq =
-                                std::fabs(prevPartial.mPredictedFreq -
-                                          otherPartial.mFreq);
-#else
-                        BL_FLOAT otherDiffFreq =
-                            std::fabs(prevPartial.mFreq - otherPartial.mFreq);
-#endif
+                        float otherDiffFreq =vfabs(prevPartial._freq - otherPartial._freq);
                         
                         if (diffFreq < otherDiffFreq)
                         // Current partial won
                         {
-                            currentPartial.mId = prevPartial.mId;
-                            currentPartial.mAge = prevPartial.mAge;
-                            currentPartial.mKf = prevPartial.mKf; //
+                            currentPartial._id = prevPartial._id;
+                            currentPartial._age = prevPartial._age;
+                            currentPartial._kf = prevPartial._kf;
                             
                             // Detach the other
-                            otherPartial.mId = -1;
+                            otherPartial._id = -1;
                             
                             stopFlag = false;
                         }
@@ -356,23 +332,22 @@ AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
     
     
     // Update partials
-    vector<Partial> &newPartials = mTmpPartials6;
+    vector<Partial> &newPartials = _tmpPartials6;
     newPartials.resize(0);
     
     for (int j = 0; j < currentPartials->size(); j++)
     {
         Partial &currentPartial = (*currentPartials)[j];
         
-        if (currentPartial.mId != -1)
+        if (currentPartial._id != -1)
         {
-            currentPartial.mState = Partial::ALIVE;
-            currentPartial.mWasAlive = true;
+            currentPartial._state = Partial::ALIVE;
+            currentPartial._wasAlive = true;
     
             // Increment age
-            currentPartial.mAge = currentPartial.mAge + 1;
-            //currentPartial.mPredictedFreq =
-            currentPartial.mFreq =
-                currentPartial.mKf.updateEstimate(currentPartial.mFreq);
+            currentPartial._age = currentPartial._age + 1;
+            currentPartial._freq =
+                currentPartial._kf.updateEstimate(currentPartial._freq);
     
             newPartials.push_back(currentPartial);
         }
@@ -383,7 +358,7 @@ AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
     for (int i = 0; i < currentPartials->size(); i++)
     {
         const Partial &p = (*currentPartials)[i];
-        if (p.mId == -1)
+        if (p._id == -1)
             remainingPartials->push_back(p);
     }
     
@@ -391,25 +366,25 @@ AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
     *currentPartials = newPartials;
 }
 
-BL_FLOAT
-PartialFilterMarchand::GetDeltaFreqCoeff(int binNum)
+float
+PartialFilterMarchand::getDeltaFreqCoeff(int binNum)
 {
 #define END_COEFF 0.25
     
-    BL_FLOAT t = ((BL_FLOAT)binNum)/(mBufferSize*0.5);
-    BL_FLOAT diffCoeff = 1.0 - (1.0 - END_COEFF)*t;
+    float t = ((float)binNum)/(_bufferSize*0.5);
+    float diffCoeff = 1.0 - (1.0 - END_COEFF)*t;
     
     return diffCoeff;
 }
 
 int
-PartialFilterMarchand::FindPartialById(const vector<Partial> &partials, int idx)
+PartialFilterMarchand::findPartialById(const vector<Partial> &partials, int idx)
 {
     for (int i = 0; i < partials.size(); i++)
     {
         const Partial &partial = partials[i];
         
-        if (partial.mId == idx)
+        if (partial._id == idx)
             return i;
     }
     

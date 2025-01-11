@@ -19,9 +19,6 @@
 #ifndef AWEIGHTING_H
 #define AWEIGHTING_H
 
-#include <BLTypes.h>
-
-#include "IPlug_include_in_plug_hdr.h"
 
 // See: https://en.wikipedia.org/wiki/A-weighting
 //
@@ -34,15 +31,15 @@ public:
     // numBins is fftSize/2 !
     // See: http://support.ircam.fr/docs/AudioSculpt/3.0/co/FFT%20Size.html
     //
-    static void ComputeAWeights(WDL_TypedBuf<BL_FLOAT> *result,
-                                int numBins, BL_FLOAT sampleRate);
+    static void computeAWeights(vector<float> *result,
+                                int numBins, float sampleRate);
     
-    static BL_FLOAT ComputeAWeight(int binNum, int numBins, BL_FLOAT sampleRate);
+    static float computeAWeight(int binNum, int numBins, float sampleRate);
     
 protected:
-    static BL_FLOAT ComputeR(BL_FLOAT frequency);
+    static float ComputeR(float frequency);
     
-    static BL_FLOAT ComputeA(BL_FLOAT frequency);
+    static float ComputeA(float frequency);
 };
 
 #endif

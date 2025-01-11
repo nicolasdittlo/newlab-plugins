@@ -19,19 +19,22 @@
 #ifndef PEAK_DETECTOR_BL_H
 #define PEAK_DETECTOR_BL_H
 
-#include <PeakDetector.h>
+#include <vector>
+using namespace std;
 
-class PeakDetectorBL : public PeakDetector
+#include "PeakDetector.h"
+
+class PeakDetectorNL : public PeakDetector
 {
  public:
-    PeakDetectorBL();
-    virtual ~PeakDetectorBL();
+    PeakDetectorNL();
+    virtual ~PeakDetectorNL();
 
-    void DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data, vector<Peak> *peaks,
+    void detectPeaks(const vector<float> &data, vector<Peak> *peaks,
                      int minIndex = -1, int maxIndex = -1) override;
 
  protected:
-    bool DiscardInvalidPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
+    bool discardInvalidPeaks(const vector<float> &data,
                              int peakIndex, int leftIndex, int rightIndex);
 };
 

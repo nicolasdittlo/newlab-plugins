@@ -19,18 +19,7 @@
 #ifndef QIFFT_H
 #define QIFFT_H
 
-#include <BLTypes.h>
-
-#include "IPlug_include_in_plug_hdr.h"
-
-// Set to 1 to have the same scale in FindPeak() as FindPeak2()
-//
-// NOTE: if using FindPeak2() again, it may be necessary to also
-// change EMPIR_ALPHA0_COEFF and EMPIR_BETA0_COEFF to 1
-#define FIND_PEAK_COMPAT 0 //1
-
 // Empirical alpha0 additional coeff
-//#define EMPIR_ALPHA0_COEFF 0.1138292
 #define EMPIR_ALPHA0_COEFF 1.422865
     
 // Empirical beta0 additional coeff
@@ -44,7 +33,7 @@
 // (Gaussian or Hann or other)
 //
 // NOTE: this will work for amplitude only if either
-// - We use a Gaussian window insteadof Hann
+// - We use a Gaussian window instead of Hann
 // - Or we use a fft zero padding factor of x2
 //
 class QIFFT
@@ -53,65 +42,48 @@ class QIFFT
     struct Peak
     {
         // True peak idx, in floating point format
-        BL_FLOAT mBinIdx;
+        float _binIdx;
 
-        BL_FLOAT mFreq;
+        float _freq;
         
         // Amp for true peak, in dB
-        BL_FLOAT mAmp;
+        float _amp;
 
         // Phase for true peak
-        BL_FLOAT mPhase;
+        float _phase;
 
         // Amp derivative over time
-        BL_FLOAT mAlpha0;
+        float _alpha0;
 
         // Freq derivative over time
-        BL_FLOAT mBeta0;
+        float _beta0;
     };
 
     // NOTE: FindPeak() and FindPeak2() give the same results,
     // modulo some scaling coefficient
     
     // Magns should be in dB!
-    //
+    
     // Custom method
-    static void FindPeak(const WDL_TypedBuf<BL_FLOAT> &magns,
-                         const WDL_TypedBuf<BL_FLOAT> &phases,
+    static void findPeak(const vector<float> &magns,
+                         const vector<float> &phases,
                          int bufferSize,
                          int peakBin, Peak *result);
-
-    // Magns should be in dB!
-    //
-    // Method using all the formulas in appendix A of the paper
-    static void FindPeak2(const WDL_TypedBuf<BL_FLOAT> &magns,
-                          const WDL_TypedBuf<BL_FLOAT> &phases,
-                          int peakBin, Peak *result);
     
  protected:
     // Parabola equation: y(x) = a*(x - c)^2 + b
     // Specific to peak tracking
-    static void GetParabolaCoeffs(BL_FLOAT alpha, BL_FLOAT beta, BL_FLOAT gamma,
-                                  BL_FLOAT *a, BL_FLOAT *b, BL_FLOAT *c);
+    static void getParabolaCoeffs(float alpha, float beta, float gamma,
+                                  float *a, float *b, float *c);
 
-    static BL_FLOAT ParabolaFunc(BL_FLOAT x, BL_FLOAT a, BL_FLOAT b, BL_FLOAT c);
+    static float parabolaFunc(float x, float a, float b, float c);
 
     // Parabola equation: y(x) = a*x^2 + b*x + c
     // Generalized (no maximum constraint)
-    static void GetParabolaCoeffsGen(BL_FLOAT alpha, BL_FLOAT beta, BL_FLOAT gamma,
-                                     BL_FLOAT *a, BL_FLOAT *b, BL_FLOAT *c);
+    static void getParabolaCoeffsGen(float alpha, float beta, float gamma,
+                                     float *a, float *b, float *c);
 
-    static BL_FLOAT ParabolaFuncGen(BL_FLOAT x, BL_FLOAT a, BL_FLOAT b, BL_FLOAT c);
-
-    //
-    static void DBG_DumpParabola(int peakBin,
-                                 BL_FLOAT alpha, BL_FLOAT beta, BL_FLOAT gamma,
-                                 BL_FLOAT c,
-                                 const WDL_TypedBuf<BL_FLOAT> &magns);
-
-    static void DBG_DumpParabolaGen(int peakBin,
-                                    BL_FLOAT a, BL_FLOAT b, BL_FLOAT c,
-                                    const WDL_TypedBuf<BL_FLOAT> &phases);
+    static float parabolaFuncGen(float x, float a, float b, float c);
 };
 
 #endif

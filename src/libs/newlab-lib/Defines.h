@@ -21,6 +21,8 @@
 
 #define NL_EPS 1e-15
 
+#define NL_INF 1e15
+
 #ifndef M_PI
 #define M_PI 3.141592654
 #endif
@@ -28,5 +30,9 @@
 #define TWO_PI 6.283185307
 
 #define M_PI_INV 0.318309886
+
+#ifndef MIN
+#define MIN(__x__, __y__) ((__x__ < __y__) ? __x__ : __y__)
+#endif
 
 #endif

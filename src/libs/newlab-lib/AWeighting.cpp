@@ -18,74 +18,71 @@
 
 #include <math.h>
 
-#include <BLTypes.h>
-
 #include "AWeighting.h"
 
 #define DB_INF -70.0
 #define DB_EPS 1e-15
 
 void
-AWeighting::ComputeAWeights(WDL_TypedBuf<BL_FLOAT> *result,
-                            int numBins, BL_FLOAT sampleRate)
+AWeighting::computeAWeights(vector<float> *result,
+                            int numBins, float sampleRate)
 {
-    result->Resize(numBins);
+    result->resize(numBins);
     
-    BL_FLOAT hzPerBin = sampleRate/(numBins*2);
-    for (int i = 0; i < result->GetSize(); i++)
+    float hzPerBin = sampleRate/(numBins*2);
+    for (int i = 0; i < result->size(); i++)
     {
-        BL_FLOAT freq = i*hzPerBin;
+        float freq = i*hzPerBin;
         
-        BL_FLOAT a = ComputeA(freq);
+        float a = computeA(freq);
         
-        result->Get()[i] = a;
+        result->data()[i] = a;
     }
 }
 
-BL_FLOAT
-AWeighting::ComputeAWeight(int binNum, int numBins, BL_FLOAT sampleRate)
+float
+AWeighting::computeAWeight(int binNum, int numBins, float sampleRate)
 {
-    BL_FLOAT hzPerBin = sampleRate/(numBins*2);
+    float hzPerBin = sampleRate/(numBins*2);
     
-    BL_FLOAT freq = binNum*hzPerBin;
+    float freq = binNum*hzPerBin;
         
-    BL_FLOAT a = ComputeA(freq);
+    float a = computeA(freq);
         
     return a;
 }
 
-BL_FLOAT
-AWeighting::ComputeR(BL_FLOAT frequency)
+float
+AWeighting::computeR(float frequency)
 {
-    BL_FLOAT num = std::pow(12194, 2)*pow(frequency, 4);
+    float num = pow(12194, 2)*pow(frequency, 4);
     
-    BL_FLOAT denom0 = std::pow(frequency, 2) + std::pow(20.6, 2);
+    float denom0 = pow(frequency, 2) + pow(20.6, 2);
     
-    BL_FLOAT denom1_2_1 = std::pow(frequency, 2) + std::pow(107.7, 2);
-    BL_FLOAT denom1_2_2 = std::pow(frequency, 2) + std::pow(737.9, 2);
+    float denom1_2_1 = pow(frequency, 2) + pow(107.7, 2);
+    float denom1_2_2 = pow(frequency, 2) + pow(737.9, 2);
     
-    BL_FLOAT denom1 = std::sqrt(denom1_2_1*denom1_2_2);
+    float denom1 = sqrt(denom1_2_1*denom1_2_2);
     
-    BL_FLOAT denom2 = std::pow(frequency, (BL_FLOAT)2) + std::pow(12194, 2);
+    float denom2 = pow(frequency, (float)2) + std::pow(12194, 2);
     
-    BL_FLOAT denom = denom0*denom1*denom2;
+    float denom = denom0*denom1*denom2;
     
-    BL_FLOAT r = num/denom;
+    float r = num/denom;
     
     return r;
 }
 
-BL_FLOAT
-AWeighting::ComputeA(BL_FLOAT frequency)
+float
+AWeighting::computeA(float frequency)
 {
-    BL_FLOAT r = ComputeR(frequency);
+    float r = computeR(frequency);
     
     // Be careful of log(0)
     if (r < DB_EPS)
         return DB_INF;
         
-    //BL_FLOAT a = 20.0*std::log(r)/std::log(10.0) + 2.0;
-    BL_FLOAT a = 20.0*std::log10(r) + 2.0;
+    float a = 20.0*log10(r) + 2.0;
     
     return a;
 }

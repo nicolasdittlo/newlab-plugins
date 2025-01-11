@@ -499,3 +499,200 @@ Utils::nearestPowerOfTwo(int value)
     else
         return upperPower;
 }
+
+void
+Utils::smooth(vector<float> *ioCurrentValues,
+              vector<float> *ioPrevValues,
+              float smoothFactor)
+{
+    if (ioCurrentValues->size() != ioPrevValues->size())
+    {
+        *ioPrevValues = *ioCurrentValues;
+        
+        return;
+    }
+    
+    for (int i = 0; i < ioCurrentValues->size(); i++)
+    {
+        float val = ioCurrentValues->data()[i];
+        float prevVal = ioPrevValues->data()[i];
+        
+        float newVal = smoothFactor*prevVal + (1.0 - smoothFactor)*val;
+        
+        ioCurrentValues->data()[i] = newVal;
+    }
+    
+    *ioPrevValues = *ioCurrentValues;
+}
+
+void
+Utils::unwrapPhases(vector<float> *phases, bool adjustFirstPhase)
+{
+    if (phases->size() == 0)
+        // Empty phases
+        return;
+    
+    float prevPhase = phases->data()[0];
+
+    if (adjustFirstPhase)
+        findNextPhase(&prevPhase, (float)0.0);
+    
+    int phasesSize = phases->size();
+    float *phasesData = phases->data();
+    for (int i = 0; i < phasesSize; i++)
+    {
+        float phase = phasesData[i];
+        
+        findNextPhase(&phase, prevPhase);
+        
+        phasesData[i] = phase;
+        
+        prevPhase = phase;
+    }
+}
+
+void
+Utils::findNextPhase(float *phase, float refPhase)
+{
+    if (*phase >= refPhase)
+        return;
+    
+    float refMod = fmod_negative(refPhase, (float)TWO_PI);
+    float pMod = fmod_negative(*phase, (float)TWO_PI);
+    
+    float resPhase = (refPhase - refMod) + pMod;
+    if (resPhase < refPhase)
+        resPhase += TWO_PI;
+    
+    *phase = resPhase;
+}
+
+float
+Utils::fmod_negative(float x, float y)
+{
+    // Move input to range 0.. 2*pi
+    if (x < 0.0)
+    {
+        // fmod only supports positive numbers. Thus we have
+        // to emulate negative numbers
+        float modulus = x * -1.0;
+        modulus = fmod(modulus, y);
+        modulus = -modulus + y;
+        
+        return modulus;
+    }
+    return fmod(x, y);
+}
+
+float
+Utils::princarg(float x)
+{
+    float result = Utils::fmod_negative(x + M_PI, TWO_PI) - M_PI;
+
+    return result;
+}
+
+static bool
+ccw(float A[2], float B[2], float C[2])
+{
+    bool res = (C[1] - A[1])*(B[0] - A[0]) > (B[1] - A[1])*(C[0] - A[0]);
+
+    return res;
+}
+
+bool
+Utils::segSegIntersect(float seg0[2][2], float seg1[2][2])
+{
+    bool res = ((ccw(seg0[0], seg1[0], seg1[1]) != ccw(seg0[1], seg1[0], seg1[1])) &&
+                (ccw(seg0[0], seg0[1], seg1[0]) != ccw(seg0[0], seg0[1], seg1[1])));
+    
+    return res;
+}
+
+float
+Utils::trapezoidArea(float a, float b, float h)
+{
+    float area = (a + b)*h*0.5;
+    
+    return area;
+}
+
+float
+Utils::computeMin(const vector<float> &buf)
+{
+    int bufSize = buf.size();
+    float *bufData = buf.data();
+    
+    if (bufSize == 0)
+        return 0.0;
+    
+    float minVal = bufData[0];
+    
+    for (int i = 0; i < bufSize; i++)
+    {
+        float val = bufData[i];
+        
+        if (val < minVal)
+            minVal = val;
+    }
+    
+    return minVal;
+}
+
+float
+Utils::computeMax(const vector<float> &buf)
+{
+    int bufSize = buf.size();
+    float *bufData = buf.data();
+    
+    if (bufSize == 0)
+        return 0.0;
+    
+    float maxVal = bufData[0];
+    
+    for (int i = 0; i < bufSize; i++)
+    {
+        float val = bufData[i];
+        
+        if (val > maxVal)
+            maxVal = val;
+    }
+    
+    return maxVal;
+}
+
+void
+Utils::normalize(vector<float> *values,
+                 float minimum, float maximum)
+{
+    for (int i = 0; i < values->size(); i++)
+    {
+        float val = values->data()[i];
+        
+        if (fabs(maximum - minimum) > 0.0)
+            val = (val - minimum)/(maximum - minimum);
+        else
+            val = 0.0;
+        
+        values->data()[i] = val;
+    }
+}
+
+void
+Utils::normalize(vector<float> *values)
+{
+    float minimum = Utils::computeMin(*values);
+    float maximum = Utils::computeMax(*values);
+    
+    for (int i = 0; i < values->size(); i++)
+    {
+        float val = values->data()[i];
+        
+        if (fabs(maximum - minimum) > 0.0)
+            val = (val - minimum)/(maximum - minimum);
+        else
+            val = 0.0;
+        
+        values->data()[i] = val;
+    }
+}

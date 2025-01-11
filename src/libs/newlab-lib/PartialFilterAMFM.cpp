@@ -22,104 +22,61 @@
 #include <algorithm>
 using namespace std;
 
-#include <BLUtils.h>
-#include <BLUtilsMath.h>
-
-#include <BLDebug.h>
-
-#include <Hungarian.h>
-
+#include "Utils.h"
 #include "PartialFilterAMFM.h"
 
-// 3 is often good
-//#define MAX_ZOMBIE_AGE 3 //2 //5 //2
-// 5 avoids changing id when partial crossing
-//#define MAX_ZOMBIE_AGE 5
-#define MAX_ZOMBIE_AGE 1 // TEST NEW
+#define MAX_ZOMBIE_AGE 1 // 3 5
 
 // Must keep history size >= 3, for FixPartialsCrossing
-#define PARTIALS_HISTORY_SIZE 3 //2
+#define PARTIALS_HISTORY_SIZE 3
 
-
-#define EXTRAPOLATE_KALMAN 0 // 1
-// Propagate dead and zombies with alpha0 and beta0
-// Problem: at partial crossing, alpha0 (for amp) sometimes has big values 
-#define EXTRAPOLATE_AMFM 0 //1
-
-// NOTE: when using time smoothing on magns, it created fake amp dirivatives (alpha0)
-// So the following algorithms won't be optimal
-// But finally the result looks good with time smooth
-
-#define ASSOC_SIMPLE_AMFM 1 //0 //1 // ORIGIN
+#define ASSOC_SIMPLE_AMFM 1
 // Result almost similar to ASSOC_SIMPLE_AMFM
-#define ASSOC_SIMPLE_NERI 0 //1 //0 // NOTE: don't forget the hack zetaA = 50.0
-#define ASSOC_HUNGARIAN_AMFM 0 //1
-#define ASSOC_HUNGARIAN_NERI 0 //1
+#define ASSOC_SIMPLE_NERI 0 // NOTE: don't forget the hack zetaA = 50.0
 
-#define RESCALE_HZ 0 //1
+#define DISCARD_OPPOSITE_DIRECTION 0
 
-#define FIX_PARTIAL_CROSSING 1 //0 //1
+// To be checked
+#define HARD_OPTIM 1 //0
 
-#define DISCARD_BIG_JUMPS 1 //0
-
-#define DISCARD_OPPOSITE_DIRECTION 0 //1
-
-#define OPTIM_TRAPEZOID_AREA 1 // 0
-
-#define OPTIM_SAMPLES_SYNTH_SORTED_VEC 1 // 0
-
-// WIP...
-#define HARD_OPTIM 1 //0 //1
-
-PartialFilterAMFM::PartialFilterAMFM(int bufferSize, BL_FLOAT sampleRate)
+PartialFilterAMFM::PartialFilterAMFM(int bufferSize, float sampleRate)
 {    
-    mBufferSize = bufferSize;
-    mSampleRate = sampleRate;
+    _bufferSize = bufferSize;
+    _sampleRate = sampleRate;
 
-    mNeriDelta = 0.2;
+    _neriDelta = 0.2;
 }
 
 PartialFilterAMFM::~PartialFilterAMFM() {}
 
 void
-PartialFilterAMFM::Reset(int bufferSize, BL_FLOAT sampleRate)
+PartialFilterAMFM::reset(int bufferSize, float sampleRate)
 {    
-    mBufferSize = bufferSize;
-    mSampleRate = sampleRate;
+    _bufferSize = bufferSize;
+    _sampleRate = sampleRate;
     
-    mPartials.clear();
+    _partials.clear();
 }
            
 void
-PartialFilterAMFM::FilterPartials(vector<Partial> *partials)
-{
-#if RESCALE_HZ
-    for (int i = 0; i < partials->size(); i++)
-    {
-        Partial &p = (*partials)[i];
-        p.mFreq *= mSampleRate*0.5;
-        p.mBeta0 *= mSampleRate*0.5;
-    }
-#endif
+PartialFilterAMFM::filterPartials(vector<Partial> *partials)
+{       
+    _partials.push_front(*partials);
     
-    //DBG_PrintPartials(*partials);
-    
-    mPartials.push_front(*partials);
-    
-    while(mPartials.size() > PARTIALS_HISTORY_SIZE)
-        mPartials.pop_back();
+    while(_partials.size() > PARTIALS_HISTORY_SIZE)
+        _partials.pop_back();
     
     partials->clear();
     
-    if (mPartials.empty())
+    if (_partials.empty())
         return;
     
-    if (mPartials.size() == 1)
+    if (_partials.size() == 1)
         // Assigne ids to the first series of partials
     {
-        for (int j = 0; j < mPartials[0].size(); j++)
+        for (int j = 0; j < _partials[0].size(); j++)
         {
-            Partial &currentPartial = mPartials[0][j];
+            Partial &currentPartial = _partials[0][j];
             currentPartial.GenNewId();
         }
         
@@ -127,62 +84,40 @@ PartialFilterAMFM::FilterPartials(vector<Partial> *partials)
         return;
     }
     
-    if (mPartials.size() < 2)
+    if (_partials.size() < 2)
         return;
     
-    const vector<Partial> &prevPartials = mPartials[1];
-    vector<Partial> &currentPartials = mTmpPartials0;
-    currentPartials = mPartials[0];
+    const vector<Partial> &prevPartials = _partials[1];
+    vector<Partial> &currentPartials = _tmpPartials0;
+    currentPartials = _partials[0];
     
     // Partials that was not associated at the end
-    vector<Partial> &remainingCurrentPartials = mTmpPartials1;
+    vector<Partial> &remainingCurrentPartials = _tmpPartials1;
     remainingCurrentPartials.resize(0);
-
-    // DEBUG
-    //DBG_DumpPartials("prev.txt", prevPartials, mBufferSize);
-    //DBG_DumpPartials("cur.txt", currentPartials, mBufferSize);
-
-    //DBG_PrintPartials(prevPartials);
-        
+    
 #if ASSOC_SIMPLE_AMFM
-    AssociatePartialsAMFM(prevPartials, &currentPartials, &remainingCurrentPartials);
-    //AssociatePartialsAMFMSimple(prevPartials, &currentPartials,
-    //                            &remainingCurrentPartials);
+    associatePartialsAMFM(prevPartials, &currentPartials, &remainingCurrentPartials);
 #endif
 
 #if ASSOC_SIMPLE_NERI
-    AssociatePartialsNeri(prevPartials, &currentPartials,
+    associatePartialsNeri(prevPartials, &currentPartials,
                           &remainingCurrentPartials);
 #endif
     
-#if ASSOC_HUNGARIAN_AMFM
-    AssociatePartialsHungarianAMFM(prevPartials, &currentPartials,
-                                   &remainingCurrentPartials);
-#endif
-
-#if ASSOC_HUNGARIAN_NERI
-    AssociatePartialsHungarianNeri(prevPartials, &currentPartials,
-                                   &remainingCurrentPartials);
-#endif
-    
-    vector<Partial> &deadZombiePartials = mTmpPartials7;
-    ComputeZombieDeadPartials(prevPartials, currentPartials, &deadZombiePartials);
+    vector<Partial> &deadZombiePartials = _tmpPartials7;
+    computeZombieDeadPartials(prevPartials, currentPartials, &deadZombiePartials);
     
     // Add zombie and dead partial
     for (int i = 0; i < deadZombiePartials.size(); i++)
         currentPartials.push_back(deadZombiePartials[i]);
 
-#if FIX_PARTIAL_CROSSING
-    if (mPartials.size() >= 3)
+    if (_partials.size() >= 3)
     {
-#if OPTIM_SAMPLES_SYNTH_SORTED_VEC
-        sort(mPartials[1].begin(), mPartials[1].end(), Partial::IdLess);
-        sort(mPartials[2].begin(), mPartials[2].end(), Partial::IdLess);
-#endif
+        sort(_partials[1].begin(), _partials[1].end(), Partial::IdLess);
+        sort(_partials[2].begin(), _partials[2].end(), Partial::IdLess);
     
-        FixPartialsCrossing(mPartials[2], mPartials[1], &currentPartials);
+        fixPartialsCrossing(_partials[2], _partials[1], &currentPartials);
     }
-#endif
     
     // At the end, there remains the partial that have not been matched
     //
@@ -192,296 +127,70 @@ PartialFilterAMFM::FilterPartials(vector<Partial> *partials)
     {
         Partial p = remainingCurrentPartials[i];
         
-        p.GenNewId();
+        p.genNewId();
         
         currentPartials.push_back(p);
     }
 
     // Then sort the new partials by frequency
-    sort(currentPartials.begin(), currentPartials.end(), Partial::FreqLess);
+    sort(currentPartials.begin(), currentPartials.end(), Partial::freqLess);
     
     //
     // Update: add the partials to the history
     // (except the dead ones)
-    mPartials[0].clear();
+    _partials[0].clear();
     for (int i = 0; i < currentPartials.size(); i++)
     {
         const Partial &currentPartial = currentPartials[i];
 
-#if 0 // ORIGIN
-        // TEST: do not skip the dead partials:
-        // they will be used for fade out !
-        //if (currentPartial.mState != Partial::DEAD)
-        mPartials[0].push_back(currentPartial);
-#endif
-#if 1
         if (currentPartial.mState != Partial::DEAD)
-            mPartials[0].push_back(currentPartial);
-#endif
+            _partials[0].push_back(currentPartial);
     }
 
-    *partials = mPartials[0];
-
-#if RESCALE_HZ
-    BL_FLOAT coeff = 1.0/(mSampleRate*0.5);
-    for (int i = 0; i < partials->size(); i++)
-    {
-        Partial &p = (*partials)[i];
-        p.mFreq *= coeff;
-        p.mBeta0 *= coeff;
-
-        //#if !EXTRAPOLATE_KALMAN
-        //p.mPredictedFreq = p.mFreq;
-        //#endif
-    }
-#endif
+    *partials = _partials[0];
 }
 
 void
-PartialFilterAMFM::SetNeriDelta(BL_FLOAT delta)
+PartialFilterAMFM::setNeriDelta(float delta)
 {
-    mNeriDelta = delta;
+    _neriDelta = delta;
 }
 
 void
 PartialFilterAMFM::
-AssociatePartialsAMFMSimple(const vector<Partial> &prevPartials,
-                            vector<Partial> *currentPartials,
-                            vector<Partial> *remainingCurrentPartials)
-{
-    // Quick optimization (avoid long freezing)
-    // (later, will use hungarian)
-    //#define MAX_NUM_ITER 5
-    
-    // Sometimes need more than 5 (and less than 10)
-    // When threshold is near 1%
-    // (Sometimes it never solves totally and would lead to infinite num iters)
-#define MAX_NUM_ITER 10
-    
-    // Sort current partials and prev partials by increasing frequency
-    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
-    
-    vector<Partial> &prevPartials0 = mTmpPartials5;
-    prevPartials0 = prevPartials;
-
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
-#else
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::IdLess);
-#endif
-    
-    // Associated partials
-    bool stopFlag = true;
-    int numIters = 0;
-    do {
-        stopFlag = true;
-
-        numIters++;
-        
-        for (int i = 0; i < prevPartials0.size(); i++)
-        {
-            const Partial &prevPartial = prevPartials0[i];
-            
-            // Check if the link is already done
-            if (((int)prevPartial.mId != -1) &&
-                (FindPartialById(*currentPartials, (int)prevPartial.mId) != -1))
-                // Already linked
-                continue;
-            
-            for (int j = 0; j < currentPartials->size(); j++)
-            {
-                Partial &currentPartial = (*currentPartials)[j];
-                
-                if (currentPartial.mId == prevPartial.mId)
-                    continue;
-                
-                BL_FLOAT LA = ComputeLA(prevPartial, currentPartial);
-                BL_FLOAT LF = ComputeLF(prevPartial, currentPartial);
-
-                bool discard = false;
-#if DISCARD_BIG_JUMPS
-                discard = CheckDiscardBigJump(prevPartial, currentPartial);
-#endif
-
-#if DISCARD_OPPOSITE_DIRECTION
-                discard = CheckDiscardOppositeDirection(prevPartial, currentPartial);
-#endif
-                
-                // As is the paper
-                if ((LA > 0.5) && (LF > 0.5) &&
-                    // Avoid big jumps or similar
-                    !discard)
-                     
-                    // Associate!
-                {
-                    // Current partial already has an id
-                    bool mustFight0 = (currentPartial.mId != -1);
-
-                    int fight1Idx = FindPartialById(*currentPartials,
-                                                    (int)prevPartial.mId);
-                    // Prev partial already has some association with the current id
-                    bool mustFight1 = (fight1Idx != -1);
-                        
-                    if (!mustFight0 && !mustFight1)
-                    {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
-                        
-#if EXTRAPOLATE_KALMAN
-                        currentPartial.mKf = prevPartial.mKf; //
-#endif
-                        
-                        stopFlag = false;
-                        
-                        continue;
-                    }
-                        
-                    // Fight!
-                    //
-                    
-                    // Find the previous link for case 0
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-                    int otherPrevIdx =
-                        FindPartialById(prevPartials0, (int)currentPartial.mId);
-#else
-                    int otherPrevIdx =
-                        FindPartialByIdSorted(prevPartials0, currentPartial);
-#endif
-                    
-                    // Find prev partial
-                    Partial prevPartialFight =
-                        mustFight0 ? prevPartials0[otherPrevIdx] : prevPartial;
-                    // Find current partial
-                    Partial currentPartialFight =
-                        mustFight0 ? currentPartial : (*currentPartials)[fight1Idx];
-
-                    // Compute scores
-                    BL_FLOAT otherLA =
-                        ComputeLA(prevPartialFight, currentPartialFight);
-                    BL_FLOAT otherLF =
-                        ComputeLF(prevPartialFight, currentPartialFight);
-                    
-                    // Joint likelihood
-                    BL_FLOAT j0 = LA*LF;
-                    BL_FLOAT j1 = otherLA*otherLF;
-                    if (j0 > j1)
-                        // Current partial won
-                    {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
-                        
-#if EXTRAPOLATE_KALMAN
-                        currentPartial.mKf = prevPartial.mKf; //
-#endif
-
-                        // Disconnect for case 1
-                        if (mustFight1)
-                            (*currentPartials)[fight1Idx].mId = -1;
-                        stopFlag = false;
-                    }
-                    else
-                        // Other partial won
-                    {
-                        // Just keep it like it is!
-                    }
-                }
-            }
-        }
-
-        // Quick optimization
-        if (numIters > MAX_NUM_ITER)
-            break;
-        
-    } while (!stopFlag);
-    
-    // Update partials
-    vector<Partial> &newPartials = mTmpPartials6;
-    newPartials.resize(0);
-    
-    for (int j = 0; j < currentPartials->size(); j++)
-    {
-        Partial &currentPartial = (*currentPartials)[j];
-
-        if (currentPartial.mId != -1)
-        {
-            currentPartial.mState = Partial::ALIVE;
-            currentPartial.mWasAlive = true;
-    
-            // Increment age
-            currentPartial.mAge = currentPartial.mAge + 1;
-
-#if 0 // No need
-            
-#if EXTRAPOLATE_KALMAN
-            ExtrapolatePartialKalman(&currentPartial);
-#endif
-            
-#if EXTRAPOLATE_AMFM
-            ExtrapolatePartialAMFM(&currentPartial);
-#endif
-
-#endif
-            
-            newPartials.push_back(currentPartial);
-        }
-    }
-
-    // NOTE: sometimes would need an "infinite number of iterations"..
-    
-    // Add the remaining partials
-    remainingCurrentPartials->clear();
-    for (int i = 0; i < currentPartials->size(); i++)
-    {
-        const Partial &p = (*currentPartials)[i];
-        if (p.mId == -1)
-            remainingCurrentPartials->push_back(p);
-    }
-    
-    // Update current partials
-    *currentPartials = newPartials;
-}
-
-void
-PartialFilterAMFM::
-AssociatePartialsAMFM(const vector<Partial> &prevPartials,
+associatePartialsAMFM(const vector<Partial> &prevPartials,
                       vector<Partial> *currentPartials,
                       vector<Partial> *remainingCurrentPartials)
 {    
-    // Quick optimization (avoid long freezing)
-    // (later, will use hungarian)
-    //#define MAX_NUM_ITER 5
-    
     // Sometimes need more than 5 (and less than 10)
     // When threshold is near 1%
-    // (Sometimes it never solves totally and would lead to infinite num iters)
+    // Sometimes it never solves totally and would lead to infinite num iters
 #define MAX_NUM_ITER 10 //4
-    // DEBUG: 4
     
     // Problem: we miss the highest freqs if != 2048
 #define NUM_STEPS_LOOKUP 8 //4 //2048 // 128 //4
-    // DEBUG: 4
 
 #if HARD_OPTIM
 #define MAX_NUM_ITER 4
     
-    // Problem: we miss the highest freqs if != 2048
+    // Problem: we miss the highest freqs is != 2048
 #define NUM_STEPS_LOOKUP 4
 #endif
     
     // Sort current partials and prev partials by increasing frequency
-    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
+    sort(currentPartials->begin(), currentPartials->end(), Partial::freqLess);
     
-    vector<Partial> &prevPartials0 = mTmpPartials5;
+    vector<Partial> &prevPartials0 = _tmpPartials5;
     prevPartials0 = prevPartials;
 
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
+    sort(prevPartials0.begin(), prevPartials0.end(), Partial::freqLess);
 
     // Reset the links
     for (int i = 0; i < prevPartials0.size(); i++)
-        prevPartials0[i].mLinkedId = -1;
+        prevPartials0[i]._linkedId = -1;
     for (int i = 0; i < currentPartials->size(); i++)
     {
-        (*currentPartials)[i].mLinkedId = -1;
+        (*currentPartials)[i]._linkedId = -1;
 
         // Just in case
         (*currentPartials)[i].mId = -1;
@@ -503,12 +212,12 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
             // Check if the link is already done
             if (((int)prevPartial.mId != -1) &&
                 (prevPartial.mLinkedId != -1) &&
-                ((*currentPartials)[prevPartial.mLinkedId].mLinkedId == i))
+                ((*currentPartials)[prevPartial._linkedId]._linkedId == i))
                 // Already linked
                 continue;
             
             int nearestFreqId =
-                FindNearestFreqId(*currentPartials, prevPartial.mFreq, i);
+                findNearestFreqId(*currentPartials, prevPartial._freq, i);
             
             for (int j = nearestFreqId - NUM_STEPS_LOOKUP/2;
                  j < nearestFreqId + NUM_STEPS_LOOKUP/2; j++)
@@ -518,37 +227,35 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
                 
                 Partial &currentPartial = (*currentPartials)[j];
                 
-                if (currentPartial.mId == prevPartial.mId)
+                if (currentPartial._id == prevPartial._id)
                     continue;
                 
-#if DISCARD_BIG_JUMPS
-                bool discard = CheckDiscardBigJump(prevPartial, currentPartial);
+                bool discard = checkDiscardBigJump(prevPartial, currentPartial);
                 if (discard)
                     continue;
-#endif
                 
-                BL_FLOAT LA = ComputeLA(prevPartial, currentPartial);
-                BL_FLOAT LF = ComputeLF(prevPartial, currentPartial);
+                float LA = computeLA(prevPartial, currentPartial);
+                float LF = computeLF(prevPartial, currentPartial);
                 
                 // As is the paper
                 if ((LA > 0.5) && (LF > 0.5))
                     // Associate!
                 {
                     // Current partial already has an id
-                    bool mustFight0 = (currentPartial.mId != -1);
+                    bool mustFight0 = (currentPartial._id != -1);
 
-                    int fight1Idx = prevPartial.mLinkedId;
+                    int fight1Idx = prevPartial._linkedId;
                     
                     // Prev partial already has some association with the current id
                     bool mustFight1 = (fight1Idx != -1);
                         
                     if (!mustFight0 && !mustFight1)
                     {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
 
-                        currentPartial.mLinkedId = i;
-                        prevPartial.mLinkedId = j;
+                        currentPartial._linkedId = i;
+                        prevPartial._linkedId = j;
                             
                         stopFlag = false;
                         
@@ -559,7 +266,7 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
                     //
                     
                     // Find the previous link for case 0
-                    int otherPrevIdx = currentPartial.mLinkedId;
+                    int otherPrevIdx = currentPartial._linkedId;
 
                     if ((otherPrevIdx == -1) && mustFight0)
                         continue;
@@ -575,14 +282,14 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
                         mustFight0 ? currentPartial : (*currentPartials)[fight1Idx];
 
                     // Compute scores
-                    BL_FLOAT otherLA =
-                        ComputeLA(prevPartialFight, currentPartialFight);
-                    BL_FLOAT otherLF =
-                        ComputeLF(prevPartialFight, currentPartialFight);
+                    float otherLA =
+                        computeLA(prevPartialFight, currentPartialFight);
+                    float otherLF =
+                        computeLF(prevPartialFight, currentPartialFight);
                     
                     // Joint likelihood
-                    BL_FLOAT j0 = LA*LF;
-                    BL_FLOAT j1 = otherLA*otherLF;
+                    float j0 = LA*LF;
+                    float j1 = otherLA*otherLF;
                     if (j0 > j1)
                         // Current partial won
                     {
@@ -590,19 +297,19 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
                         if (mustFight1)
                         {
                             int prevPartialIdx =
-                                (*currentPartials)[fight1Idx].mLinkedId;
+                                (*currentPartials)[fight1Idx]._linkedId;
                             if (prevPartialIdx != -1)
-                                prevPartials0[prevPartialIdx].mLinkedId = -1;
+                                prevPartials0[prevPartialIdx]._linkedId = -1;
                             
-                            (*currentPartials)[fight1Idx].mId = -1;
-                            (*currentPartials)[fight1Idx].mLinkedId = -1;
+                            (*currentPartials)[fight1Idx]._id = -1;
+                            (*currentPartials)[fight1Idx]._linkedId = -1;
                         }
                         
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
 
-                        currentPartial.mLinkedId = i;
-                        prevPartial.mLinkedId = j;
+                        currentPartial._linkedId = i;
+                        prevPartial._linkedId = j;
                         
                         stopFlag = false;
                     }
@@ -622,20 +329,20 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
     } while (!stopFlag);
     
     // Update partials
-    vector<Partial> &newPartials = mTmpPartials6;
+    vector<Partial> &newPartials = _tmpPartials6;
     newPartials.resize(0);
     
     for (int j = 0; j < currentPartials->size(); j++)
     {
         Partial &currentPartial = (*currentPartials)[j];
 
-        if (currentPartial.mId != -1)
+        if (currentPartial._id != -1)
         {
-            currentPartial.mState = Partial::ALIVE;
-            currentPartial.mWasAlive = true;
+            currentPartial._state = Partial::ALIVE;
+            currentPartial._wasAlive = true;
     
             // Increment age
-            currentPartial.mAge = currentPartial.mAge + 1;
+            currentPartial._age = currentPartial._age + 1;
             
             newPartials.push_back(currentPartial);
         }
@@ -657,23 +364,20 @@ AssociatePartialsAMFM(const vector<Partial> &prevPartials,
 }
 
 long
-PartialFilterAMFM::FindNearestFreqId(const vector<Partial> &partials,
-                                     BL_FLOAT freq, int index)
+PartialFilterAMFM::findNearestFreqId(const vector<Partial> &partials,
+                                     float freq, int index)
 {
-    //if (index >= partials.size())
-    //    return -1;
-
     if (index > partials.size() - 1)
         index = partials.size() - 1; 
     
-    if (partials[index].mFreq < freq)
+    if (partials[index]._freq < freq)
     {
         for (int i = index; i < partials.size(); i++)
         {
-            if (partials[i].mFreq > freq)
+            if (partials[i]._freq > freq)
             {
-                BL_FLOAT d20 = partials[i].mFreq - freq;
-                BL_FLOAT d21 = freq - partials[i - 1].mFreq;
+                float d20 = partials[i]._freq - freq;
+                float d21 = freq - partials[i - 1]._freq;
                 
                 if (d20 < d21)
                     return i;
@@ -682,14 +386,14 @@ PartialFilterAMFM::FindNearestFreqId(const vector<Partial> &partials,
             }
         }
     }
-    else if (partials[index].mFreq > freq)
+    else if (partials[index]._freq > freq)
     {
         for (int i = index; i >= 0; i--)
         {
-            if (partials[i].mFreq < freq)
+            if (partials[i]._freq < freq)
             {
-                BL_FLOAT d20 = freq - partials[i].mFreq;
-                BL_FLOAT d21 = partials[i + 1].mFreq - freq;
+                float d20 = freq - partials[i]._freq;
+                float d21 = partials[i + 1]._freq - freq;
                 
                 if (d20 < d21)
                     return i;
@@ -705,19 +409,17 @@ PartialFilterAMFM::FindNearestFreqId(const vector<Partial> &partials,
 
 void
 PartialFilterAMFM::
-AssociatePartialsNeri(const vector<Partial> &prevPartials,
+associatePartialsNeri(const vector<Partial> &prevPartials,
                       vector<Partial> *currentPartials,
                       vector<Partial> *remainingCurrentPartials)
 {
     // Parameters
-    //BL_FLOAT delta = 0.2;
-    BL_FLOAT delta = mNeriDelta;
-    BL_FLOAT zetaF = 50.0; // in Hz
-    BL_FLOAT zetaA = 15; // in dB
+    //float delta = 0.2;
+    float delta = _neriDelta;
+    float zetaF = 50.0; // in Hz
+    float zetaA = 15; // in dB
 
-#if !RESCALE_HZ
-    zetaF *= 1.0/(mSampleRate*0.5);
-#endif
+    zetaF *= 1.0/(_sampleRate*0.5);
     
     // These can't be <= 0
     if (zetaF < 1e-1)
@@ -727,27 +429,17 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
  
     //Convert to log from dB
     zetaA = zetaA/20*log(10);
-    
-    // Quick optimization (avoid long freezing)
-    // (later, will use hungarian)
-    //#define MAX_NUM_ITER 5
-    
-    // Sometimes need more than 5 (and less than 10)
-    // When threshold is near 1%
-    // (Sometimes it never solves totally and would lead to infinite num iters)
+
+    // Avoid infinite loop
 #define MAX_NUM_ITER 10
     
     // Sort current partials and prev partials by increasing frequency
-    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
+    sort(currentPartials->begin(), currentPartials->end(), Partial::freqLess);
     
-    vector<Partial> &prevPartials0 = mTmpPartials5;
+    vector<Partial> &prevPartials0 = _tmpPartials5;
     prevPartials0 = prevPartials;
 
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
-#else
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::IdLess);
-#endif
+    sort(prevPartials0.begin(), prevPartials0.end(), Partial::idLess);
     
     // Associated partials
     bool stopFlag = true;
@@ -763,7 +455,7 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
             
             // Check if the link is already done
             if (((int)prevPartial.mId != -1) &&
-                (FindPartialById(*currentPartials, (int)prevPartial.mId) != -1))
+                (findPartialById(*currentPartials, (int)prevPartial._id) != -1))
                 // Already linked
                 continue;
             
@@ -771,25 +463,23 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
             {
                 Partial &currentPartial = (*currentPartials)[j];
                 
-                if (currentPartial.mId == prevPartial.mId)
+                if (currentPartial.mId == prevPartial._id)
                     continue;
 
                 // Compute current score
-                BL_FLOAT A;
-                BL_FLOAT B;
-                ComputeCostNeri(prevPartial, currentPartial,
+                float A;
+                float B;
+                computeCostNeri(prevPartial, currentPartial,
                                 delta, zetaF, zetaA,
                                 &A, &B);
 
-                BL_FLOAT cost = MIN(A, B);
+                float cost = MIN(A, B);
                 
                 bool discard = false;
-#if DISCARD_BIG_JUMPS
-                discard = CheckDiscardBigJump(prevPartial, currentPartial);
-#endif
+                discard = checkDiscardBigJump(prevPartial, currentPartial);
 
 #if DISCARD_OPPOSITE_DIRECTION
-                discard = CheckDiscardOppositeDirection(prevPartial, currentPartial);
+                discard = checkDiscardOppositeDirection(prevPartial, currentPartial);
 #endif
                 
                 // Avoid big jumps or similar
@@ -797,21 +487,17 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
                     // Associate!
                 {
                     // Current partial already has an id
-                    bool mustFight0 = (currentPartial.mId != -1);
+                    bool mustFight0 = (currentPartial._id != -1);
 
-                    int fight1Idx = FindPartialById(*currentPartials,
-                                                    (int)prevPartial.mId);
+                    int fight1Idx = findPartialById(*currentPartials,
+                                                    (int)prevPartial._id);
                     // Prev partial already has some association with the current id
                     bool mustFight1 = (fight1Idx != -1);
                         
                     if (!mustFight0 && !mustFight1)
                     {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
-                        
-#if EXTRAPOLATE_KALMAN
-                        currentPartial.mKf = prevPartial.mKf; //
-#endif
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
                         
                         stopFlag = false;
                         
@@ -822,13 +508,8 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
                     //
                     
                     // Find the previous link for case 0
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
                     int otherPrevIdx =
-                        FindPartialById(prevPartials0, (int)currentPartial.mId);
-#else
-                    int otherPrevIdx =
-                        FindPartialByIdSorted(prevPartials0, currentPartial);
-#endif
+                        findPartialByIdSorted(prevPartials0, currentPartial);
                     
                     // Find prev partial
                     Partial prevPartialFight =
@@ -838,28 +519,23 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
                         mustFight0 ? currentPartial : (*currentPartials)[fight1Idx];
 
                     // Compute other score
-                    BL_FLOAT otherA;
-                    BL_FLOAT otherB;
-                    ComputeCostNeri(prevPartialFight, currentPartialFight,
+                    float otherA;
+                    float otherB;
+                    computeCostNeri(prevPartialFight, currentPartialFight,
                                     delta, zetaF, zetaA,
                                     &otherA, &otherB);
                     
-                    BL_FLOAT otherCost = MIN(otherA, otherB);
+                    float otherCost = MIN(otherA, otherB);
                     
                     if (cost < otherCost)
-                    //if ((A < otherA) && (B < otherB))
                         // Current partial won
                     {
-                        currentPartial.mId = prevPartial.mId;
-                        currentPartial.mAge = prevPartial.mAge;
-                        
-#if EXTRAPOLATE_KALMAN
-                        currentPartial.mKf = prevPartial.mKf; //
-#endif
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
 
                         // Disconnect for case 1
                         if (mustFight1)
-                            (*currentPartials)[fight1Idx].mId = -1;
+                            (*currentPartials)[fight1Idx]._id = -1;
                         stopFlag = false;
                     }
                     else
@@ -878,32 +554,20 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
     } while (!stopFlag);
     
     // Update partials
-    vector<Partial> &newPartials = mTmpPartials6;
+    vector<Partial> &newPartials = _tmpPartials6;
     newPartials.resize(0);
     
     for (int j = 0; j < currentPartials->size(); j++)
     {
         Partial &currentPartial = (*currentPartials)[j];
 
-        if (currentPartial.mId != -1)
+        if (currentPartial._id != -1)
         {
-            currentPartial.mState = Partial::ALIVE;
-            currentPartial.mWasAlive = true;
+            currentPartial._state = Partial::ALIVE;
+            currentPartial._wasAlive = true;
     
             // Increment age
-            currentPartial.mAge = currentPartial.mAge + 1;
-
-#if 0 // No need
-            
-#if EXTRAPOLATE_KALMAN
-            ExtrapolatePartialKalman(&currentPartial);
-#endif
-            
-#if EXTRAPOLATE_AMFM
-            ExtrapolatePartialAMFM(&currentPartial);
-#endif
-
-#endif
+            currentPartial._age = currentPartial._age + 1;
             
             newPartials.push_back(currentPartial);
         }
@@ -916,7 +580,7 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
     for (int i = 0; i < currentPartials->size(); i++)
     {
         const Partial &p = (*currentPartials)[i];
-        if (p.mId == -1)
+        if (p._id == -1)
             remainingCurrentPartials->push_back(p);
     }
     
@@ -925,221 +589,7 @@ AssociatePartialsNeri(const vector<Partial> &prevPartials,
 }
 
 void
-PartialFilterAMFM::
-AssociatePartialsHungarianAMFM(const vector<Partial> &prevPartials,
-                               vector<Partial> *currentPartials,
-                               vector<Partial> *remainingCurrentPartials)
-{
-#define HUNGARIAN_INF BL_INF
-    //#define HUNGARIAN_INF 1.0 //10.0
-
-    // ORIGIN: 0
-    // => looks quite similar with or without...
-#define FORCE_SQUARE_MATRIX 0 //1
-    
-#if FORCE_SQUARE_MATRIX
-    int maxDim = (prevPartials.size() > currentPartials->size()) ?
-        prevPartials.size() : currentPartials->size();
-
-    // Init cost matrix (MxN)
-    vector<vector<BL_FLOAT> > costMatrix;
-    costMatrix.resize(maxDim);
-    for (int i = 0; i < costMatrix.size(); i++)
-        costMatrix[i].resize(maxDim);
-#else 
-    // Init cost matrix (MxN)
-    vector<vector<BL_FLOAT> > costMatrix;
-    costMatrix.resize(prevPartials.size());
-    for (int i = 0; i < costMatrix.size(); i++)
-        costMatrix[i].resize(currentPartials->size());
-#endif
-    
-#if FORCE_SQUARE_MATRIX
-    // Fill with dummy values
-    for (int i = 0; i < costMatrix.size(); i++)
-        for (int j = 0; j < costMatrix[i].size(); j++)
-            costMatrix[i][j] = 0.0;
-#endif
-    
-    // Fill the cost matrix
-    for (int i = 0; i < costMatrix.size(); i++)
-    {
-        for (int j = 0; j < costMatrix[i].size(); j++)
-        {
-#if FORCE_SQUARE_MATRIX
-            if (i >= prevPartials.size())
-                continue;
-            if (j >= currentPartials->size())
-                continue;
-#endif
-            
-            BL_FLOAT LA = ComputeLA(prevPartials[i], (*currentPartials)[j]);
-            BL_FLOAT LF = ComputeLF(prevPartials[i], (*currentPartials)[j]);
-            
-            bool discard = false;
-#if DISCARD_BIG_JUMPS
-            discard = CheckDiscardBigJump(prevPartials[i], (*currentPartials)[j]);
-#endif
-
-#if 1 // Check discard?
-            if ((LA < 0.5) || (LF < 0.5) ||
-                // Avoid big jumps or similar
-                discard)
-                costMatrix[i][j] = HUNGARIAN_INF; 
-            else
-#endif
-                costMatrix[i][j] = 1.0 - LA*LF;
-        }
-    }
-
-#if 0 //1 // DEBUG
-    BLDebug::ResetFile("matrix.txt");
-    for (int i = 0; i < costMatrix.size(); i++)
-    {
-        for (int j = 0; j < costMatrix[i].size(); j++)
-        {
-            BL_FLOAT val = costMatrix[i][j];
-            
-            BLDebug::AppendValue("matrix.txt", val);
-        }
-    }
-#endif
-    
-    // Solve
-    HungarianAlgorithm HungAlgo;
-	vector<int> assignment;
-	BL_FLOAT cost = HungAlgo.Solve(costMatrix, assignment);
-    
-    for (int i = 0; i < assignment.size(); i++)
-    {
-        int a = assignment[i];
-
-#if FORCE_SQUARE_MATRIX
-        if (i >= prevPartials.size())
-            continue;
-        if (a >= currentPartials->size())
-            continue;
-#endif
-        
-        // If num prev > num current, there will be some unassigned partials
-        // (int this case, assignment is -1)
-        if ((a != -1) && (prevPartials[i].mId != -1))
-            (*currentPartials)[a].mId = prevPartials[i].mId;
-    }
-
-    vector<Partial> newPartials;
-    
-    // Add the remaining partials
-    remainingCurrentPartials->clear();
-    for (int i = 0; i < currentPartials->size(); i++)
-    {
-        Partial &p = (*currentPartials)[i];
-        if (p.mId != -1)
-        {
-            p.mState = Partial::ALIVE;
-            p.mWasAlive = true;
-    
-            // Increment age
-            p.mAge = p.mAge + 1;
-            
-            newPartials.push_back(p);
-        }
-        else          
-            remainingCurrentPartials->push_back(p);
-    }
-
-    *currentPartials = newPartials;
-}
-
-// Compute score like in the paper
-void
-PartialFilterAMFM::
-AssociatePartialsHungarianNeri(const vector<Partial> &prevPartials,
-                               vector<Partial> *currentPartials,
-                               vector<Partial> *remainingCurrentPartials)
-{
-    // Parameters
-    /*const*/ BL_FLOAT delta = 0.2;
-    /*const*/ BL_FLOAT zetaF = 50.0; // in Hz
-    /*const*/ BL_FLOAT zetaA = 15; // in dB
-
-#if !RESCALE_HZ
-    zetaF *= 1.0/(mSampleRate*0.5);
-#endif
-    
-    // These can't be <= 0
-    if (zetaF < 1e-1)
-        zetaF = 1e-1;
-    if (zetaA < 1e-1)
-        zetaA = 1e-1;
- 
-    //Convert to log from dB
-    zetaA = zetaA/20*log(10);
-
-    
-    // Init cost matrix (MxN)
-    vector<vector<BL_FLOAT> > costMatrix;
-    costMatrix.resize(prevPartials.size());
-    for (int i = 0; i < costMatrix.size(); i++)
-        costMatrix[i].resize(currentPartials->size());
-    
-    // Fill the cost matrix
-    for (int i = 0; i < costMatrix.size(); i++)
-    {
-        for (int j = 0; j < costMatrix[i].size(); j++)
-        {
-            BL_FLOAT A;
-            BL_FLOAT B;
-            ComputeCostNeri(prevPartials[i], (*currentPartials)[j],
-                            delta, zetaF, zetaA,
-                            &A, &B);
-
-            costMatrix[i][j] = (A < B) ? A : B;
-        }
-    }
-
-    // Solve
-    HungarianAlgorithm HungAlgo;
-	vector<int> assignment;
-	BL_FLOAT cost = HungAlgo.Solve(costMatrix, assignment);
-    
-    for (int i = 0; i < assignment.size(); i++)
-    {
-        int a = assignment[i];
-       
-        // If num prev > num current, there will be some unassigned partials
-        // (int this case, assignment is -1)
-        if ((a != -1) && 
-            (prevPartials[i].mId != -1))
-            (*currentPartials)[a].mId = prevPartials[i].mId;
-    }
-
-    vector<Partial> newPartials;
-    
-    // Add the remaining partials
-    remainingCurrentPartials->clear();
-    for (int i = 0; i < currentPartials->size(); i++)
-    {
-        Partial &p = (*currentPartials)[i];
-        if (p.mId != -1)
-        {
-            p.mState = Partial::ALIVE;
-            p.mWasAlive = true;
-    
-            // Increment age
-            p.mAge = p.mAge + 1;
-            
-            newPartials.push_back(p);
-        }
-        else          
-            remainingCurrentPartials->push_back(p);
-    }
-
-    *currentPartials = newPartials;
-}
-
-void
-PartialFilterAMFM::ComputeZombieDeadPartials(const vector<Partial> &prevPartials,
+PartialFilterAMFM::computeZombieDeadPartials(const vector<Partial> &prevPartials,
                                              const vector<Partial> &currentPartials,
                                              vector<Partial> *zombieDeadPartials)
 {
@@ -1155,7 +605,7 @@ PartialFilterAMFM::ComputeZombieDeadPartials(const vector<Partial> &prevPartials
         {
             const Partial &currentPartial = currentPartials[j];
             
-            if (currentPartial.mId == prevPartial.mId)
+            if (currentPartial._id == prevPartial._id)
             {
                 found = true;
                 
@@ -1165,49 +615,24 @@ PartialFilterAMFM::ComputeZombieDeadPartials(const vector<Partial> &prevPartials
 
         if (!found)
         {            
-            if (prevPartial.mState == Partial::ALIVE)
+            if (prevPartial._state == Partial::ALIVE)
             {
                 // We set zombie for 1 frame only
                 Partial newPartial = prevPartial;
-                newPartial.mState = Partial::ZOMBIE;
-                newPartial.mZombieAge = 0;
+                newPartial._state = Partial::ZOMBIE;
+                newPartial._zombieAge = 0;
 
-#if 1 // Good, extrapolate zombies
-                
-#if EXTRAPOLATE_KALMAN
-                ExtrapolatePartialKalman(&newPartial);
-#endif
-
-#if EXTRAPOLATE_AMFM
-                ExtrapolatePartialAMFM(&newPartial);
-#endif
-
-#endif
-                if (newPartial.mZombieAge < MAX_ZOMBIE_AGE)
+                if (newPartial._zombieAge < MAX_ZOMBIE_AGE)
                     zombieDeadPartials->push_back(newPartial);
             }
-            else if (prevPartial.mState == Partial::ZOMBIE)
+            else if (prevPartial._state == Partial::ZOMBIE)
             {
                 Partial newPartial = prevPartial;
-                newPartial.mZombieAge++;
+                newPartial._zombieAge++;
                 
-                if (newPartial.mZombieAge >= MAX_ZOMBIE_AGE)
+                if (newPartial._zombieAge >= MAX_ZOMBIE_AGE)
                 {
-                    newPartial.mState = Partial::DEAD;
-                }
-                else
-                {
-#if 1
-                
-#if EXTRAPOLATE_KALMAN
-                    ExtrapolatePartialKalman(&newPartial);
-#endif
-
-#if EXTRAPOLATE_AMFM
-                    ExtrapolatePartialAMFM(&newPartial);
-#endif
-                
-#endif
+                    newPartial._state = Partial::DEAD;
                 }
                 
                 zombieDeadPartials->push_back(newPartial);
@@ -1220,7 +645,7 @@ PartialFilterAMFM::ComputeZombieDeadPartials(const vector<Partial> &prevPartials
 
 // Simple fix for partial crossing error
 void
-PartialFilterAMFM::FixPartialsCrossing(const vector<Partial> &partials0,
+PartialFilterAMFM::fixPartialsCrossing(const vector<Partial> &partials0,
                                        const vector<Partial> &partials1,
                                        vector<Partial> *partials2)
 {
@@ -1228,14 +653,10 @@ PartialFilterAMFM::FixPartialsCrossing(const vector<Partial> &partials0,
     return;
 #endif
     
-    // Tmp optimization
+    // Optimization
 #define MIN_PARTIAL_AGE 5
 
-#if RESCALE_HZ
-#define MAX_SWAP_FREQ 100.0
-#else
-#define MAX_SWAP_FREQ 100.0/(mSampleRate*0.5)
-#endif
+#define MAX_SWAP_FREQ 100.0/(_sampleRate*0.5)
     
     const vector<Partial> partials2Copy = *partials2;
         
@@ -1245,28 +666,20 @@ PartialFilterAMFM::FixPartialsCrossing(const vector<Partial> &partials0,
     for (int i = 0; i < partials2Copy.size(); i++)
     {
         p0[2] = partials2Copy[i];
-        if (p0[2].mId == -1)
+        if (p0[2]._id == -1)
             continue;
 
         // Tmp optim
-        if (p0[2].mAge < MIN_PARTIAL_AGE)
+        if (p0[2]._age < MIN_PARTIAL_AGE)
             continue;
 
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-        int idx01 = FindPartialById(partials1, p0[2].mId);
-#else
-        int idx01 = FindPartialByIdSorted(partials1, p0[2]);
-#endif
+        int idx01 = findPartialByIdSorted(partials1, p0[2]);
         
         if (idx01 == -1)
             continue;
         p0[1] = partials1[idx01];
 
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-        int idx00 = FindPartialById(partials0, p0[2].mId);
-#else
-        int idx00 = FindPartialByIdSorted(partials0, p0[2]);
-#endif
+        int idx00 = findPartialByIdSorted(partials0, p0[2]);
         
         if (idx00 == -1)
             continue;
@@ -1276,58 +689,48 @@ PartialFilterAMFM::FixPartialsCrossing(const vector<Partial> &partials0,
         for (int j = i + 1; j < partials2Copy.size(); j++)
         {
             p1[2] = partials2Copy[j];
-            if (p1[2].mId == -1)
+            if (p1[2]._id == -1)
                 continue;
 
             // Try to avoid very messy results
-            //if (std::fabs(p1[2].mFreq - p0[2].mFreq) > MAX_SWAP_FREQ)
-            //    continue;
-            if ((p1[2].mFreq - p0[2].mFreq > MAX_SWAP_FREQ) ||
-                (p0[2].mFreq - p1[2].mFreq > MAX_SWAP_FREQ))
+            if ((p1[2]._freq - p0[2]._freq > MAX_SWAP_FREQ) ||
+                (p0[2]._freq - p1[2]._freq > MAX_SWAP_FREQ))
                 continue;
  
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-            int idx11 = FindPartialById(partials1, p1[2].mId);
-#else
-            int idx11 = FindPartialByIdSorted(partials1, p1[2]);
-#endif
+            int idx11 = findPartialByIdSorted(partials1, p1[2]);
             
             if (idx11 == -1)
                 continue;
             p1[1] = partials1[idx11];
 
-#if !OPTIM_SAMPLES_SYNTH_SORTED_VEC
-            int idx10 = FindPartialById(partials0, p1[2].mId);
-#else
-            int idx10 = FindPartialByIdSorted(partials0, p1[2]);
-#endif
+            int idx10 = findPartialByIdSorted(partials0, p1[2]);
             
             if (idx10 == -1)
                 continue;
             p1[0] = partials0[idx10];
 
             // Extrapolated values
-            BL_FLOAT extraP0 = p0[1].mFreq + (p0[1].mFreq - p0[0].mFreq);
-            BL_FLOAT extraP1 = p1[1].mFreq + (p1[1].mFreq - p1[0].mFreq);
+            float extraP0 = p0[1]._freq + (p0[1]._freq - p0[0]._freq);
+            float extraP1 = p1[1]._freq + (p1[1]._freq - p1[0]._freq);
 
             // Check if extrapolated points intersect
-            BL_FLOAT extraSeg0[2][2] = { { p0[1].mFreq, 0.0 }, { extraP0, 1.0 } };
-            BL_FLOAT extraSeg1[2][2] = { { p1[1].mFreq, 0.0 }, { extraP1, 1.0 } };
-            bool extraIntersect = BLUtilsMath::SegSegIntersect2(extraSeg0, extraSeg1);
+            float extraSeg0[2][2] = { { p0[1]._freq, 0.0 }, { extraP0, 1.0 } };
+            float extraSeg1[2][2] = { { p1[1]._freq, 0.0 }, { extraP1, 1.0 } };
+            bool extraIntersect = Utils::segSegIntersect(extraSeg0, extraSeg1);
 
             // Check if real points intersect
-            BL_FLOAT seg0[2][2] = { { p0[1].mFreq, 0.0 }, { p0[2].mFreq, 1.0 } };
-            BL_FLOAT seg1[2][2] = { { p1[1].mFreq, 0.0 }, { p1[2].mFreq, 1.0 } };
-            bool intersect = BLUtilsMath::SegSegIntersect2(seg0, seg1);
+            float seg0[2][2] = { { p0[1]._freq, 0.0 }, { p0[2]._freq, 1.0 } };
+            float seg1[2][2] = { { p1[1]._freq, 0.0 }, { p1[2]._freq, 1.0 } };
+            bool intersect = Utils::segSegIntersect(seg0, seg1);
             
             if (intersect != extraIntersect)
             {   
-                int tmpId = p0[2].mId;
-                p0[2].mId = p1[2].mId;
-                p1[2].mId = tmpId;
+                int tmpId = p0[2]._id;
+                p0[2]._id = p1[2]._id;
+                p1[2]._id = tmpId;
                 
-                (*partials2)[i].mId = p0[2].mId;
-                (*partials2)[j].mId = p1[2].mId;
+                (*partials2)[i]._id = p0[2]._id;
+                (*partials2)[j]._id = p1[2]._id;
 
                 // ??
                 break;
@@ -1337,14 +740,14 @@ PartialFilterAMFM::FixPartialsCrossing(const vector<Partial> &partials0,
 }
 
 int
-PartialFilterAMFM::FindPartialById(const vector<Partial> &partials, int idx)
+PartialFilterAMFM::findPartialById(const vector<Partial> &partials, int idx)
 {
     long numPartials = partials.size();
     for (int i = 0; i < numPartials; i++)
     {
         const Partial &partial = partials[i];
         
-        if (partial.mId == idx)
+        if (partial._id == idx)
             return i;
     }
     
@@ -1352,16 +755,16 @@ PartialFilterAMFM::FindPartialById(const vector<Partial> &partials, int idx)
 }
 
 int
-PartialFilterAMFM::FindPartialByIdSorted(const vector<Partial> &partials,
+PartialFilterAMFM::findPartialByIdSorted(const vector<Partial> &partials,
                                          const Partial &refPartial)
 {
     vector<Partial> &partials0 = (vector<Partial> &)partials;
     
     // Find the corresponding prev partial
     vector<Partial>::iterator it =
-        lower_bound(partials0.begin(), partials0.end(), refPartial, Partial::IdLess);
+        lower_bound(partials0.begin(), partials0.end(), refPartial, Partial::idLess);
     
-    if (it != partials0.end() && (*it).mId == refPartial.mId)
+    if (it != partials0.end() && (*it).mId == refPartial._id)
     {
         // We found the element!
         return (it - partials0.begin());
@@ -1373,201 +776,111 @@ PartialFilterAMFM::FindPartialByIdSorted(const vector<Partial> &partials,
 
 // Compute amplitude likelihood
 // (increase when the penality decrease)
-BL_FLOAT
-PartialFilterAMFM::ComputeLA(const Partial &prevPartial,
+float
+PartialFilterAMFM::computeLA(const Partial &prevPartial,
                              const Partial &currentPartial)
 {
-#if !OPTIM_TRAPEZOID_AREA
-    // Use general polygon
-    BL_FLOAT x[4] = { 0.0, 1.0, 1.0, 0.0 };
-    BL_FLOAT y[4] = { prevPartial.mAmp,
-                      prevPartial.mAmp + prevPartial.mAlpha0,
-                      currentPartial.mAmp,
-                      currentPartial.mAmp - currentPartial.mAlpha0 };
-                        
-    BL_FLOAT area = BLUtilsMath::PolygonArea(x, y, 4);
-#else
-    BL_FLOAT a =
-        fabs(prevPartial.mAmp - (currentPartial.mAmp - currentPartial.mAlpha0));
-    BL_FLOAT b =
-        fabs(currentPartial.mAmp - (prevPartial.mAmp + prevPartial.mAlpha0));
-    BL_FLOAT h = 1.0;
-    BL_FLOAT area = BLUtilsMath::TrapezoidArea(a, b, h);
-#endif
+    float a =
+        fabs(prevPartial._amp - (currentPartial._amp - currentPartial._alpha0));
+    float b =
+        fabs(currentPartial._amp - (prevPartial._amp + prevPartial._alpha0));
+    float h = 1.0;
+    float area = Utils::trapezoidArea(a, b, h);
     
     // u
-    BL_FLOAT denom = sqrt(currentPartial.mAmp*prevPartial.mAmp);
-    BL_FLOAT ua = 0.0;
-    if (denom > BL_EPS)
+    float denom = sqrt(currentPartial._amp*prevPartial._amp);
+    float ua = 0.0;
+    if (denom > NL_EPS)
         ua = area/denom;
     
     // Likelihood
-    BL_FLOAT LA = 1.0/(1.0 + ua);
+    float LA = 1.0/(1.0 + ua);
     
     return LA;
 }
 
 // Compute frequency likelihood
 // (increase when the penality decrease)
-BL_FLOAT
-PartialFilterAMFM::ComputeLF(const Partial &prevPartial,
+float
+PartialFilterAMFM::computeLF(const Partial &prevPartial,
                              const Partial &currentPartial)
 {
-#if !OPTIM_TRAPEZOID_AREA
-    // General polygon
-    BL_FLOAT x[4] = { 0.0, 1.0, 1.0, 0.0 };
-    BL_FLOAT y[4] = { prevPartial.mFreq,
-                      prevPartial.mFreq + prevPartial.mBeta0,
-                      currentPartial.mFreq,
-                      currentPartial.mFreq - currentPartial.mBeta0 };
-    
-    BL_FLOAT area = BLUtilsMath::PolygonArea(x, y, 4);
-#else
-    BL_FLOAT a =
-        fabs(prevPartial.mFreq - (currentPartial.mFreq - currentPartial.mBeta0));
-    BL_FLOAT b =
-        fabs(currentPartial.mFreq - (prevPartial.mFreq + prevPartial.mBeta0));
-    BL_FLOAT h = 1.0;
-    BL_FLOAT area = BLUtilsMath::TrapezoidArea(a, b, h);
-#endif
+    float a =
+        fabs(prevPartial._freq - (currentPartial._freq - currentPartial._beta0));
+    float b =
+        fabs(currentPartial._freq - (prevPartial._freq + prevPartial._beta0));
+    float h = 1.0;
+    float area = Utils::trapezoidArea(a, b, h);
     
     // u
-    BL_FLOAT denom = sqrt(currentPartial.mFreq*prevPartial.mFreq);
-    BL_FLOAT uf = 0.0;
-    if (denom > BL_EPS)
+    float denom = sqrt(currentPartial._freq*prevPartial._freq);
+    float uf = 0.0;
+    if (denom > NL_EPS)
         uf = area/denom;
     
     // Likelihood
-    BL_FLOAT LF = 1.0/(1.0 + uf);
+    float LF = 1.0/(1.0 + uf);
         
     return LF;
 }
 
 // See: https://github.com/jundsp/Fast-Partial-Tracking
 void
-PartialFilterAMFM::ComputeCostNeri(const Partial &prevPartial,
-                                    const Partial &currentPartial,
-                                    BL_FLOAT delta, BL_FLOAT zetaF, BL_FLOAT zetaA,
-                                    BL_FLOAT *A, BL_FLOAT *B)
+PartialFilterAMFM::computeCostNeri(const Partial &prevPartial,
+                                   const Partial &currentPartial,
+                                   float delta, float zetaF, float zetaA,
+                                   float *A, float *B)
 {
-    // Debug/Hack: set a very big value for zetaA...
+    // Set a very big value for zetaA
+    zetaA = 50.0; // => this way detections begin to be good
     
-    //zetaA = 5.0; // TEST
-    //zetaA = 10.0; // TEST
-    zetaA = 50.0; // TEST => this way detections begin to be good
+    float deltaF =
+        (currentPartial._freq - currentPartial._beta0*0.5) -
+        (prevPartial._freq + prevPartial._beta0*0.5);
+    float deltaA = (currentPartial._amp - currentPartial._alpha0*0.5) -
+        (prevPartial._amp + prevPartial._alpha0*0.5);
     
-    /*fprintf(stderr, "freq: %g zetaF: %g\n", currentPartial.mFreq, zetaF);
-      fprintf(stderr, "amp: %g zetaA: %g\n", currentPartial.mAmp, zetaA);
-      fprintf(stderr, "\n");
-    */
-    
-    BL_FLOAT deltaF =
-        (currentPartial.mFreq - currentPartial.mBeta0*0.5) -
-        (prevPartial.mFreq + prevPartial.mBeta0*0.5);
-    BL_FLOAT deltaA = (currentPartial.mAmp - currentPartial.mAlpha0*0.5) -
-        (prevPartial.mAmp + prevPartial.mAlpha0*0.5);
-    
-#if 0
-    // Like in paper (there is a mistake here! log of negative values => NaN 
-    BL_FLOAT denom = (2.0*log(delta - 2.0) - 2.0*log(delta - 1.0));    
-    BL_FLOAT sigmaF2 = zetaF*zetaF/denom;
-    BL_FLOAT sigmaA2 = zetaA*zetaA/denom;
-#endif
 
-#if 1
-    // Like in github
-    BL_FLOAT coeff = log((delta - 1.0)/(delta - 2.0));
-    BL_FLOAT sigmaF2 = -zetaF*zetaF*coeff;
-    BL_FLOAT sigmaA2 = -zetaA*zetaA*coeff;
-#endif
+    // Modification from the paper to avoid log of negative values
+    float coeff = log((delta - 1.0)/(delta - 2.0));
+    float sigmaF2 = -zetaF*zetaF*coeff;
+    float sigmaA2 = -zetaA*zetaA*coeff;
 
-#if 0 //1
-    // Like in paper
-    *A = 1.0 - exp(-deltaF*deltaF/(2.0*sigmaF2) - deltaA*deltaA/(2.0*sigmaA2));
-#endif
-
-#if 1 //0
-    // Like in github
     *A = 1.0 - exp(-deltaF*deltaF/sigmaF2 - deltaA*deltaA/sigmaA2);
-#endif
     
     *B = 1.0 - (1.0 - delta)*(*A);
 }   
 
-// Extrapolate the partial with alpha0 and beta0
-void
-PartialFilterAMFM::ExtrapolatePartialAMFM(Partial *p)
-{
-    // Amp is normalized
-    p->mAmp += p->mAlpha0;
-    if (p->mAmp < 0.0)
-        p->mAmp = 0.0;
-    if (p->mAmp > 1.0)
-        p->mAmp = 1.0;
-
-    // Freq is real freq
-    p->mFreq += p->mBeta0;
-    
-#if RESCALE_HZ
-    if (p->mFreq < 0.0)
-        p->mFreq = 0.0;
-    if (p->mFreq > mSampleRate*0.5)
-        p->mFreq = mSampleRate*0.5;
-#else
-    if (p->mFreq < 0.0)
-        p->mFreq = 0.0;
-    if (p->mFreq > 1.0)
-        p->mFreq = 1.0;
-#endif
-}
-
-void
-PartialFilterAMFM::ExtrapolatePartialKalman(Partial *p)
-{
-#if RESCALE_HZ
-    p->mFreq /= mSampleRate*0.5;
-#endif
-    
-    p->mFreq = p->mKf.updateEstimate(p->mFreq);
-
-#if RESCALE_HZ
-    p->mFreq *= mSampleRate*0.5;
-#endif
-}
-
 bool
-PartialFilterAMFM::CheckDiscardBigJump(const Partial &prevPartial,
+PartialFilterAMFM::checkDiscardBigJump(const Partial &prevPartial,
                                        const Partial &currentPartial)
 {
-#define BIG_JUMP_COEFF 16.0 //4.0 //16.0 //4.0 //2.0
+#define BIG_JUMP_COEFF 16.0
 
-    BL_FLOAT oneBinEps = 1.0/mBufferSize;
-#if RESCALE_HZ
-    oneBinEps *= mSampleRate*0.5;
-#endif
+    float oneBinEps = 1.0/_bufferSize;
 
     // Check if partials are very close
     // (in this case, it sould keep the same id, even if beta0 is very small)
-    if (std::fabs(prevPartial.mFreq - currentPartial.mFreq) <
+    if (fabs(prevPartial._freq - currentPartial._freq) <
         oneBinEps*BIG_JUMP_COEFF)
         return false;
         
     // Extrapoled frequency, from prev partial
-    BL_FLOAT extraFreq0 = prevPartial.mFreq + prevPartial.mBeta0;
-    bool flag0 = (currentPartial.mFreq > extraFreq0 +
-                  BIG_JUMP_COEFF*(extraFreq0 - prevPartial.mFreq));
+    float extraFreq0 = prevPartial._freq + prevPartial._beta0;
+    bool flag0 = (currentPartial._freq > extraFreq0 +
+                  BIG_JUMP_COEFF*(extraFreq0 - prevPartial._freq));
 
 
-    bool flag1 = (currentPartial.mFreq < extraFreq0 -
-                  BIG_JUMP_COEFF*(extraFreq0 - prevPartial.mFreq));
+    bool flag1 = (currentPartial._freq < extraFreq0 -
+                  BIG_JUMP_COEFF*(extraFreq0 - prevPartial._freq));
 
     // Extrapolated, from current partial
-    BL_FLOAT extraFreq1 = currentPartial.mFreq - currentPartial.mBeta0;
-    bool flag2 = (prevPartial.mFreq > extraFreq1 +
-                  BIG_JUMP_COEFF*(extraFreq1 - currentPartial.mFreq));
+    float extraFreq1 = currentPartial._freq - currentPartial._beta0;
+    bool flag2 = (prevPartial._freq > extraFreq1 +
+                  BIG_JUMP_COEFF*(extraFreq1 - currentPartial._freq));
 
-    bool flag3 = (prevPartial.mFreq < extraFreq1 -
-                  BIG_JUMP_COEFF*(extraFreq1 - currentPartial.mFreq));
+    bool flag3 = (prevPartial._freq < extraFreq1 -
+                  BIG_JUMP_COEFF*(extraFreq1 - currentPartial._freq));
 
     // Use flags "&&" to mix cases
     // e.g to give a chance to a case where prev beta0 is almost 0,
@@ -1582,21 +895,21 @@ PartialFilterAMFM::CheckDiscardBigJump(const Partial &prevPartial,
 }
 
 bool
-PartialFilterAMFM::CheckDiscardOppositeDirection(const Partial &prevPartial,
+PartialFilterAMFM::checkDiscardOppositeDirection(const Partial &prevPartial,
                                                  const Partial &currentPartial)
 {
-    if ((prevPartial.mFreq < currentPartial.mFreq) &&
-        (prevPartial.mBeta0 < 0.0) && (currentPartial.mBeta0 > 0.0))
+    if ((prevPartial._freq < currentPartial._freq) &&
+        (prevPartial._beta0 < 0.0) && (currentPartial._beta0 > 0.0))
         return true;
-    if ((prevPartial.mFreq > currentPartial.mFreq) &&
-        (prevPartial.mBeta0 > 0.0) && (currentPartial.mBeta0 < 0.0))
+    if ((prevPartial._freq > currentPartial._freq) &&
+        (prevPartial._beta0 > 0.0) && (currentPartial._beta0 < 0.0))
         return true;
 
-    if ((prevPartial.mAmp < currentPartial.mAmp) &&
-        (prevPartial.mAlpha0 < 0.0) && (currentPartial.mAlpha0 > 0.0))
+    if ((prevPartial._amp < currentPartial._amp) &&
+        (prevPartial._alpha0 < 0.0) && (currentPartial._alpha0 > 0.0))
         return true;
-    if ((prevPartial.mAmp > currentPartial.mAmp) &&
-        (prevPartial.mAlpha0 > 0.0) && (currentPartial.mAlpha0 < 0.0))
+    if ((prevPartial._amp > currentPartial._amp) &&
+        (prevPartial._alpha0 > 0.0) && (currentPartial._alpha0 < 0.0))
         return true;
     
     return false;

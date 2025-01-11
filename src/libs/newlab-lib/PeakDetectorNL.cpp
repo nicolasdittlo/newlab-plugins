@@ -16,18 +16,16 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <BLUtilsMath.h>
+#include "Defines.h"
+#include "PeakDetectorNL.h"
 
-#include "PeakDetectorBL.h"
-
-#define DISCARD_INVALID_PEAKS 1
 
 PeakDetectorBL::PeakDetectorBL() {}
 
 PeakDetectorBL::~PeakDetectorBL() {}
 
 void
-PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
+PeakDetectorBL::detectPeaks(const vector<float> &data,
                             vector<Peak> *peaks,
                             int minIndex, int maxIndex)
 {
@@ -40,11 +38,11 @@ PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
     if (minIndex < 0)
         minIndex = 0;
     if (maxIndex < 0)
-        maxIndex = data.GetSize() - 1;
+        maxIndex = data.size() - 1;
 
-    BL_FLOAT prevVal = 0.0;
-    BL_FLOAT nextVal = 0.0;
-    BL_FLOAT currentVal = 0.0;
+    float prevVal = 0.0;
+    float nextVal = 0.0;
+    float currentVal = 0.0;
 
     int currentIndex = minIndex;
     while(currentIndex < maxIndex)
@@ -62,15 +60,15 @@ PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
                 int leftIndex = currentIndex;
                 if (leftIndex > 0)
                 {
-                    BL_FLOAT prevLeftVal = data.Get()[leftIndex];
+                    float prevLeftVal = data.data()[leftIndex];
                     while(leftIndex > 0)
                     {
                         leftIndex--;
                         
-                        BL_FLOAT leftVal = data.Get()[leftIndex];
+                        float leftVal = data.data()[leftIndex];
                         
                         // Stop if we reach 0 or if it goes up again
-                        if ((leftVal < BL_EPS) || (leftVal > prevLeftVal))
+                        if ((leftVal < NL_EPS) || (leftVal > prevLeftVal))
                         {
                             if (leftVal >= prevLeftVal)
                                 leftIndex++;
@@ -94,16 +92,16 @@ PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
                 
                 if (rightIndex <= maxIndex)
                 {
-                    BL_FLOAT prevRightVal = data.Get()[rightIndex];
+                    float prevRightVal = data.data()[rightIndex];
                     
                     while(rightIndex < maxIndex)
                     {
                         rightIndex++;
                                 
-                        BL_FLOAT rightVal = data.Get()[rightIndex];
+                        float rightVal = data.data()[rightIndex];
                                 
                         // Stop if we reach 0 or if it goes up again
-                        if ((rightVal < BL_EPS) || (rightVal > prevRightVal))
+                        if ((rightVal < NL_EPS) || (rightVal > prevRightVal))
                         {
                             if (rightVal >= prevRightVal)
                                 rightIndex--;
@@ -131,22 +129,20 @@ PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
                 
                 bool discard = false;
                     
-#if DISCARD_INVALID_PEAKS
                 if (!discard)
                 {
-                    discard = DiscardInvalidPeaks(data, peakIndex,
+                    discard = discardInvalidPeaks(data, peakIndex,
                                                   leftIndex, rightIndex);
                 }
-#endif
                 
                 if (!discard)
                 {
                     // Create new peak
                     //
                     Peak p;
-                    p.mPeakIndex = peakIndex;
-                    p.mLeftIndex = leftIndex;
-                    p.mRightIndex = rightIndex;
+                    p._peakIndex = peakIndex;
+                    p._leftIndex = leftIndex;
+                    p._rightIndex = rightIndex;
 
                     peaks->push_back(p);
                 }
@@ -160,23 +156,23 @@ PeakDetectorBL::DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
             currentIndex++;
         
         // Update the values
-        currentVal = data.Get()[currentIndex];
+        currentVal = data.data()[currentIndex];
         
         if (currentIndex - 1 >= 0)
-            prevVal = data.Get()[currentIndex - 1];
+            prevVal = data.data()[currentIndex - 1];
         
         if (currentIndex + 1 <= maxIndex)
-            nextVal = data.Get()[currentIndex + 1];
+            nextVal = data.data()[currentIndex + 1];
     }
 }
 
 bool
-PeakDetectorBL::DiscardInvalidPeaks(const WDL_TypedBuf<BL_FLOAT> &data,
+PeakDetectorBL::discardInvalidPeaks(const vector<float> &data,
                                     int peakIndex, int leftIndex, int rightIndex)
 {
-    BL_FLOAT peakAmp = data.Get()[peakIndex];
-    BL_FLOAT leftAmp = data.Get()[leftIndex];
-    BL_FLOAT rightAmp = data.Get()[rightIndex];
+    float peakAmp = data.data()[peakIndex];
+    float leftAmp = data.data()[leftIndex];
+    float rightAmp = data.data()[rightIndex];
     
     if ((peakAmp > leftAmp) && (peakAmp > rightAmp))
         // Correct, do not discard

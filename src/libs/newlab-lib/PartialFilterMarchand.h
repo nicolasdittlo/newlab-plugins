@@ -20,51 +20,52 @@
 #define PARTIAL_FILTER_MARCHAND_H
 
 #include <vector>
+#include <deque>
 using namespace std;
 
-#include <PartialFilter.h>
+#include "PartialFilter.h"
 
 // Method of Sylvain Marchand (~2001)
 class PartialFilterMarchand : public PartialFilter
 {
  public:
-    PartialFilterMarchand(int bufferSize, BL_FLOAT sampleRate);
+    PartialFilterMarchand(int bufferSize, float sampleRate);
     virtual ~PartialFilterMarchand();
 
-    void Reset(int bufferSize, BL_FLOAT sampleRate);
+    void reset(int bufferSize, float sampleRate);
         
-    void FilterPartials(vector<Partial> *partials);
+    void filterPartials(vector<Partial> *partials);
 
  protected:
     // Simple method, based on frequencies only
-    void AssociatePartials(const vector<Partial> &prevPartials,
+    void associatePartials(const vector<Partial> &prevPartials,
                            vector<Partial> *currentPartials,
                            vector<Partial> *remainingPartials);
     
     // See: https://www.dsprelated.com/freebooks/sasp/PARSHL_Program.html#app:parshlapp
     // "Peak Matching (Step 5)"
     // Use fight/winner/loser
-    void AssociatePartialsPARSHL(const vector<Partial> &prevPartials,
+    void associatePartialsPARSHL(const vector<Partial> &prevPartials,
                                  vector<Partial> *currentPartials,
                                  vector<Partial> *remainingPartials);
 
-    BL_FLOAT GetDeltaFreqCoeff(int binNum);
+    float getDeltaFreqCoeff(int binNum);
 
-    int FindPartialById(const vector<Partial> &partials, int idx);
+    int findPartialById(const vector<Partial> &partials, int idx);
     
     //
-    deque<vector<Partial> > mPartials;
+    deque<vector<Partial> > _partials;
 
-    int mBufferSize;
+    int _bufferSize;
     
  private:
-    vector<Partial> mTmpPartials0;
-    vector<Partial> mTmpPartials1;
-    vector<Partial> mTmpPartials2;
-    vector<Partial> mTmpPartials3;
-    vector<Partial> mTmpPartials4;
-    vector<Partial> mTmpPartials5;
-    vector<Partial> mTmpPartials6;
+    vector<Partial> _tmpPartials0;
+    vector<Partial> _tmpPartials1;
+    vector<Partial> _tmpPartials2;
+    vector<Partial> _tmpPartials3;
+    vector<Partial> _tmpPartials4;
+    vector<Partial> _tmpPartials5;
+    vector<Partial> _tmpPartials6;
 };
 
 #endif

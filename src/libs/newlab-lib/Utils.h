@@ -99,6 +99,30 @@ class Utils
     static void copyBuf(float *toBuf, const float *fromData, int fromSize);
 
     static int nearestPowerOfTwo(int value);
+
+    static void smooth(vector<float> *ioCurrentValues,
+                       vector<float> *ioPrevValues,
+                       float smoothFactor);
+
+    static void unwrapPhases(vector<float> *phases, bool adjustFirstPhase = true);
+
+    static void findNextPhase(float *phase, float refPhase);
+        
+    static float fmod_negative(float x, float y);
+
+    static float princarg(float x);
+        
+    static bool segSegIntersect(float seg0[2][2], float seg1[2][2]);
+
+    static float trapezoidArea(float a, float b, float h);
+
+    static float computeMin(const vector<float> &buf);
+
+    static float computeMax(const vector<float> &buf);
+
+    static void normalize(vector<float> *values, float minimum, float maximum);
+
+    static void normalize(vector<float> *values);
 };
 
 #endif
