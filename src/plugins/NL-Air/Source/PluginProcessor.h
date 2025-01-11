@@ -25,7 +25,6 @@ using namespace std;
 
 class OverlapAdd;
 class AirProcessor;
-class TransientShaperProcessor;
 class NLAirAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -76,7 +75,6 @@ private:
     
     vector<OverlapAdd *> _overlapAdds;
     vector<AirProcessor *> _processors;
-    vector<TransientShaperProcessor *> _transientProcessors;
     
     bool _prevSmartResynthParam = false;
     

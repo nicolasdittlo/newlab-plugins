@@ -18,16 +18,12 @@
 
 #include <OverlapAdd.h>
 #include <AirProcessor.h>
-#include <TransientShaperProcessor.h>
 #include <Utils.h>
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
 #define OVERLAP 4
-
-// Half amp, half freq
-#define TRANSIENT_FREQ_AMP_RATIO 0.5
 
 #define FFT_SIZE_COEFF 23
 
@@ -67,9 +63,6 @@ NLAirAudioProcessor::~NLAirAudioProcessor()
 
     for (int i = 0; i < _processors.size(); i++)
         delete _processors[i];
-
-    for (int i = 0; i < _transientProcessors.size(); i++)
-        delete _transientProcessors[i];
 }
 
 const juce::String
@@ -168,22 +161,14 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
         _processors.clear();
-
-        for (int i = 0; i < _transientProcessors.size(); i++)
-            delete _transientProcessors[i];
-        _transientProcessors.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
             AirProcessor *processor = new AirProcessor(fftSize/2 + 1, OVERLAP);
             _processors.push_back(processor);
-
-            TransientShaperProcessor *transientProcessor = new TransientShaperProcessor(sampleRate);
-            _transientProcessors.push_back(transientProcessor);
             
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, true);
             overlapAdd->addProcessor(processor);
-            overlapAdd->addProcessor(transientProcessor);
             _overlapAdds.push_back(overlapAdd);
         } 
     }
@@ -207,9 +192,6 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     for (int i = 0; i < _processors.size(); i++)
         _processors[i]->reset(fftSize/2 + 1, OVERLAP, sampleRate);
-
-    for (int i = 0; i < _transientProcessors.size(); i++)
-        _transientProcessors[i]->reset(sampleRate);
     
     // Update latency
     int latency = getLatency(samplesPerBlock);
@@ -302,13 +284,7 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         }
     }
 
-    for (int i = 0; i < _transientProcessors.size(); i++)
-    {
-        _transientProcessors[i]->setFreqAmpRatio(TRANSIENT_FREQ_AMP_RATIO);
-        _transientProcessors[i]->setSoftHard(transientBoost);
-    }
-
-    if (qualityChanged || softDenoiseChanged)
+    if (softDenoiseChanged)
     {            
         // Update latency
         int latency = getLatency(buffer.getNumSamples());
