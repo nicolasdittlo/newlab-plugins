@@ -22,172 +22,84 @@
 #include "nl_queue.h"
 #include "OverlapAdd.h"
 
-#define USE_AUTO_RES_NOISE 1
-
 class WienerSoftMasking;
+class PartialTracker;
 class AirProcessor : public OverlapAddProcessor
 {
 public:
-    AirProcessor(int bufferSize, int overlap);
+    AirProcessor(int bufferSize, int overlap, float sampleRate);
     
     virtual ~AirProcessor();
 
     void processFFT(vector<complex<float> > *ioBuffer) override;
+
+    void reset();
     
     void reset(int bufferSize, int overlap, float sampleRate);
 
-    void setOverlap(int overlap);
-    
     void setThreshold(float threshold);
-    
-    void getSignalBuffer(vector<float> *ioBuffer);
-    
-    void getNoiseBuffer(vector<float> *ioBuffer);
-    
-    // Noise capture
-    void setBuildingNoiseStatistics(bool flag);
-    
-    void addNoiseStatistics(const vector<complex<float> > &buf);
-    
-    void getNoiseCurve(vector<float> *noiseCurve);
-    void setNoiseCurve(const vector<float> &noiseCurve);
-    
-    // Used for serialization
-    void getNativeNoiseCurve(vector<float> *noiseCurve);
-    void setNativeNoiseCurve(const vector<float> &noiseCurve);
-    
-    void setResNoiseThrs(float threshold);
 
-#if USE_AUTO_RES_NOISE
-    void setAutoResNoise(bool autoResNoiseFlag);
-#endif
+    void setMix(float mix);
 
-    void setRatio(float ratio);
+    void setUseSoftMasks(bool flag);
 
-    void setNoiseOnly(bool noiseOnly);
+    void setEnableSum(bool flag);
     
     int getLatency();
 
-    bool newCurvesAvailable();
+    void getNoiseBuffer(vector<float> *ioBuffer);
+    
+    void getHarmoBuffer(vector<float> *ioBuffer);
+
+    void getSumBuffer(vector<float> *ioBuffer);
+
+    bool newBuffersAvailable();
     void touchNewCurves();
-    
-    static void applyThresholdValueToNoiseCurve(vector<float> *ioNoiseCurve, float threshold);
-    
+        
 protected:
-    
-    // Residual denoise
-    
-    void resetResNoiseHistory();
-    
-    // Must keep and manage the phases
-    // (there is an history, and we must have synchronous phases)
-    void residualDenoise(vector<float> *signalBuffer,
-                         vector<float> *noiseBuffer,
-                         vector<float> *phases);
-    
-#if USE_AUTO_RES_NOISE
-    void autoResidualDenoise(vector<float> *ioSignalMagns,
-                             vector<float> *ioSignalPhases,
-                             const vector<float> &noiseMagns);
-#endif
-    
-    // Kernel can be NULL
-    void noiseFilter(float *input, float *output, int width, int height,
-                     int winSize, vector<float> *kernel, int lineNum,
-                     float threshold);
-    
-    // Take an fft buffer history and transform it to an image
-    void samplesHistoryToImage(const nl_queue<vector<float> > *hist,
-                               vector<float> *imageChunk);
-    
-    // Take an image and extract one line
-    // Fill an Fft buffer
-    // Take the phases from the history
-    void imageLineToSamples(const vector<float> *image,
-                            int width, int height, int lineNum,
-                            const nl_queue<vector<float> > *hist,
-                            const nl_queue<vector<float> > *phaseHist,
-                            vector<float> *resultBuf,
-                            vector<float> *resultPhases);
-    
-    void extractResidualNoise(const vector<float> *prevSignal,
-                              const vector<float> *signal,
-                              vector<float> *ioNoise);
-    
-    // Soft or hard elbow
-    void threshold(vector<float> *ioSigMagns, vector<float> *ioNoiseMagns);
-    
-    void resampleNoiseCurve();
+    void detectPartials(const vector<float> &magns,
+                        const vector<float> &phases);
 
-    void makeHanningKernel2D(int size, vector<float> *result);
+    // Compute mask for s0, from s0 and s1
+    void computeMask(const vector<float> &s0Buf,
+                     const vector<float> &s1Buf,
+                     vector<float> *s0Mask);
+    
+    PartialTracker *_partialTracker;
 
-    int _bufferSize;
-    int _overlap;
-    float _sampleRate;
+    float _mix;
     
-    vector<float> _signalBuf;
-    vector<float> _noiseBuf;
-    
-    float _threshold;
-    
-    // Residual noise
-    float _resNoiseThrs;
-    
-#if USE_AUTO_RES_NOISE
-    bool _autoResNoise;
+    bool _useSoftMasks;
     WienerSoftMasking *_softMasking;
-#endif
 
-    float _ratio;
+    vector<float> _noiseBuf;
+    vector<float> _harmo;
+    vector<float> _sum;
 
-    bool _noiseOnly;
-    
-    // Noise capture
-    bool _isBuildingNoiseStatistics;
-    
-    vector<float> _noiseCurve;
-    
-    // Used to keep original noise curve if need to rescale
-    vector<float> _nativeNoiseCurve;
-    
-    // Residual denoise
-    
-    nl_queue<vector<float> > _historyFftBufs;
-    nl_queue<vector<float> > _historyFftNoiseBufs;
-    nl_queue<vector<float> > _historyPhases;
-    
-    vector<float> _inputImageFilterChunk;
-    vector<float> _outputImageFilterChunk;
-    
-    vector<float> _hanningKernel;
-
-    bool _newCurvesAvailable;
+    bool _enableComputeSum;
     
 private:
     // Tmp buffers
-    vector<float> _tmpBuf0;
+    vector<complex<float> > _tmpBuf0;
     vector<float> _tmpBuf1;
     vector<float> _tmpBuf2;
-    vector<float> _tmpBuf3;
     vector<float> _tmpBuf4;
     vector<float> _tmpBuf5;
-    vector<float> _tmpBuf6;
-    vector<complex<float> > _tmpBuf7;
-    
+    vector<float> _tmpBuf7;
+    vector<float> _tmpBuf8;
     vector<float> _tmpBuf9;
-    vector<float> _tmpBuf10;
+    vector<complex<float> > _tmpBuf10[2];
     vector<complex<float> > _tmpBuf11;
     vector<complex<float> > _tmpBuf12;
-    
-    vector<float> _tmpBuf16;
+    vector<complex<float> > _tmpBuf13;
+    vector<complex<float> > _tmpBuf14;
+    vector<complex<float> > _tmpBuf15;
     vector<float> _tmpBuf17;
-
-    vector<float> _tmpBuf19;
+    vector<complex<float> > _tmpBuf18;
+    vector<complex<float> > _tmpBuf19;
     vector<complex<float> > _tmpBuf20;
-    
-    vector<complex<float> > _tmpBuf22;
-    vector<complex<float> > _tmpBuf23;
-    vector<float> _tmpBuf24;
+    vector<complex<float> > _tmpBuf21;
+    vector<float> _tmpBuf22;
 };
 
 #endif
