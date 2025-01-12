@@ -126,6 +126,15 @@ Utils::addBuffers(vector<complex<float> > *buf0, const vector<complex<float> > &
 }
 
 void
+Utils::addBuffers(vector<float> *result, const vector<float> &buf0, const vector<float> &buf1)
+{
+    result->resize(buf0.size());
+    
+    for (int i = 0; i < buf0->size(); i++)
+        (*result)[i] = buf0[i] + buf1[i];
+}
+
+void
 Utils::multBuffers(vector<complex<float> > *buf0, const vector<float> &buf1)
 {
     for (int i = 0; i < buf0->size(); i++)
@@ -748,5 +757,16 @@ Utils::computeOpposite(vector<float> *buf)
         float val = buf->data()[i];
         val = 1.0f - val;
         buf->data()[i] = val;
+    }
+}
+
+void
+Utils::applyGain(const vector<float> &in, vector<float> *out, ParamSmoother *smoother)
+{    
+    for (int i = 0; i < in.size(); i++)
+    {
+        float gain = smoother->process();
+
+        (*out)[i] = in[i]*gain;
     }
 }

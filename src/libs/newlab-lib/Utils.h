@@ -24,6 +24,7 @@
 
 using namespace std;
 
+class ParamSmoother,
 class Utils
 {
  public:
@@ -48,6 +49,7 @@ class Utils
 
     static void addBuffers(vector<float> *buf0, const vector<float> &buf1);
     static void addBuffers(vector<complex<float> > *buf0, const vector<complex<float> > &buf1);
+    static void addBuffers(vector<float> *result, const vector<float> &buf0, const vector<float> &buf1);
     static void multBuffers(vector<float> *buf, const vector<float> &values);
     static void multBuffers(vector<complex<float>> *buf0, const vector<float> &buf1);
     static void multBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
@@ -132,6 +134,8 @@ class Utils
                                  float coeff1Scale = 1.0f);
 
     static void computeOpposite(vector<float> *buf);
+
+    static void applyGain(const vector<float> &in, vector<float> *out, ParamSmoother *smoother);
 };
 
 #endif

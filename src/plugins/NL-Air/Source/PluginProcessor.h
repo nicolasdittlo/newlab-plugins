@@ -76,7 +76,9 @@ public:
     
 private:
     int getLatency(int blockSize);
-    
+
+    void setSplitFreq(float freq);
+        
     vector<OverlapAdd *> _overlapAdds;
     vector<AirProcessor *> _processors;
 
@@ -85,13 +87,14 @@ private:
     
     bool _prevSmartResynthParam = false;
 
-    ParamSmoother *_outGainSmoother;
+    vector<ParamSmoother *> _outGainSmoothers;
 
     vector<CrossoverSplitterNBands *> _bandSplittersIn;
     vector<CrossoverSplitterNBands *> _bandSplittersOut;
     
     ParamSmoother *_splitFreqSmoother;
-    ParamSmoother *_wetGainSmoother;
+
+    vector<ParamSmoother *> _wetGainSmoothers;
 
     vector<Delay *> _inputDelays;
     

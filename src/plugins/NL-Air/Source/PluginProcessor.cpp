@@ -64,6 +64,17 @@ NLAirAudioProcessor::NLAirAudioProcessor()
                  })
 #endif
 {
+    float sampleRate = 44100.0;
+    
+    BL_FLOAT defaultSplitFreq = DEFAULT_SPLIT_FREQ;
+    BL_FLOAT splitFreqSmoothTime = DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS;
+
+    // Adjust, because smoothing is done only once in each processBlock()
+    int blockSize = 512;
+    splitFreqSmoothTime /= blockSize;
+    
+    _splitFreqSmoother = new ParamSmoother(sampleRate, defaultSplitFreq,
+                                           splitFreqSmoothTime);
 }
 
 NLAirAudioProcessor::~NLAirAudioProcessor()
@@ -79,6 +90,23 @@ NLAirAudioProcessor::~NLAirAudioProcessor()
 
     for (int i = 0; i < _outProcessors.size(); i++)
         delete _outProcessors[i];
+
+    for (int i = 0; i < _outGainSmoothers.size(); i++)
+        delete _outGainSmoothers[i];
+
+    for (int i = 0; i < _wetGainSmoothers.size(); i++)
+        delete _wetGainSmoothers[i];
+
+    delete _splitFreqSmoother
+        
+    for (int i = 0; i < _bandSplittersIn.size(); i++)
+        delete _bandSplittersIn[i];
+
+    for (int i = 0; i < _bandSplittersOut.size(); i++)
+        delete _bandSplittersOut[i];
+
+    for (int i = 0; i < _inputDelays.size(); i++)
+        delete _inputDelays[i];
 }
 
 const juce::String
@@ -167,7 +195,8 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         if (_sampleRateChangeListener != nullptr)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
     }
-    
+
+    // Number of channels changed?
     if (_overlapAdds.size() != numInputChannels)
     {
         // Air
@@ -178,7 +207,27 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _processors.size(); i++)
             delete _processors[i];
         _processors.clear();
+
+        for (int i = 0; i < _bandSplittersIn.size(); i++)
+            delete _bandSplittersIn[i];
+        _bandSplittersIn.clear();
         
+        for (int i = 0; i < _bandSplittersOut.size(); i++)
+            delete _bandSplittersOut[i];
+        _bandSplittersOut.clear();
+        
+        for (int i = 0; i < _inputDelays.size(); i++)
+            delete _inputDelays[i];
+        _inputDelays.clear();
+
+        for (int i = 0; i < _outGainSmoothers.size(); i++)
+            delete _outGainSmoothers[i];
+        _outGainSmoothers.clear();
+
+        for (int i = 0; i < _wetGainSmoothers.size(); i++)
+            delete _wetGainSmoothers[i];
+        _wetGainSmoothers.clear();
+    
         for (int i = 0; i < numInputChannels; i++)
         {
             AirProcessor *processor = new AirProcessor(fftSize, OVERLAP, sampleRate);
@@ -212,6 +261,44 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             overlapAdd->addProcessor(processor);
             _outOverlapAdds.push_back(overlapAdd);
         }
+
+        float splitFreqs[1] = { DEFAULT_SPLIT_FREQ };
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            CrossoverSplitterNBands *splitter = new CrossoverSplitterNBands(2, splitFreqs, sampleRate);
+            _bandSplittersIn.push_back(splitter);
+                
+        }
+        
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            CrossoverSplitterNBands *splitter = new CrossoverSplitterNBands(2, splitFreqs, sampleRate);
+            _bandSplittersOut.push_back(splitter);
+                
+        }
+
+        auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
+        setSplitFreq(wetFreq);
+        
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            Delay *delay = new DelayObj(fftSize);
+            _inputDelays.push_back(delay);
+        }
+
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            float defaultOutGain = 1.0;
+            ParamSmoother *outGainSmoother = new ParamSmoother(sampleRate, defaultOutGain);
+            _outGainSmoothers.push_back(outGainSmoother); 
+        }
+
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            float defaultWetGain = 1.0;
+            ParamSmoother *wetGainSmoother = new ParamSmoother(sampleRate, defaultWetGain);
+            _wetGainSmoothers.push_back(wetGainSmoother); 
+        }
     }
 
     // Air
@@ -230,6 +317,20 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         _outOverlapAdds[i]->setFftSize(fftSize);
         _outOverlapAdds[i]->setOverlap(OVERLAP);
     }
+
+    auto outGain = _parameters.getRawParameterValue("outGain")->load();
+    outGain = Utils::DBToAmp(outGain);
+    for (int i = 0; i < _outGainSmoothers.size(); i++)
+        _outGainSmoothers[i]->resetToTargetValue(outGain);
+
+    auto wetGain = _parameters.getRawParameterValue("wetGain")->load();
+    wetGain = Utils::DBToAmp(wetGain);
+    for (int i = 0; i < _wetGainSmoothers.size(); i++)
+        _wetGainSmoothers[i]->resetToTargetValue(wetGain);
+
+    auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
+    setSplitFreq(wetFreq);
+    _splitFreqSmoother->ResetToTargetValue(wetFreq);
     
     // Update latency
     int latency = getLatency(samplesPerBlock);
@@ -303,7 +404,7 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     _prevSmartResynthParam = (smartResynth > 0.5);
 
     wetGain = Utils::DBToAmp(wetGain);
-
+    
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
@@ -312,30 +413,82 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         _processors[i]->setUseSoftMasks(smartResynth > 0.5);
     }
 
-    if (softDenoiseChanged)
+    if (smartResynthChanged)
     {            
         // Update latency
         int latency = getLatency(buffer.getNumSamples());
         setLatencySamples(latency);
         updateHostDisplay();
     }
-#endif
+
+    if (!_splitFreqSmoother->isStable())
+    {
+        float splitFreq = _splitFreqSmoother->process();
+        
+        setSplitFreq(splitFreq);
+    }
+
+    for (int i = 0; i < _wetGainSmoothers.size(); i++)
+        _wetGainSmoothers[i]->setTargetValue(wetGain);
+
+    for (int i = 0; i < _outGainSmoothers.size(); i++)
+        _outGainSmoothers[i]->setTargetValue(outGain);
     
     // Process
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer(channel);
         
-        vector<float> vecBuf;
-        vecBuf.resize(buffer.getNumSamples());
-        memcpy(vecBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
+        vector<float> inBuf;
+        inBuf.resize(buffer.getNumSamples());
+        memcpy(inBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
         
-        _overlapAdds[channel]->feed(vecBuf);
+        _overlapAdds[channel]->feed(inBuf);
         
         vector<float> outBuf;
         int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
         _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
 
+        // Splitter
+        if (wetFreq >= MIN_SPLIT_FREQ)
+        {
+            // Split in
+            vector<float> inLo;
+            vector<float> inHi;
+            
+            vector<float> resultBufIn[2];
+            _bandSplittersIn[channel]->split(inBuf, &resultBufIn);
+
+            inLo[i] = resultBufIn[0];
+            inHi[i] = resultBufIn[1];
+
+            // Split out
+            vector<float> > outLo;
+            vector<float> > outHi;
+            
+            WDL_TypedBuf<BL_FLOAT> resultBufOut[2];
+            _bandSplittersOut[i]->split(out[i], resultBufOut);
+
+            outLo[i] = resultBufOut[0];
+            outHi[i] = resultBufOut[1];
+
+            // Delay input
+            _inputDelays[channel]->processSamples(&inLo);
+        
+            // Apply wet gain
+            Utils::applyGain(outHi, &outHi, _wetGainSmoothers[channel]);
+
+            // Sum
+            Utils::addBuffers(&outBuf, inLo, outHi);
+        }
+
+        // Generate the output magnitudes
+        _outOverlapAdds[channel]->feed(outBuf);
+
+        // Apply out gain
+        Utils::applyGain(outBuf, &outBuf, _outGainSmoothers[channel]);
+
+        // Copy output
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
     
@@ -513,6 +666,19 @@ NLAirAudioProcessor::getLatency(int blockSize)
     latency += processorLatency;
 
     return latency;
+}
+
+void
+NLAirAudioProcessor::setSplitFreq(float freq)
+{  
+    if (freq >= MIN_SPLIT_FREQ)
+    {
+        for (int i = 0; i < _bandSplittersIn.size(); i++)
+            _bandSplittersIn[i]->setCutoffFreq(0, freq);
+
+        for (int i = 0; i < _bandSplittersOut.size(); i++)
+                _bandSplittersOut[i]->setCutoffFreq(0, freq);
+    }
 }
 
 // This creates new instances of the plugin..
