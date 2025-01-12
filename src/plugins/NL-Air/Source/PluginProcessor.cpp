@@ -321,21 +321,34 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     auto outGain = _parameters.getRawParameterValue("outGain")->load();
     outGain = Utils::DBToAmp(outGain);
     for (int i = 0; i < _outGainSmoothers.size(); i++)
+    {
         _outGainSmoothers[i]->resetToTargetValue(outGain);
-
+        _outGainSmoothers[i]->reset(sampleRate);
+    }
+    
     auto wetGain = _parameters.getRawParameterValue("wetGain")->load();
     wetGain = Utils::DBToAmp(wetGain);
     for (int i = 0; i < _wetGainSmoothers.size(); i++)
+    {
         _wetGainSmoothers[i]->resetToTargetValue(wetGain);
-
+        _wetGainSmoothers[i]->reset(sampleRate);
+    }
+    
     auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
     setSplitFreq(wetFreq);
-    _splitFreqSmoother->ResetToTargetValue(wetFreq);
+    _splitFreqSmoother->resetToTargetValue(wetFreq);
+    _splitFreqSmoother->reset(sampleRate);
     
     // Update latency
     int latency = getLatency(samplesPerBlock);
     setLatencySamples(latency);
     updateHostDisplay();
+
+    for (int i = 0; i < _bandSplittersIn.size(); i++)
+        _bandSplittersIn.reset(sampleRate);
+    
+    for (int i = 0; i < _bandSplittersOut.size(); i++)
+        _bandSplittersOut.reset(sampleRate);
 }
 
 void
@@ -491,20 +504,19 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         // Copy output
         memcpy(channelData, outBuf.data(), buffer.getNumSamples()*sizeof(float));
     }
-    
+     
     // Get curves
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
 
         if (_processors[0]->newCurvesAvailable())
         {
-            _processors[0]->getSignalBuffer(&_signalBuffer);
             _processors[0]->getNoiseBuffer(&_noiseBuffer);
-            _processors[0]->getNoiseCurve(&_noiseProfileBuffer);
+            _processors[0]->getHarmoBuffer(&_harmoBuffer);
 
-            _newBuffersAvailble = true;
-            
-            _processors[0]->touchNewCurves();
+            _outProcessors[0]->getMagnsBuffer(&_sumBuffer);
+
+            _newBuffersAvailable = true;
         }
     }
 }
@@ -630,20 +642,20 @@ NLAirAudioProcessor::setSampleRateChangeListener(SampleRateChangeListener listen
 }
 
 bool
-NLAirAudioProcessor::getBuffers(vector<float> *signalBuffer,
-                                     vector<float> *noiseBuffer,
-                                     vector<float> *noiseProfileBuffer)
+NLAirAudioProcessor::getBuffers(vector<float> *noiseBuffer,
+                                vector<float> *harmoBuffer,
+                                vector<float> *sumBuffer)
 {
-    if (!_newBuffersAvailble)
+    if (!_newBuffersAvailable)
         return false;
     
     std::lock_guard<std::mutex> lock(_curvesMutex);
 
-    *signalBuffer = _signalBuffer;
     *noiseBuffer = _noiseBuffer;
-    *noiseProfileBuffer = _noiseProfileBuffer;
+    *harmoBuffer = _harmoBuffer;
+    *sumBuffer = _sumBuffer;
 
-    _newBuffersAvailble = false;
+    _newBuffersAvailable = false;
 
     return true;
 }

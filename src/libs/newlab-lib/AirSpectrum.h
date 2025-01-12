@@ -33,15 +33,15 @@ class AirSpectrum
 {
  public:
     AirSpectrum(SpectrumView *spectrumView,
-                     float sampleRate, int bufferSize);
+                float sampleRate, int bufferSize);
 
     virtual ~AirSpectrum();
 
     void reset(int bufferSize, float sampleRate);
 
-    void updateCurves(const vector<float> &signal,
-                      const vector<float> &noise,
-                      const vector<float> &noiseProfile);
+    void updateCurves(const vector<float> &airCurve,
+                      const vector<float> &harmoCurve,
+                      const vector<float> &sumCurve);
         
  protected:
     void createAxes(SpectrumView *spectrumView,
@@ -57,14 +57,14 @@ class AirSpectrum
     FreqAxis *_freqAxis;
     Axis *_vAxis;
 
-    Curve *_signalCurve;
-    SmoothCurveDB *_signalCurveSmooth;
+    Curve *_airCurve;
+    SmoothCurveDB *_airCurveSmooth;
     
-    Curve *_noiseCurve;
-    SmoothCurveDB *_noiseCurveSmooth;
+    Curve *_harmoCurve;
+    SmoothCurveDB *_harmoCurveSmooth;
     
-    Curve *_noiseProfileCurve;
-    SmoothCurveDB *_noiseProfileCurveSmooth;
+    Curve *_sumCurve;
+    SmoothCurveDB *_sumCurveSmooth;
 };
 
 #endif

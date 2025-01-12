@@ -216,19 +216,19 @@ NLAirAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferS
 void
 NLAirAudioProcessorEditor::timerCallback()
 {
-    vector<float> signalBuffer;
     vector<float> noiseBuffer;
-    vector<float> noiseProfileBuffer;
+    vector<float> harmoBuffer;
+    vector<float> sumBuffer;
         
-    bool newBuffersAvailable = _audioProcessor.getBuffers(&signalBuffer,
-                                                          &noiseBuffer,
-                                                          &noiseProfileBuffer);
+    bool newBuffersAvailable = _audioProcessor.getBuffers(&noiseBuffer,
+                                                          &harmoBuffer,
+                                                          &sumBuffer);
 
     if (newBuffersAvailable)
     {
-        _airSpectrum->updateCurves(signalBuffer,
-                                   noiseBuffer,
-                                   noiseProfileBuffer);
+        _airSpectrum->updateCurves(noiseBuffer,
+                                   harmoBuffer,
+                                   sumBuffer);
     }
     
     _spectrumComponent->repaint();

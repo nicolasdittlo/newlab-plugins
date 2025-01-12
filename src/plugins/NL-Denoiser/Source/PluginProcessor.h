@@ -91,7 +91,7 @@ private:
     vector<float> _noiseProfileBuffer;
     
     std::mutex _curvesMutex;
-    bool _newBuffersAvailble = false;
+    bool _newBuffersAvailable = false;
 
     vector<vector<float> > _nativeNoiseProfiles;
     bool _mustSetNativeNoiseProfiles = false;

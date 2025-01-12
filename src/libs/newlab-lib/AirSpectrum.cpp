@@ -27,7 +27,6 @@
 #include "AirSpectrum.h"
 
 #define CURVE_SMOOTH_COEFF_MS 1.4
-#define CURVE_SMOOTH_COEFF_NOISE_PROFILE_MS 0.5
 
 #define AIR_MIN_DB -119.0
 #define AIR_MAX_DB 10.0
@@ -52,14 +51,14 @@ AirSpectrum::~AirSpectrum()
     delete _hAxis;
     delete _vAxis;
     
-    delete _signalCurve;
-    delete _signalCurveSmooth;
-    
     delete _noiseCurve;
     delete _noiseCurveSmooth;
     
-    delete _noiseProfileCurve;
-    delete _noiseProfileCurveSmooth;
+    delete _harmoCurve;
+    delete _harmoCurveSmooth;
+    
+    delete _sumCurve;
+    delete _sumCurveSmooth;
 }
 
 void
@@ -88,76 +87,77 @@ AirSpectrum::createCurves(float sampleRate)
     float curveSmoothCoeff =
         ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_MS, REF_SAMPLERATE);
 
-    // Signal curve
     int descrColor[4] = { 170, 170, 170, 255 };    
     float fillAlpha = 0.5;
-    int signalColor[4] = { 64, 64, 255, 255 };
-
-    _signalCurve = new Curve(CURVE_NUM_VALUES);
-    _signalCurve->setDescription("signal", descrColor);
-    _signalCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-    _signalCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
-    _signalCurve->setColor(signalColor[0], signalColor[1], signalColor[2]);
-    _signalCurve->setFill(true);
-    _signalCurve->setFillColor(signalColor[0], signalColor[1], signalColor[2], fillAlpha*255);
-    _signalCurve->setLineWidth(2.0);
-        
-    _signalCurveSmooth = new SmoothCurveDB(_signalCurve,
-                                           curveSmoothCoeff,
-                                           CURVE_NUM_VALUES,
-                                           AIR_MIN_DB,
-                                           AIR_MIN_DB, AIR_MAX_DB,
-                                           sampleRate);
-	
-    // Noise curve
-    int noiseColor[4] = { 255, 255, 200, 200 };
     
-    _noiseCurve = new Curve(CURVE_NUM_VALUES);
-    _noiseCurve->setDescription("noise", descrColor);
-    _noiseCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-    _noiseCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
-    _noiseCurve->setColor(noiseColor[0], noiseColor[1], noiseColor[2]);
+    // Air curve
+    int airColor[4] = { 49, 188, 255, 255 };
+
+    _airCurve = new Curve(CURVE_NUM_VALUES);
+    _airCurve->setDescription("air", descrColor);
+    _airCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
+    _airCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
+    _airCurve->setColor(signalColor[0], signalColor[1], signalColor[2]);
+    _airCurve->setFill(true);
+    _airCurve->setFillColor(signalColor[0], signalColor[1], signalColor[2], fillAlpha*255);
+    _airCurve->setLineWidth(2.0);
         
-    _noiseCurveSmooth = new SmoothCurveDB(_noiseCurve,
+    _airCurveSmooth = new SmoothCurveDB(_airCurve,
+                                        curveSmoothCoeff,
+                                        CURVE_NUM_VALUES,
+                                        AIR_MIN_DB,
+                                        AIR_MIN_DB, AIR_MAX_DB,
+                                        sampleRate);
+	
+    // Harmo curve
+    int harmoColor[4] = { 162, 61, 243, 255 };
+    
+    _harmoCurve = new Curve(CURVE_NUM_VALUES);
+    _harmoCurve->setDescription("harmo", descrColor);
+    _harmoCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
+    _harmoCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
+    _harmoCurve->setColor(harmoColor[0], harmoColor[1], harmoColor[2]);
+    _harmoCurve->setFill(true);
+    _harmoCurve->setFillColor(harmoColor[0], harmoColor[1], harmoColor[2], fillAlpha*255);
+    
+    _harmoCurveSmooth = new SmoothCurveDB(_harmoCurve,
                                           curveSmoothCoeff,
                                           CURVE_NUM_VALUES,
                                           AIR_MIN_DB,
                                           AIR_MIN_DB, AIR_MAX_DB,
                                           sampleRate);
         
-    // Noise profile curve
-    int noiseProfileColor[4] = { 255, 128, 0, 255 };
+    // Sum curve
+    int sumColor[4] = { 200, 200, 255, 255 };
         
-    _noiseProfileCurve = new Curve(CURVE_NUM_VALUES);
-    _noiseProfileCurve->setDescription("noise profile", descrColor);
-    _noiseProfileCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-    _noiseProfileCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
-    _noiseProfileCurve->setColor(noiseProfileColor[0],
-                                 noiseProfileColor[1],
-                                 noiseProfileColor[2]);
+    _sumCurve = new Curve(CURVE_NUM_VALUES);
+    _sumCurve->setDescription("noise profile", descrColor);
+    _sumCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
+    _sumCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
+    _sumCurve->setColor(sumColor[0], sumColor[1], sumColor[2]);
         
     float curveSmoothCoeffNoiseProfile =
-        ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_NOISE_PROFILE_MS,
+        ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_MS,
                                            REF_SAMPLERATE);
-    _noiseProfileCurveSmooth = new SmoothCurveDB(_noiseProfileCurve,
-                                                 curveSmoothCoeffNoiseProfile,
-                                                 CURVE_NUM_VALUES,
-                                                 AIR_MIN_DB,
-                                                 AIR_MIN_DB,
-                                                 AIR_MAX_DB,
-                                                 sampleRate);
+    _sumCurveSmooth = new SmoothCurveDB(_sumCurve,
+                                        curveSmoothCoeffNoiseProfile,
+                                        CURVE_NUM_VALUES,
+                                        AIR_MIN_DB,
+                                        AIR_MIN_DB,
+                                        AIR_MAX_DB,
+                                        sampleRate);
 
     int size[2];
     _spectrumView->getViewSize(&size[0], &size[1]);
     
-    _signalCurve->setViewSize(size[0], size[1]);
-    _spectrumView->addCurve(_signalCurve);
+    _airCurve->setViewSize(size[0], size[1]);
+    _spectrumView->addCurve(_airCurve);
     
-    _noiseCurve->setViewSize(size[0], size[1]);
-    _spectrumView->addCurve(_noiseCurve);
+    _harmoCurve->setViewSize(size[0], size[1]);
+    _spectrumView->addCurve(_harmoCurve);
     
-    _noiseProfileCurve->setViewSize(size[0], size[1]);
-    _spectrumView->addCurve(_noiseProfileCurve);
+    _sumCurve->setViewSize(size[0], size[1]);
+    _spectrumView->addCurve(_sumCurve);
 }
 
 void
@@ -165,27 +165,26 @@ AirSpectrum::reset(int bufferSize, float sampleRate)
 {
     _freqAxis->reset(bufferSize, sampleRate);
 
-    _signalCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-    _noiseCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-    _noiseProfileCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
-
+    _airCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
+    _harmoCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
+    _sumCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
 
     float curveSmoothCoeff =
         ParamSmoother::computeSmoothFactor(CURVE_SMOOTH_COEFF_MS, sampleRate);
         
-    _signalCurveSmooth->reset(sampleRate, curveSmoothCoeff);
-    _noiseCurveSmooth->reset(sampleRate, curveSmoothCoeff);
-    _noiseProfileCurveSmooth->reset(sampleRate, curveSmoothCoeff);
+    _airCurveSmooth->reset(sampleRate, curveSmoothCoeff);
+    _harmoCurveSmooth->reset(sampleRate, curveSmoothCoeff);
+    _sumCurveSmooth->reset(sampleRate, curveSmoothCoeff);
 }
 
 void
-AirSpectrum::updateCurves(const vector<float> &signal,
-                          const vector<float> &noise,
-                          const vector<float> &noiseProfile)
+AirSpectrum::updateCurves(const vector<float> &airCurve,
+                          const vector<float> &harmoCurve,
+                          const vector<float> &sumCurve)
 {
-    _signalCurveSmooth->setValues(signal);
+    _airCurveSmooth->setValues(airCurve);
 
-    _noiseCurveSmooth->setValues(noise);
+    _harmoCurveSmooth->setValues(harmoCurve);
 
-    _noiseProfileCurveSmooth->setValues(noiseProfile);
+    _sumCurveSmooth->setValues(sumCurve);
 }

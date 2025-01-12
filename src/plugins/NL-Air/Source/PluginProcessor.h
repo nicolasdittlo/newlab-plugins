@@ -67,9 +67,9 @@ public:
 
     void setSampleRateChangeListener(SampleRateChangeListener listener);
 
-    bool getBuffers(vector<float> *signalBuffer,
-                    vector<float> *noiseBuffer,
-                    vector<float> *noiseProfileBuffer);
+    bool getBuffers(vector<float> *noiseBuffer,
+                    vector<float> *harmoBuffer,
+                    vector<float> *sumBuffer);
     
 public:
     juce::AudioProcessorValueTreeState _parameters;
