@@ -16,9 +16,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <OverlapAdd.h>
-#include <AirProcessor.h>
-#include <Utils.h>
+#include "OverlapAdd.h"
+#include "AirProcessor.h"
+#include "BufProcessor.h"
+#include "Utils.h"
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -26,6 +27,15 @@
 #define OVERLAP 4
 
 #define FFT_SIZE_COEFF 23
+
+#define DEFAULT_TRACKER_THRESHOLD -100.0
+
+#define THRESHOLD_IS_DB 1
+
+#define DEFAULT_SPLIT_FREQ 20.0
+#define DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS 280.0
+
+#define MIN_SPLIT_FREQ 20.0
 
 NLAirAudioProcessor::NLAirAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -63,6 +73,12 @@ NLAirAudioProcessor::~NLAirAudioProcessor()
 
     for (int i = 0; i < _processors.size(); i++)
         delete _processors[i];
+
+    for (int i = 0; i < _outOverlapAdds.size(); i++)
+        delete _outOverlapAdds[i];
+
+    for (int i = 0; i < _outProcessors.size(); i++)
+        delete _outProcessors[i];
 }
 
 const juce::String
@@ -154,6 +170,7 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     
     if (_overlapAdds.size() != numInputChannels)
     {
+        // Air
         for (int i = 0; i < _overlapAdds.size(); i++)
             delete _overlapAdds[i];
         _overlapAdds.clear();
@@ -164,26 +181,40 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         
         for (int i = 0; i < numInputChannels; i++)
         {
-            AirProcessor *processor = new AirProcessor(fftSize/2 + 1, OVERLAP);
+            AirProcessor *processor = new AirProcessor(fftSize, OVERLAP, sampleRate);
+            processor->setThreshold(DEFAULT_TRACKER_THRESHOLD);
+
+            // For freq splitter
+            processor->setEnableSum(false);
+
             _processors.push_back(processor);
             
             OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, true);
             overlapAdd->addProcessor(processor);
             _overlapAdds.push_back(overlapAdd);
-        } 
-    }
-
-    if (_mustSetNativeNoiseProfiles)
-    {
-        for (int i = 0; i < _processors.size(); i++)
-        {
-            if (i < _nativeNoiseProfiles.size())
-                _processors[i]->setNativeNoiseCurve(_nativeNoiseProfiles[i]);
         }
 
-        _mustSetNativeNoiseProfiles = false;
+        // Out
+        for (int i = 0; i < _outOverlapAdds.size(); i++)
+            delete _outOverlapAdds[i];
+        _outOverlapAdds.clear();
+        
+        for (int i = 0; i < _outProcessors.size(); i++)
+            delete _outProcessors[i];
+        _outProcessors.clear();
+        
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            BufProcessor *processor = new BufProcessor();
+            _outProcessors.push_back(processor);
+            
+            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, false);
+            overlapAdd->addProcessor(processor);
+            _outOverlapAdds.push_back(overlapAdd);
+        }
     }
-    
+
+    // Air
     for (int i = 0; i < _overlapAdds.size(); i++)
     {
         _overlapAdds[i]->setFftSize(fftSize);
@@ -192,6 +223,13 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     for (int i = 0; i < _processors.size(); i++)
         _processors[i]->reset(fftSize/2 + 1, OVERLAP, sampleRate);
+
+    // Out
+    for (int i = 0; i < _outOverlapAdds.size(); i++)
+    {
+        _outOverlapAdds[i]->setFftSize(fftSize);
+        _outOverlapAdds[i]->setOverlap(OVERLAP);
+    }
     
     // Update latency
     int latency = getLatency(samplesPerBlock);
@@ -266,22 +304,12 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
     wetGain = Utils::DBToAmp(wetGain);
 
-#if 0
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
         _processors[i]->setThreshold(threshold);
-        _processors[i]->setResNoiseThrs(residualNoise);
-        _processors[i]->setBuildingNoiseStatistics(learnMode);
-        _processors[i]->setAutoResNoise(softDenoise);
-        _processors[i]->setRatio(ratio);
-        _processors[i]->setNoiseOnly((noiseOnly > 0.5));
-        
-        if (qualityChanged)
-        {            
-            _processors[i]->setOverlap(overlap);
-            _overlapAdds[i]->setOverlap(overlap);
-        }
+        _processors[i]->setMix(mix);
+        _processors[i]->setUseSoftMasks(smartResynth > 0.5);
     }
 
     if (softDenoiseChanged)

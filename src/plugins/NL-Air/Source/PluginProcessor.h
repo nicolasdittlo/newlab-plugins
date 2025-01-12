@@ -25,6 +25,10 @@ using namespace std;
 
 class OverlapAdd;
 class AirProcessor;
+class BufProcessor;
+class ParamSmoother;
+class Delay;
+class CrossoverSplitterNBands;
 class NLAirAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -75,21 +79,31 @@ private:
     
     vector<OverlapAdd *> _overlapAdds;
     vector<AirProcessor *> _processors;
+
+    vector<OverlapAdd *> _outOverlapAdds;
+    vector<AirProcessor *> _outProcessors;
     
     bool _prevSmartResynthParam = false;
+
+    ParamSmoother *_outGainSmoother;
+
+    vector<CrossoverSplitterNBands *> _bandSplittersIn;
+    vector<CrossoverSplitterNBands *> _bandSplittersOut;
+    
+    ParamSmoother *_splitFreqSmoother;
+    ParamSmoother *_wetGainSmoother;
+
+    vector<Delay *> _inputDelays;
     
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;
 
-    vector<float> _signalBuffer;
-    vector<float> _noiseBuffer;
-    vector<float> _noiseProfileBuffer;
+    vector<float> _airBuffer;
+    vector<float> _harmoBuffer;
+    vector<float> _sumBuffer;
     
     std::mutex _curvesMutex;
     bool _newBuffersAvailble = false;
 
-    vector<vector<float> > _nativeNoiseProfiles;
-    bool _mustSetNativeNoiseProfiles = false;
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLAirAudioProcessor)
 };

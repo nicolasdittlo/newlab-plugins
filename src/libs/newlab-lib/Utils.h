@@ -35,6 +35,8 @@ class Utils
                                    const vector<float> &magns,
                                    const vector<float> &phases);
 
+    static void complexToMagn(vector<float> *result, const vector<float> &complexBuf);
+        
     static void fillZero(vector<int> *buf);
     static void fillZero(vector<float> *buf);
     static void fillZero(vector<complex<float> > *buf);
@@ -45,6 +47,7 @@ class Utils
     static void resizeFillZeros(vector<float> *buf, int newSize);
 
     static void addBuffers(vector<float> *buf0, const vector<float> &buf1);
+    static void addBuffers(vector<complex<float> > *buf0, const vector<complex<float> > &buf1);
     static void multBuffers(vector<float> *buf, const vector<float> &values);
     static void multBuffers(vector<complex<float>> *buf0, const vector<float> &buf1);
     static void multBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
@@ -123,6 +126,12 @@ class Utils
     static void normalize(vector<float> *values, float minimum, float maximum);
 
     static void normalize(vector<float> *values);
+
+    static void mixParamToCoeffs(float mix,
+                                 float *coeff0, float *coeff1,
+                                 float coeff1Scale = 1.0f);
+
+    static void computeOpposite(vector<float> *buf);
 };
 
 #endif

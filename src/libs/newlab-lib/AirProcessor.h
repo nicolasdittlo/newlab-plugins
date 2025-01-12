@@ -19,7 +19,6 @@
 #ifndef AIR_PROCESSOR_H
 #define AIR_PROCESSOR_H
 
-#include "nl_queue.h"
 #include "OverlapAdd.h"
 
 class WienerSoftMasking;
@@ -31,11 +30,11 @@ public:
     
     virtual ~AirProcessor();
 
-    void processFFT(vector<complex<float> > *ioBuffer) override;
-
     void reset();
     
     void reset(int bufferSize, int overlap, float sampleRate);
+    
+    void processFFT(vector<complex<float> > *ioBuffer) override;
 
     void setThreshold(float threshold);
 
@@ -52,9 +51,6 @@ public:
     void getHarmoBuffer(vector<float> *ioBuffer);
 
     void getSumBuffer(vector<float> *ioBuffer);
-
-    bool newBuffersAvailable();
-    void touchNewCurves();
         
 protected:
     void detectPartials(const vector<float> &magns,
@@ -64,6 +60,10 @@ protected:
     void computeMask(const vector<float> &s0Buf,
                      const vector<float> &s1Buf,
                      vector<float> *s0Mask);
+
+    int _bufferSize;
+    int _overlap;
+    float _sampleRate;
     
     PartialTracker *_partialTracker;
 
@@ -72,9 +72,9 @@ protected:
     bool _useSoftMasks;
     WienerSoftMasking *_softMasking;
 
-    vector<float> _noiseBuf;
-    vector<float> _harmo;
-    vector<float> _sum;
+    vector<float> _noiseBuffer;
+    vector<float> _harmoBuffer;
+    vector<float> _sumBuffer;
 
     bool _enableComputeSum;
     

@@ -50,6 +50,22 @@ Utils::magnPhaseToComplex(vector<complex<float> > *complexBuf,
 }
 
 void
+Utils::complexToMagn(vector<float> *result, const vector<float> &complexBuf)
+{
+    result->resize(complexBuf.size());
+    
+    int complexBufSize = complexBuf.size();
+    complex<float> *complexBufData = complexBuf.data();
+    float *resultData = result->data();
+    
+    for (int i = 0; i < complexBufSize; i++)
+    {
+        float magn = abs(complexBufData[i]);
+        resultData[i] = magn;
+    }
+}
+
+void
 Utils::fillZero(vector<int> *buf)
 {
     memset(buf->data(), 0, buf->size()*sizeof(int));
@@ -97,6 +113,13 @@ Utils::resizeFillZeros(vector<float> *buf, int newSize)
 
 void
 Utils::addBuffers(vector<float> *buf0, const vector<float> &buf1)
+{    
+    for (int i = 0; i < buf0->size(); i++)
+        (*buf0)[i] += buf1[i];
+}
+
+void
+Utils::addBuffers(vector<complex<float> > *buf0, const vector<complex<float> > &buf1)
 {    
     for (int i = 0; i < buf0->size(); i++)
         (*buf0)[i] += buf1[i];
@@ -694,5 +717,36 @@ Utils::normalize(vector<float> *values)
             val = 0.0;
         
         values->data()[i] = val;
+    }
+}
+
+void
+Utils::mixParamToCoeffs(float mix,
+                        float *coeff0, float *coeff1,
+                        float coeff1Scale)
+{    
+    if (mix <= 0.0)
+    {
+        *coeff0 = 1.0;
+        *coeff1 = 1.0 + mix;
+    }
+    else if (mix > 0.0)
+    {
+        *coeff0 = 1.0 - mix;
+        *coeff1 = 1.0;
+    }
+
+    if (mix > 0.0)
+        *coeff1 = mix*(coeff1Scale - 1) + 1.0;
+}
+
+void
+Utils::computeOpposite(vector<float> *buf)
+{
+    for (int i = 0; i < buf->size(); i++)
+    {
+        float val = buf->data()[i];
+        val = 1.0f - val;
+        buf->data()[i] = val;
     }
 }
