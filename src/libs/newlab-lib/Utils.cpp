@@ -50,7 +50,7 @@ Utils::magnPhaseToComplex(vector<complex<float> > *complexBuf,
 }
 
 void
-Utils::complexToMagn(vector<float> *result, const vector<float> &complexBuf)
+Utils::complexToMagn(vector<float> *result, const vector<complex<float> > &complexBuf)
 {
     result->resize(complexBuf.size());
     
@@ -691,6 +691,17 @@ Utils::computeMax(const vector<float> &buf)
     }
     
     return maxVal;
+}
+
+float
+Utils::normalize(float value, float minimum, float maximum)
+{
+    if (fabs(maximum - minimum) > 0.0)
+        value = (value - minimum)/(maximum - minimum);
+    else
+        value = 0.0;
+
+    return value;
 }
 
 void

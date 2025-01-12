@@ -22,6 +22,7 @@
 #include <algorithm>
 using namespace std;
 
+#include "Defines.h"
 #include "Utils.h"
 #include "PartialFilterAMFM.h"
 
@@ -77,7 +78,7 @@ PartialFilterAMFM::filterPartials(vector<Partial> *partials)
         for (int j = 0; j < _partials[0].size(); j++)
         {
             Partial &currentPartial = _partials[0][j];
-            currentPartial.GenNewId();
+            currentPartial.genNewId();
         }
         
         // Not enough partials to filter, need 2 series
@@ -113,8 +114,8 @@ PartialFilterAMFM::filterPartials(vector<Partial> *partials)
 
     if (_partials.size() >= 3)
     {
-        sort(_partials[1].begin(), _partials[1].end(), Partial::IdLess);
-        sort(_partials[2].begin(), _partials[2].end(), Partial::IdLess);
+        sort(_partials[1].begin(), _partials[1].end(), Partial::idLess);
+        sort(_partials[2].begin(), _partials[2].end(), Partial::idLess);
     
         fixPartialsCrossing(_partials[2], _partials[1], &currentPartials);
     }
@@ -143,7 +144,7 @@ PartialFilterAMFM::filterPartials(vector<Partial> *partials)
     {
         const Partial &currentPartial = currentPartials[i];
 
-        if (currentPartial.mState != Partial::DEAD)
+        if (currentPartial._state != Partial::DEAD)
             _partials[0].push_back(currentPartial);
     }
 
@@ -193,7 +194,7 @@ associatePartialsAMFM(const vector<Partial> &prevPartials,
         (*currentPartials)[i]._linkedId = -1;
 
         // Just in case
-        (*currentPartials)[i].mId = -1;
+        (*currentPartials)[i]._id = -1;
     }
     
     // Associated partials
@@ -210,8 +211,8 @@ associatePartialsAMFM(const vector<Partial> &prevPartials,
             Partial &prevPartial = prevPartials0[i];
 
             // Check if the link is already done
-            if (((int)prevPartial.mId != -1) &&
-                (prevPartial.mLinkedId != -1) &&
+            if (((int)prevPartial._id != -1) &&
+                (prevPartial._linkedId != -1) &&
                 ((*currentPartials)[prevPartial._linkedId]._linkedId == i))
                 // Already linked
                 continue;
@@ -355,7 +356,7 @@ associatePartialsAMFM(const vector<Partial> &prevPartials,
     for (int i = 0; i < currentPartials->size(); i++)
     {
         const Partial &p = (*currentPartials)[i];
-        if (p.mId == -1)
+        if (p._id == -1)
             remainingCurrentPartials->push_back(p);
     }
     
@@ -454,7 +455,7 @@ associatePartialsNeri(const vector<Partial> &prevPartials,
             const Partial &prevPartial = prevPartials0[i];
             
             // Check if the link is already done
-            if (((int)prevPartial.mId != -1) &&
+            if (((int)prevPartial._id != -1) &&
                 (findPartialById(*currentPartials, (int)prevPartial._id) != -1))
                 // Already linked
                 continue;
@@ -463,7 +464,7 @@ associatePartialsNeri(const vector<Partial> &prevPartials,
             {
                 Partial &currentPartial = (*currentPartials)[j];
                 
-                if (currentPartial.mId == prevPartial._id)
+                if (currentPartial._id == prevPartial._id)
                     continue;
 
                 // Compute current score
@@ -764,7 +765,7 @@ PartialFilterAMFM::findPartialByIdSorted(const vector<Partial> &partials,
     vector<Partial>::iterator it =
         lower_bound(partials0.begin(), partials0.end(), refPartial, Partial::idLess);
     
-    if (it != partials0.end() && (*it).mId == refPartial._id)
+    if (it != partials0.end() && (*it)._id == refPartial._id)
     {
         // We found the element!
         return (it - partials0.begin());

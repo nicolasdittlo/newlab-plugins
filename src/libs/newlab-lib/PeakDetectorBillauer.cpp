@@ -16,6 +16,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <algorithm>
+using namespace std;
+
 #include "Defines.h"
 #include "Utils.h"
 #include "PeakDetectorBillauer.h"
@@ -97,7 +100,7 @@ detectPeaks(const vector<float> &data, vector<Peak> *peaks,
     
     for (int i = minIndex; i <= maxIndex; i++)
     {
-        float t = data.Get()[i];
+        float t = data.data()[i];
         
         if (t > mx)
         {
@@ -146,7 +149,7 @@ detectPeaks(const vector<float> &data, vector<Peak> *peaks,
         // Check if we must keep the first peak
         if ((maxtab.size() > 0) && (mintab.size() > 0))
         {
-            if (!(data.data()[maxtab[0]] >= data.Get()[mintab[0]] + _delta))
+            if (!(data.data()[maxtab[0]] >= data.data()[mintab[0]] + _delta))
                 keepfirstpeak = false;
         }
     }
@@ -292,7 +295,7 @@ PeakDetectorBillauer::computePeakProminenceSimple(const vector<float> &data,
 // See algorithm here:
 // https://fr.mathworks.com/help/signal/ug/prominence.html#d123e28940
 void
-PeakDetectorBillauer::ComputePeakProminence(const vector<float> &data,
+PeakDetectorBillauer::computePeakProminence(const vector<float> &data,
                                             Peak *peak, int minIndex, int maxIndex)
 {
     // Extend a horizontal line from the peak to the left and right until

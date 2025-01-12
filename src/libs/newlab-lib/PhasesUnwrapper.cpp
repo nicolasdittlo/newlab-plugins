@@ -30,8 +30,8 @@ PhasesUnwrapper::PhasesUnwrapper(long historySize)
     _historySize = historySize;
     
 #if FREQ_GLOBAL_MIN_MAX
-    _globalMinDiff = INF;
-    _globalMaxDiff = -INF;
+    _globalMinDiff = NL_INF;
+    _globalMaxDiff = -NL_INF;
 #endif
 }
 
@@ -44,8 +44,8 @@ PhasesUnwrapper::reset()
     _unwrappedPhasesFreqs.clear();
     
 #if FREQ_GLOBAL_MIN_MAX
-    _globalMinDiff = INF;
-    _globalMaxDiff = -INF;
+    _globalMinDiff = NL_INF;
+    _globalMaxDiff = -NL_INF;
 #endif
 }
 
@@ -62,15 +62,15 @@ PhasesUnwrapper::setHistorySize(long historySize)
 }
 
 void
-PhasesUnwrapper::unwrapPhasesFreq(WDL_TypedBuf<float> *phases)
+PhasesUnwrapper::unwrapPhasesFreq(vector<float> *phases)
 {
     Utils::unwrapPhases(phases, false);
 }
 
 void
-PhasesUnwrapper::normalizePhasesFreq(WDL_TypedBuf<float> *phases)
+PhasesUnwrapper::normalizePhasesFreq(vector<float> *phases)
 {
-    if (phases->GetSize() == 0)
+    if (phases->size() == 0)
         return;
     
     // If we display the phases for bins [1-1024],
@@ -174,7 +174,7 @@ PhasesUnwrapper::unwrapPhasesTime(vector<float> *phases)
     
     for (int i = 0; i < phases->size(); i++)
     {
-        float prevPhase = prevUnwrapPhases.Get()[i];
+        float prevPhase = prevUnwrapPhases.data()[i];
         Utils::findNextPhase(&prevPhase, (float)0.0);
                 
         float phase = phases->data()[i];
@@ -197,13 +197,13 @@ PhasesUnwrapper::computeUwPhasesDiffTime(vector<float> *diff,
                                          float sampleRate, int bufferSize,
                                          int overlapping)
 {
-    diff->resize(phases0.GetSize());
+    diff->resize(phases0.size());
 
     float hzPerBin = sampleRate/bufferSize;
     // Interval between 2 measurements
     float h = (bufferSize/sampleRate)/overlapping;
         
-    for (int i = 0; i < diff->GetSize(); i++)
+    for (int i = 0; i < diff->size(); i++)
     {
         float p0 = phases0.data()[i];
         float p1 = phases1.data()[i];
@@ -225,7 +225,7 @@ PhasesUnwrapper::normalizePhasesTime(vector<float> *phases)
 {
     if (_unwrappedPhasesTime.empty())
     {
-        Utils::Normalize(phases);
+        Utils::normalize(phases);
         
         return;
     }
@@ -283,10 +283,10 @@ PhasesUnwrapper::computePhasesGradientTime(vector<float> *phases)
                     _unwrappedPhasesTime[_unwrappedPhasesTime.size() - 2];
     
     phases->data()[0] = 0.0;
-    for (int i = 1; i < currentPhases.GetSize(); i++)
+    for (int i = 1; i < currentPhases.size(); i++)
     {
-        float prevPhase = prevPhases.Get()[i];
-        float currentPhase = currentPhases.Get()[i];
+        float prevPhase = prevPhases.data()[i];
+        float currentPhase = currentPhases.data()[i];
         
         float diff = fabs(currentPhase - prevPhase);
         phases->data()[i] = diff;

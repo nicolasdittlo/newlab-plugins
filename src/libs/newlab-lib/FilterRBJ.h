@@ -16,32 +16,26 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef AWEIGHTING_H
-#define AWEIGHTING_H
+#ifndef FILTER_RBJ_H
+#define FILTER_RBJ_H
 
 #include <vector>
 using namespace std;
 
-// See: https://en.wikipedia.org/wiki/A-weighting
-//
-// and: https://community.plm.automation.siemens.com/t5/Testing-Knowledge-Base/What-is-A-weighting/ta-p/357894
-//
-
-class AWeighting
+class FilterRBJ
 {
 public:
-    // numBins is fftSize/2 !
-    // See: http://support.ircam.fr/docs/AudioSculpt/3.0/co/FFT%20Size.html
-    //
-    static void computeAWeights(vector<float> *result,
-                                int numBins, float sampleRate);
+  virtual ~FilterRBJ() {}
+  
+    virtual void setCutoffFreq(float freq) = 0;
     
-    static float computeAWeight(int binNum, int numBins, float sampleRate);
+    virtual void setQFactor(float q) = 0;
     
-protected:
-    static float computeR(float frequency);
+    virtual void setSampleRate(float sampleRate) = 0;
     
-    static float computeA(float frequency);
+    virtual float process(float sample) = 0;
+    
+    virtual void process(vector<float> *ioSamples) = 0;
 };
 
 #endif

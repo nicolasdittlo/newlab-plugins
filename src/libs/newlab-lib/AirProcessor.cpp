@@ -16,6 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include "Defines.h"
 #include "Utils.h"
 #include "PartialTracker.h"
 #include "WienerSoftMasking.h"
@@ -28,18 +29,18 @@
 #define SOFT_MASKING_FIX_BIN0 1
 
 
-AirProcessor::AirProcessor(int bufferSize, float overlap, float sampleRate)
+AirProcessor::AirProcessor(int bufferSize, int overlap, float sampleRate)
 {
     _bufferSize = bufferSize;
-    _overlapping = overlapping;    
+    _overlap = overlap;    
     _sampleRate = sampleRate;
     
-    _partialTracker = new PartialTracker(bufferSize, sampleRate, overlap);
+    _partialTracker = new PartialTracker(bufferSize, sampleRate);
     
     _mix = 0.5;
 
     _useSoftMasks = false;
-    _softMasking = new WienerSoftMasking(bufferSize, overlapping,
+    _softMasking = new WienerSoftMasking(bufferSize, overlap,
                                          SOFT_MASKING_HISTO_SIZE);
 
     _enableComputeSum = true;
@@ -60,10 +61,9 @@ AirProcessor::reset()
 }
 
 void
-AirProcessor::Reset(int bufferSize, int overlap, float sampleRate)
+AirProcessor::reset(int bufferSize, int overlap, float sampleRate)
 {
     _bufferSize = bufferSize;
-    _overlap = overlap;
     _sampleRate = sampleRate;
     
     _partialTracker->reset(bufferSize, sampleRate);
@@ -127,16 +127,16 @@ AirProcessor::processFFT(vector<complex<float> > *ioBuffer)
             maskOpposite = mask;
             Utils::computeOpposite(&maskOpposite);
             
-            maskedResult1 = fftSamples;
+            maskedResult1 = *ioBuffer;
             Utils::multBuffers(&maskedResult1, maskOpposite);
             Utils::multValue(&maskedResult1, noiseCoeff);
  
-            for (int i = 0; i < ioBuffer.size(); i++)
+            for (int i = 0; i < ioBuffer->size(); i++)
             {
                 const complex<float> &h = maskedResult0.data()[i];
                 const complex<float> &n = maskedResult1.data()[i];
 
-                ioBuffer.data()[i] = h + n;
+                ioBuffer->data()[i] = h + n;
             }
 
             if (_enableComputeSum)
@@ -158,7 +158,7 @@ AirProcessor::processFFT(vector<complex<float> > *ioBuffer)
                 
                 // 0 is harmo mask
                 Utils::multValue(&softMaskedResult0, harmoCoeff);
-                Utils::MultValue(&softMaskedResult1, noiseCoeff);
+                Utils::multValue(&softMaskedResult1, noiseCoeff);
                 
                 // Sum
                 *ioBuffer = softMaskedResult0;
@@ -168,7 +168,7 @@ AirProcessor::processFFT(vector<complex<float> > *ioBuffer)
             if (_enableComputeSum)
             {
                 // Keep the sum for later
-                Utils::complexToMagn(&_sumBuffer, ioBuffer);
+                Utils::complexToMagn(&_sumBuffer, *ioBuffer);
             }
         }
     }
@@ -212,7 +212,7 @@ AirProcessor::getNoiseBuffer(vector<float> *magns)
 }
 
 void
-AirProcessor::GetHarmoBuffer(vector<float> *magns)
+AirProcessor::getHarmoBuffer(vector<float> *magns)
 {
     *magns = _harmoBuffer;
 }
@@ -260,7 +260,7 @@ AirProcessor::computeMask(const vector<float> &s0Buf,
         if (sum > NL_EPS)
         {
             float m = s0/sum;
-            s0Mask->Get()[i] = m;
+            s0Mask->data()[i] = m;
         }
     }
 }

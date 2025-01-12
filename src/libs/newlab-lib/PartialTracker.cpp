@@ -157,13 +157,13 @@ PartialTracker::setThreshold(float threshold)
 {
     _threshold = threshold;
 
-    _peakDetector->SetThreshold(threshold);
+    _peakDetector->setThreshold(threshold);
 }
 
 void
 PartialTracker::setThreshold2(float threshold2)
 {
-    _peakDetector->SetThreshold2(threshold2);
+    _peakDetector->setThreshold2(threshold2);
 }
 
 void
@@ -175,7 +175,7 @@ PartialTracker::setData(const vector<float> &magns,
 
     // Time smooth
     // Removes the noise and make more neat peaks
-    Utils::Smooth(&_currentMagns, &_prevMagns, _timeSmoothCoeff);
+    Utils::smooth(&_currentMagns, &_prevMagns, _timeSmoothCoeff);
     
     preProcess(&_currentMagns, &_currentPhases);
 }
@@ -339,7 +339,7 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
     result.resize(0);
     bool glued = false;
     
-    sort(partials->begin(), partials->end(), Partial::FreqLess);
+    sort(partials->begin(), partials->end(), Partial::freqLess);
     
     int idx = 0;
     while(idx < partials->size())
@@ -359,14 +359,14 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
                 // This is a twin partial...
             {
                 float promCur = computePeakProminence(magns,
-                                                      currentPartial.mPeakIndex,
-                                                      currentPartial.mLeftIndex,
-                                                      currentPartial.mRightIndex);
+                                                      currentPartial._peakIndex,
+                                                      currentPartial._leftIndex,
+                                                      currentPartial._rightIndex);
                 
                 float promOther = computePeakProminence(magns,
-                                                        otherPartial.mPeakIndex,
-                                                        otherPartial.mLeftIndex,
-                                                        otherPartial.mRightIndex);
+                                                        otherPartial._peakIndex,
+                                                        otherPartial._leftIndex,
+                                                        otherPartial._rightIndex);
                 
                 // Default ratio value
                 // If it keeps this value, this is ok, this will be glued
@@ -656,7 +656,7 @@ PartialTracker::computePeakLowerFoot(const vector<float> &magns,
 
 // Better than "Simple" => do not make jumps between bins
 float
-PartialTracker::ComputePeakIndexAvg(const vector<float> &magns,
+PartialTracker::computePeakIndexAvg(const vector<float> &magns,
                                     int leftIndex, int rightIndex)
 {
     // Pow coeff, to select preferably the high amp values
@@ -696,7 +696,7 @@ float
 PartialTracker::computePeakIndexParabola(const vector<float> &magns,
                                          int peakIndex)
 {
-    if ((peakIndex - 1 < 0) || (peakIndex + 1 >= magns.GetSize()))
+    if ((peakIndex - 1 < 0) || (peakIndex + 1 >= magns.size()))
         return peakIndex;
     
     // magns are in DB

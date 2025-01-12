@@ -19,6 +19,11 @@
 #ifndef QIFFT_H
 #define QIFFT_H
 
+#include <math.h>
+
+#include <vector>
+using namespace std;
+
 // Empirical alpha0 additional coeff
 #define EMPIR_ALPHA0_COEFF 1.422865
     

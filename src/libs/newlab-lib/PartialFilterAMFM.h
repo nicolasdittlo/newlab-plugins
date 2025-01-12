@@ -67,8 +67,8 @@ class PartialFilterAMFM : public PartialFilter
                               const Partial &refPartial);
     
     // For AMFM
-    float ComputeLA(const Partial &prevPartial, const Partial &currentPartial);
-    float ComputeLF(const Partial &prevPartial, const Partial &currentPartial);
+    float computeLA(const Partial &prevPartial, const Partial &currentPartial);
+    float computeLF(const Partial &prevPartial, const Partial &currentPartial);
 
     void computeCostNeri(const Partial &prevPartial,
                          const Partial &currentPartial,

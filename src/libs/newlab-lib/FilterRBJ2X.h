@@ -16,6 +16,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef FILTER_RBJ_2X_H
+#define FILTER_RBJ_2X_H
+
 #include "CFxRbjFilter.h"
 
 #include "FilterRBJ.h"

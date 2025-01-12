@@ -35,6 +35,65 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
+      <FILE id="qCBSeb" name="AWeighting.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AWeighting.cpp"/>
+      <FILE id="VU6kLD" name="AWeighting.h" compile="0" resource="0" file="../../libs/newlab-lib/AWeighting.h"/>
+      <FILE id="I3a3yL" name="BufProcessor.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/BufProcessor.cpp"/>
+      <FILE id="wH4DVX" name="BufProcessor.h" compile="0" resource="0" file="../../libs/newlab-lib/BufProcessor.h"/>
+      <FILE id="QCxckV" name="CFxRbjFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/CFxRbjFilter.h"/>
+      <FILE id="Gto1i7" name="CrossoverSplitterNBands.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/CrossoverSplitterNBands.cpp"/>
+      <FILE id="S2Tub9" name="CrossoverSplitterNBands.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/CrossoverSplitterNBands.h"/>
+      <FILE id="QcnzVj" name="DenoiserProcessor.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/DenoiserProcessor.cpp"/>
+      <FILE id="c7AkeJ" name="DenoiserProcessor.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/DenoiserProcessor.h"/>
+      <FILE id="DYaUmD" name="DenoiserSpectrum.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/DenoiserSpectrum.cpp"/>
+      <FILE id="mZCaA7" name="DenoiserSpectrum.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/DenoiserSpectrum.h"/>
+      <FILE id="k4cUiz" name="FilterRBJ1X.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterRBJ1X.cpp"/>
+      <FILE id="IViW3a" name="FilterRBJ1X.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterRBJ1X.h"/>
+      <FILE id="paTlnk" name="FilterRBJ2X.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterRBJ2X.cpp"/>
+      <FILE id="s3B7LH" name="FilterRBJ2X.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterRBJ2X.h"/>
+      <FILE id="rGhy10" name="FilterTransparentRBJ2X.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/FilterTransparentRBJ2X.cpp"/>
+      <FILE id="J4tYyq" name="FilterTransparentRBJ2X.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/FilterTransparentRBJ2X.h"/>
+      <FILE id="wh4Evt" name="KalmanFilter.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/KalmanFilter.cpp"/>
+      <FILE id="FwjaOH" name="KalmanFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/KalmanFilter.h"/>
+      <FILE id="Fq5a5Q" name="Partial.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Partial.cpp"/>
+      <FILE id="bS0aTQ" name="Partial.h" compile="0" resource="0" file="../../libs/newlab-lib/Partial.h"/>
+      <FILE id="keZPV8" name="PartialFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/PartialFilter.h"/>
+      <FILE id="vels8M" name="PartialFilterAMFM.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialFilterAMFM.cpp"/>
+      <FILE id="fYUt8X" name="PartialFilterAMFM.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialFilterAMFM.h"/>
+      <FILE id="wJ9AfM" name="PartialFilterMarchand.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialFilterMarchand.cpp"/>
+      <FILE id="pOCMne" name="PartialFilterMarchand.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialFilterMarchand.h"/>
+      <FILE id="TKK5f7" name="PartialTracker.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialTracker.cpp"/>
+      <FILE id="IxKbQ4" name="PartialTracker.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialTracker.h"/>
+      <FILE id="HryswF" name="PeakDetector.h" compile="0" resource="0" file="../../libs/newlab-lib/PeakDetector.h"/>
+      <FILE id="Cpq6VJ" name="PeakDetectorBillauer.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorBillauer.cpp"/>
+      <FILE id="Lr6wtc" name="PeakDetectorBillauer.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorBillauer.h"/>
+      <FILE id="UW5vr7" name="PeakDetectorNL.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorNL.cpp"/>
+      <FILE id="UVIE2P" name="PeakDetectorNL.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorNL.h"/>
+      <FILE id="SoKxJ5" name="PhasesUnwrapper.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PhasesUnwrapper.cpp"/>
+      <FILE id="KiAQpa" name="PhasesUnwrapper.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PhasesUnwrapper.h"/>
+      <FILE id="btHbV1" name="QIFFT.cpp" compile="1" resource="0" file="../../libs/newlab-lib/QIFFT.cpp"/>
+      <FILE id="JkfRXu" name="QIFFT.h" compile="0" resource="0" file="../../libs/newlab-lib/QIFFT.h"/>
       <FILE id="MrGHFX" name="AmpAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AmpAxis.cpp"/>
       <FILE id="cUzZWV" name="AmpAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/AmpAxis.h"/>
       <FILE id="VRdMcA" name="Axis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Axis.cpp"/>
@@ -62,12 +121,9 @@
             file="../../libs/newlab-lib/DemoTextDrawer.h"/>
       <FILE id="HSNapt" name="AirProcessor.cpp" compile="1" resource="0"
             file="../../libs/newlab-lib/AirProcessor.cpp"/>
-      <FILE id="vckmnw" name="AirProcessor.h" compile="0" resource="0"
-            file="../../libs/newlab-lib/AirProcessor.h"/>
-      <FILE id="yvwTSd" name="AirSpectrum.cpp" compile="1" resource="0"
-            file="../../libs/newlab-lib/AirSpectrum.cpp"/>
-      <FILE id="qr6B4U" name="AirSpectrum.h" compile="0" resource="0"
-            file="../../libs/newlab-lib/AirSpectrum.h"/>
+      <FILE id="vckmnw" name="AirProcessor.h" compile="0" resource="0" file="../../libs/newlab-lib/AirProcessor.h"/>
+      <FILE id="yvwTSd" name="AirSpectrum.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AirSpectrum.cpp"/>
+      <FILE id="qr6B4U" name="AirSpectrum.h" compile="0" resource="0" file="../../libs/newlab-lib/AirSpectrum.h"/>
       <FILE id="VGk7dL" name="FilterBank.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterBank.cpp"/>
       <FILE id="zASwSB" name="FilterBank.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterBank.h"/>
       <FILE id="GGWd8d" name="FontManager.h" compile="0" resource="0" file="../../libs/newlab-lib/FontManager.h"/>

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-class ParamSmoother,
+class ParamSmoother;
 class Utils
 {
  public:
@@ -36,7 +36,7 @@ class Utils
                                    const vector<float> &magns,
                                    const vector<float> &phases);
 
-    static void complexToMagn(vector<float> *result, const vector<float> &complexBuf);
+    static void complexToMagn(vector<float> *result, const vector<complex<float> > &complexBuf);
         
     static void fillZero(vector<int> *buf);
     static void fillZero(vector<float> *buf);
@@ -125,6 +125,8 @@ class Utils
 
     static float computeMax(const vector<float> &buf);
 
+    static float normalize(float value, float minimum, float maximum);
+    
     static void normalize(vector<float> *values, float minimum, float maximum);
 
     static void normalize(vector<float> *values);

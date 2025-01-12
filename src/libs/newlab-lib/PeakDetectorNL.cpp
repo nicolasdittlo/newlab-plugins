@@ -20,12 +20,12 @@
 #include "PeakDetectorNL.h"
 
 
-PeakDetectorBL::PeakDetectorBL() {}
+PeakDetectorNL::PeakDetectorNL() {}
 
-PeakDetectorBL::~PeakDetectorBL() {}
+PeakDetectorNL::~PeakDetectorNL() {}
 
 void
-PeakDetectorBL::detectPeaks(const vector<float> &data,
+PeakDetectorNL::detectPeaks(const vector<float> &data,
                             vector<Peak> *peaks,
                             int minIndex, int maxIndex)
 {
@@ -167,7 +167,7 @@ PeakDetectorBL::detectPeaks(const vector<float> &data,
 }
 
 bool
-PeakDetectorBL::discardInvalidPeaks(const vector<float> &data,
+PeakDetectorNL::discardInvalidPeaks(const vector<float> &data,
                                     int peakIndex, int leftIndex, int rightIndex)
 {
     float peakAmp = data.data()[peakIndex];

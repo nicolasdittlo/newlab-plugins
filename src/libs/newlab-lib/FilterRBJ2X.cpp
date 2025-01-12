@@ -78,7 +78,7 @@ FilterRBJ2X::setQFactor(float q)
 float
 FilterRBJ2X::process(float sample)
 {    
-    sample = _silter->filter(sample);
+    sample = _filter->filter(sample);
         
     return sample;
 }

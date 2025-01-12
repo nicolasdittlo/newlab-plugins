@@ -32,5 +32,5 @@ BufProcessor::processFFT(vector<complex<float> > *ioBuffer)
 void
 BufProcessor::getMagnsBuffer(vector<float> *magns)
 {
-    *magn = _magnsBuffer;
+    *magns = _magnsBuffer;
 }

@@ -17,7 +17,7 @@
  */
 
 #include "FilterRBJ1X.h"
-#include "FilterTransparentRBJ2X2.h"
+#include "FilterTransparentRBJ2X.h"
 
 FilterTransparentRBJ2X::FilterTransparentRBJ2X(float sampleRate,
                                                float cutoffFreq)
@@ -43,7 +43,7 @@ FilterTransparentRBJ2X::~FilterTransparentRBJ2X()
 }
 
 void
-FilterTransparentRBJ2X::setCutoffFreq(BL_FLOAT freq)
+FilterTransparentRBJ2X::setCutoffFreq(float freq)
 {
     _cutoffFreq = freq;
     
@@ -51,13 +51,13 @@ FilterTransparentRBJ2X::setCutoffFreq(BL_FLOAT freq)
 }
 
 void
-FilterTransparentRBJ2X::setQFactor(BL_FLOAT q)
+FilterTransparentRBJ2X::setQFactor(float q)
 {
     _filter->setQFactor(q);
 }
 
 void
-FilterTransparentRBJ2X::setSampleRate(BL_FLOAT sampleRate)
+FilterTransparentRBJ2X::setSampleRate(float sampleRate)
 {
     _sampleRate = sampleRate;
     

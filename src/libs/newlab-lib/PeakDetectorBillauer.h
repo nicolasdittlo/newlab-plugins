@@ -70,11 +70,11 @@ protected:
                                 int minIndex, int maxIndex);
                                 
     
-    float mMaxDelta;
+    float _maxDelta;
     
-    float mDelta;
+    float _delta;
 
-    float mThreshold2;
+    float _threshold2;
 };
 
 #endif

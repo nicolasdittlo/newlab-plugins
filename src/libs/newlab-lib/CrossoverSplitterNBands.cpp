@@ -168,7 +168,7 @@ CrossoverSplitterNBands::split(const vector<float> &samples,
 {
     for (int i = 0; i < _numBands; i++)
     {
-        result[i].resize(samples.GetSize());
+        result[i].resize(samples.size());
     }
     
     //WDL_TypedBuf<float> resultCross[mNumBands];

@@ -27,24 +27,24 @@ class PeakDetector
  public:
     struct Peak
     {
-        int mPeakIndex;
-        int mLeftIndex;
-        int mRightIndex;
+        int _peakIndex;
+        int _leftIndex;
+        int _rightIndex;
 
         // Optional
-        BL_FLOAT mProminence;
+        float _prominence;
 
-        static bool ProminenceLess(const Peak &p1, const Peak &p2)
-        { return (p1.mProminence < p2.mProminence); }
+        static bool prominenceLess(const Peak &p1, const Peak &p2)
+        { return (p1._prominence < p2._prominence); }
 
-        static bool PeakIndexLess(const Peak &p1, const Peak &p2)
-        { return (p1.mPeakIndex < p2.mPeakIndex); }
+        static bool peakIndexLess(const Peak &p1, const Peak &p2)
+        { return (p1._peakIndex < p2._peakIndex); }
     };
 
-    virtual void SetThreshold(BL_FLOAT threshold) {}
-    virtual void SetThreshold2(BL_FLOAT threshold2) {}
+    virtual void setThreshold(float threshold) {}
+    virtual void setThreshold2(float threshold2) {}
     
-    virtual void DetectPeaks(const WDL_TypedBuf<BL_FLOAT> &data, vector<Peak> *peaks,
+    virtual void detectPeaks(const vector<float> &data, vector<Peak> *peaks,
                              int minIndex = -1, int maxIndex = -1) = 0;
 };
 

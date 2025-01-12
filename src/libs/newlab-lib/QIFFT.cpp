@@ -16,6 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include "Defines.h"
 #include "QIFFT.h"
 
 void
@@ -173,7 +174,7 @@ QIFFT::getParabolaCoeffs(float alpha, float beta, float gamma,
 
     // Center
     float denom0 = (alpha - 2.0*beta + gamma);
-    if (fabs(denom0) < BL_EPS)
+    if (fabs(denom0) < NL_EPS)
         return;
     
     *c = 0.5*((alpha - gamma)/denom0);

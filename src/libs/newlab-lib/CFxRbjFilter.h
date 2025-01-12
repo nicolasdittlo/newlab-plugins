@@ -50,8 +50,6 @@ public:
 	{
 		// filter
 		float yn = b0a0*in0 + b1a0*in1 + b2a0*in2 - a1a0*ou1 - a2a0*ou2;
-
-        FIX_FLT_DENORMAL(yn)
         
 		// push in/out buffers
 		in2=in1;

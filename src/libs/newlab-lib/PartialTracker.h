@@ -23,12 +23,8 @@
 using namespace std;
 
 #include "PeakDetector.h"
-
-#include <Partial.h>
-
-#include "IPlug_include_in_plug_hdr.h"
-
-#include "../../WDL/fft.h"
+#include "Scale.h"
+#include "Partial.h"
 
 // Use PeakDetector class, original NewLab implementation
 #define USE_NL_PEAK_DETECTOR 0
@@ -48,7 +44,6 @@ using namespace std;
 #endif
 
 class PartialFilter;
-class Scale;
 class PartialTracker
 {
 public:
@@ -104,8 +99,8 @@ public:
     
     void partialsAmpToAmpDB(vector<Partial> *partials);
 
-    BL_FLOAT partialScaleToQIFFTScale(float ampDbNorm);
-    BL_FLOAT QIFFTScaleToPartialScale(float ampLog);
+    float partialScaleToQIFFTScale(float ampDbNorm);
+    float QIFFTScaleToPartialScale(float ampLog);
 
     void setNeriDelta(float delta);
     
@@ -219,7 +214,7 @@ protected:
     float _timeSmoothCoeff;
         
     // Smooth only magns
-    WDL_TypedBuf<BL_FLOAT> _prevMagns;
+    vector<float> _prevMagns;
     
     // Scales
     Scale *_scale;
@@ -232,7 +227,7 @@ protected:
     Scale::Type _yScaleInv2; // for log
 
     // Optim
-    vertor<float> _aWeights;
+    vector<float> _aWeights;
 
     PeakDetector *_peakDetector;
     PartialFilter *_partialFilter;

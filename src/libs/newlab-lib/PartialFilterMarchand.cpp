@@ -64,7 +64,7 @@ PartialFilterMarchand::filterPartials(vector<Partial> *partials)
         for (int j = 0; j < _partials[0].size(); j++)
         {
             Partial &currentPartial = _partials[0][j];
-            currentPartial.GenNewId();
+            currentPartial.genNewId();
         }
         
         // Not enough partials to filter, need 2 series
@@ -117,7 +117,7 @@ PartialFilterMarchand::filterPartials(vector<Partial> *partials)
                 
                 currentPartials.push_back(newPartial);
             }
-            else if (prevPartial.mState == Partial::ZOMBIE)
+            else if (prevPartial._state == Partial::ZOMBIE)
             {
                 Partial newPartial = prevPartial;
                 
@@ -205,14 +205,14 @@ associatePartials(const vector<Partial> &prevPartials,
         {
             Partial &currentPartial = currentPartialsSort[j];
             
-            if (currentPartial.mId != -1)
+            if (currentPartial._id != -1)
                 // Already assigned
                 continue;
             
             float diffFreq = fabs(prevPartial._freq - currentPartial._freq);
             
             int binNum = currentPartial._freq*_bufferSize*0.5;
-            float diffCoeff = GetDeltaFreqCoeff(binNum);
+            float diffCoeff = getDeltaFreqCoeff(binNum);
             if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
             // Associated !
             {
@@ -245,7 +245,7 @@ associatePartials(const vector<Partial> &prevPartials,
     for (int i = 0; i < currentPartialsSort.size(); i++)
     {
         const Partial &p = currentPartialsSort[i];
-        if (p.mId == -1)
+        if (p._id == -1)
             remainingPartials->push_back(p);
     }
 }
@@ -283,7 +283,7 @@ associatePartialsPARSHL(const vector<Partial> &prevPartials,
                     std::fabs(prevPartial._freq - currentPartial._freq);
                 
                 int binNum = currentPartial._freq*_bufferSize*0.5;
-                float diffCoeff = GetDeltaFreqCoeff(binNum);
+                float diffCoeff = getDeltaFreqCoeff(binNum);
             
                 if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
                     // Associate!
@@ -305,7 +305,7 @@ associatePartialsPARSHL(const vector<Partial> &prevPartials,
                     {
                         Partial &otherPartial = (*currentPartials)[otherIdx];
                         
-                        float otherDiffFreq =vfabs(prevPartial._freq - otherPartial._freq);
+                        float otherDiffFreq = fabs(prevPartial._freq - otherPartial._freq);
                         
                         if (diffFreq < otherDiffFreq)
                         // Current partial won

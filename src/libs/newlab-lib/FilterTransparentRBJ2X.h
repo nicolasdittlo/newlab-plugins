@@ -20,7 +20,7 @@
 #define FILTER_TRANSPARENT_RBJ2X_H
 
 #include <vector>
-using namespacec std;
+using namespace std;
 
 #include "FilterRBJ.h"
 
