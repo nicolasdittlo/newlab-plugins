@@ -19,6 +19,13 @@
 #ifndef PARTIAL_TRACKER_H
 #define PARTIAL_TRACKER_H
 
+#include <deque>
+using namespace std;
+
+#include "nl_queue.h"
+#include "Scale.h"
+#include "KalmanFilter.h"
+
 class PartialTracker
 {
 public:
@@ -144,10 +151,10 @@ public:
     void preProcessUnwrapPhases(vector<float> *magns,
                                 vector<float> *phases);
     
-    void denormPartials(vector<PartialTracker5::Partial> *partials);
+    void denormPartials(vector<PartialTracker::Partial> *partials);
     void denormData(vector<float> *data);
     
-    void partialsAmpToAmpDB(vector<PartialTracker5::Partial> *partials);
+    void partialsAmpToAmpDB(vector<PartialTracker::Partial> *partials);
     
 protected:
     // Pre process
@@ -195,7 +202,7 @@ protected:
     float computePeakAmpInterp(const vector<float> &magns,
                                float peakFreq);
     
-    void ComputePeakMagnPhaseInterp(const vector<float> &magns,
+    void computePeakMagnPhaseInterp(const vector<float> &magns,
                                     const vector<float> &unwrappedPhases,
                                     float peakFreq,
                                     float *peakAmp, float *peakPhase);
@@ -220,7 +227,7 @@ protected:
     
     // Discard partials which are almost flat
     // (compare height of the partial, and width in the middle
-    bool DiscardFlatPartial(const vector<float> &magns,
+    bool discardFlatPartial(const vector<float> &magns,
                             int peakIndex, int leftIndex, int rightIndex);
     
     void discardFlatPartials(const vector<float> &magns,
@@ -288,16 +295,16 @@ protected:
     // Associate partials
     
     // Simple method, based on frequencies only
-    void associatePartials(const vector<PartialTracker5::Partial> &prevPartials,
-                           vector<PartialTracker5::Partial> *currentPartials,
-                           vector<PartialTracker5::Partial> *remainingPartials);
+    void associatePartials(const vector<PartialTracker::Partial> &prevPartials,
+                           vector<PartialTracker::Partial> *currentPartials,
+                           vector<PartialTracker::Partial> *remainingPartials);
     
     // See: https://www.dsprelated.com/freebooks/sasp/PARSHL_Program.html#app:parshlapp
     // "Peak Matching (Step 5)"
     // Use fight/winner/loser
-    void associatePartialsPARSHL(const vector<PartialTracker5::Partial> &prevPartials,
-                                 vector<PartialTracker5::Partial> *currentPartials,
-                                 vector<PartialTracker5::Partial> *remainingPartials);
+    void associatePartialsPARSHL(const vector<PartialTracker::Partial> &prevPartials,
+                                 vector<PartialTracker::Partial> *currentPartials,
+                                 vector<PartialTracker::Partial> *remainingPartials);
 
     // Adaptive threshold, depending on bin num;
     float getThreshold(int binNum);
@@ -334,7 +341,7 @@ protected:
     vector<float> _prevNoiseEnvelope;
     
     // For ComputeMusicalNoise()
-    bl_queue<vector<float> > _prevNoiseMasks;
+    nl_queue<vector<float> > _prevNoiseMasks;
     
     float _maxDetectFreq;
     

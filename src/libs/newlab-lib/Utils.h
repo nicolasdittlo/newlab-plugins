@@ -53,6 +53,7 @@ class Utils
     static void multBuffers(vector<float> *buf, const vector<float> &values);
     static void multBuffers(vector<complex<float>> *buf0, const vector<float> &buf1);
     static void multBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
+    static void substractBuffers(vector<float> *ioBuf, const vector<float> &subBuf);
     static void substractBuffers(vector<complex<float>> *buf0, const vector<complex<float> > &buf1);
 
     static void multValue(vector<float> *buf, float val);

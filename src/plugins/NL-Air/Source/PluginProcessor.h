@@ -67,7 +67,7 @@ public:
 
     void setSampleRateChangeListener(SampleRateChangeListener listener);
 
-    bool getBuffers(vector<float> *noiseBuffer,
+    bool getBuffers(vector<float> *airBuffer,
                     vector<float> *harmoBuffer,
                     vector<float> *sumBuffer);
     
@@ -83,7 +83,7 @@ private:
     vector<AirProcessor *> _processors;
 
     vector<OverlapAdd *> _outOverlapAdds;
-    vector<AirProcessor *> _outProcessors;
+    vector<BufProcessor *> _outProcessors;
     
     bool _prevSmartResynthParam = false;
 
@@ -106,7 +106,7 @@ private:
     vector<float> _sumBuffer;
     
     std::mutex _curvesMutex;
-    bool _newBuffersAvailble = false;
+    bool _newBuffersAvailable = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (NLAirAudioProcessor)
 };

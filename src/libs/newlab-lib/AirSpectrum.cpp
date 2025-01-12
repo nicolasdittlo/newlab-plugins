@@ -51,8 +51,8 @@ AirSpectrum::~AirSpectrum()
     delete _hAxis;
     delete _vAxis;
     
-    delete _noiseCurve;
-    delete _noiseCurveSmooth;
+    delete _airCurve;
+    delete _airCurveSmooth;
     
     delete _harmoCurve;
     delete _harmoCurveSmooth;
@@ -97,9 +97,9 @@ AirSpectrum::createCurves(float sampleRate)
     _airCurve->setDescription("air", descrColor);
     _airCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _airCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
-    _airCurve->setColor(signalColor[0], signalColor[1], signalColor[2]);
+    _airCurve->setColor(airColor[0], airColor[1], airColor[2]);
     _airCurve->setFill(true);
-    _airCurve->setFillColor(signalColor[0], signalColor[1], signalColor[2], fillAlpha*255);
+    _airCurve->setFillColor(airColor[0], airColor[1], airColor[2], fillAlpha*255);
     _airCurve->setLineWidth(2.0);
         
     _airCurveSmooth = new SmoothCurveDB(_airCurve,

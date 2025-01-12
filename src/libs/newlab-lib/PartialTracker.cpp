@@ -19,6 +19,7 @@
 #include <algorithm>
 using namespace std;
 
+#include "Defines.h"
 #include "Window.h"
 #include "AWeighting.h"
 #include "Utils.h"
@@ -67,7 +68,7 @@ using namespace std;
 //
 // Get the precision when interpolating peak magns, but also for phases
 
-unsigned long PartialTracker::Partial::mCurrentId = 0;
+unsigned long PartialTracker::Partial::_currentId = 0;
 
 
 PartialTracker::Partial::Partial()
@@ -130,7 +131,7 @@ PartialTracker::Partial::~Partial() {}
 void
 PartialTracker::Partial::genNewId()
 {
-    _id = mCurrentId++;
+    _id = _currentId++;
 }
     
 bool
@@ -192,7 +193,7 @@ PartialTracker::~PartialTracker()
 }
 
 void
-PartialTracker::Reset()
+PartialTracker::reset()
 {
     _partials.clear();
     _result.clear();
@@ -225,8 +226,6 @@ PartialTracker::reset(int bufferSize, float sampleRate)
 
     // Optim
     computeAWeights(bufferSize/2, sampleRate);
-    
-    reserveTmpBufs();
 }
 
 void
@@ -332,16 +331,13 @@ PartialTracker::extractNoiseEnvelopeSimple()
     // (origin signal less noise)
     _noiseEnvelope = _currentMagns;
     
-    BLUtils::SubstractValues(&_noiseEnvelope, _harmonicEnvelope);
+    Utils::substractBuffers(&_noiseEnvelope, _harmonicEnvelope);
     
-    // Because it is in dB
-    BLUtils::AddValues(&_noiseEnvelope, (float)0.0);
-    
-    BLUtils::ClipMin(&_noiseEnvelope, (float)0.0);
+    Utils::clipMin(&_noiseEnvelope, (float)0.0);
     
     // Avoids interpolation from 0 to the first valid index
     // (could have made an artificial increasing slope in the low freqs)
-    for (int i = 0; i < _noiseEnvelope.dataSize(); i++)
+    for (int i = 0; i < _noiseEnvelope.size(); i++)
     {
         float val = _noiseEnvelope.data()[i];
         if (val > NL_EPS)
@@ -508,7 +504,7 @@ PartialTracker::keepOnlyPartials(const vector<Partial> &partials,
 void
 PartialTracker::filterPartials()
 {    
-    FilterPartials(&_result);
+    filterPartials(&_result);
 }
 
 // For noise envelope extraction, the
@@ -773,7 +769,7 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
     result.resize(0);
     bool glued = false;
     
-    sort(partials->begin(), partials->end(), Partial::FreqLess);
+    sort(partials->begin(), partials->end(), Partial::freqLess);
     
     int idx = 0;
     while(idx < partials->size())
@@ -1009,7 +1005,7 @@ PartialTracker::thresholdPartialsPeakHeight(vector<Partial> *partials)
     {
         const Partial &partial = (*partials)[i];
         
-        float height = partial.mPeakHeight;
+        float height = partial._peakHeight;
         
         // Just in case
         if (height < 0.0)
@@ -1046,6 +1042,41 @@ PartialTracker::computePeakProminence(const vector<float> &magns,
     return prominence;
 }
 
+// Parabola peak center detection
+// Works well (but I prefer my method) 
+//
+// See: http://eprints.maynoothuniversity.ie/4523/1/thesis.pdf (p32)
+//
+// and: https://ccrma.stanford.edu/~jos/parshl/Peak_Detection_Steps_3.html#sec:peakdet
+//
+float
+PartialTracker::computePeakIndexParabola(const vector<float> &magns,
+                                         int peakIndex)
+{
+    if ((peakIndex - 1 < 0) || (peakIndex + 1 >= magns.size()))
+        return peakIndex;
+    
+    // magns are in DBn, no need to convert
+    float alpha = magns.data()[peakIndex - 1];
+    float beta = magns.data()[peakIndex];
+    float gamma = magns.data()[peakIndex + 1];
+
+    // Will avoid wrong negative result
+    if ((beta < alpha) || (beta < gamma))
+        return peakIndex;
+    
+    // Center
+    float denom = (alpha - 2.0*beta + gamma);
+    if (fabs(denom) < NL_EPS)
+        return peakIndex;
+    
+    float c = 0.5*((alpha - gamma)/denom);
+    
+    float result = peakIndex + c;
+    
+    return result;
+}
+
 float
 PartialTracker::
 computePeakIndexHalfProminenceAvg(const vector<float> &magns,
@@ -1054,7 +1085,7 @@ computePeakIndexHalfProminenceAvg(const vector<float> &magns,
     // First step: find float indices corresponding to the half prominence
     // Find float indices, and intermediate interpolated magns, for more accuracy
     float prominence =
-        ComputePeakProminence(magns, peakIndex, leftIndex, rightIndex);
+        computePeakProminence(magns, peakIndex, leftIndex, rightIndex);
 
     // Half-prominence threshold
     float thrs = magns.data()[peakIndex] - prominence*0.5;
@@ -1216,7 +1247,7 @@ PartialTracker::computePeaksHeights(const vector<float> &magns,
                                          partial._leftIndex,
                                          partial._rightIndex);
         
-        partial.mPeakHeight = height;
+        partial._peakHeight = height;
     }
 }
 
@@ -1376,7 +1407,7 @@ PartialTracker::filterPartials(vector<Partial> *result)
     }
     
     // Then sort the new partials by frequency
-    sort(currentPartials.begin(), currentPartials.end(), Partial::FreqLess);
+    sort(currentPartials.begin(), currentPartials.end(), Partial::freqLess);
     
     //
     // Update: add the partials to the history
@@ -1413,7 +1444,7 @@ PartialTracker::computePeakIndexAvg(const vector<float> &magns,
         sumMagns += magn;
     }
     
-    if (sumMagns < BL_EPS)
+    if (sumMagns < NL_EPS)
         return 0.0;
     
     float result = sumIndex/sumMagns;
@@ -1526,7 +1557,7 @@ associatePartials(const vector<PartialTracker::Partial> &prevPartials,
             
             int binNum = currentPartial._freq*_bufferSize*0.5;
             float diffCoeff = getDeltaFreqCoeff(binNum);
-            if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff*mDbgParam)
+            if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
             // Associated !
             {
                 currentPartial._id = prevPartial._id;
@@ -1571,11 +1602,11 @@ associatePartialsPARSHL(const vector<PartialTracker::Partial> &prevPartials,
                         vector<PartialTracker::Partial> *remainingPartials)
 {
     // Sort current partials and prev partials by increasing frequency
-    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
+    sort(currentPartials->begin(), currentPartials->end(), Partial::freqLess);
     
     vector<PartialTracker::Partial> &prevPartials0 = _tmpPartials17;
     prevPartials0 = prevPartials;
-    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
+    sort(prevPartials0.begin(), prevPartials0.end(), Partial::freqLess);
     
     // Associated partials
     bool stopFlag = true;
@@ -1598,7 +1629,7 @@ associatePartialsPARSHL(const vector<PartialTracker::Partial> &prevPartials,
                 int binNum = currentPartial._freq*_bufferSize*0.5;
                 float diffCoeff = getDeltaFreqCoeff(binNum);
             
-                if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff*mDbgParam)
+                if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff)
                     // Associate!
                 {
                     int otherIdx =
@@ -1746,7 +1777,7 @@ PartialTracker::preProcess(vector<float> *magns, vector<float> *phases)
 
     // Phases
     vector<float> &scaledPhases = _tmpBuf9;
-    Scale::FilterBankType type = _scale->yypeToFilterBankType(_xScale);
+    Scale::FilterBankType type = _scale->typeToFilterBankType(_xScale);
     _scale->applyScaleFilterBank(type, &scaledPhases, *phases,
                                  _sampleRate, phases->size());
     *phases = scaledPhases;
@@ -1869,7 +1900,7 @@ PartialTracker::partialsAmpToAmpDB(vector<PartialTracker::Partial> *partials)
     {
         PartialTracker::Partial &partial = (*partials)[i];
         
-        partial._ampDB = Utils::AmpToDB(partial._amp);
+        partial._ampDB = Utils::ampToDB(partial._amp);
     }
 }
 
@@ -2039,7 +2070,7 @@ PartialTracker::computeAccurateFreqs(vector<Partial> *partials)
         //
         // Update the partial peak index (just in case)
         float newPeakIndex = peakFreq*(_bufferSize*0.5);
-        p._peakIndex = bl_round(newPeakIndex);
+        p._peakIndex = round(newPeakIndex);
         if (p._peakIndex < 0)
             p._peakIndex = 0;
         

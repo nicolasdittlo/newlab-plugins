@@ -20,6 +20,9 @@
 #include "AirProcessor.h"
 #include "BufProcessor.h"
 #include "Utils.h"
+#include "ParamSmoother.h"
+#include "CrossoverSplitterNBands.h"
+#include "Delay.h"
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -66,8 +69,8 @@ NLAirAudioProcessor::NLAirAudioProcessor()
 {
     float sampleRate = 44100.0;
     
-    BL_FLOAT defaultSplitFreq = DEFAULT_SPLIT_FREQ;
-    BL_FLOAT splitFreqSmoothTime = DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS;
+    float defaultSplitFreq = DEFAULT_SPLIT_FREQ;
+    float splitFreqSmoothTime = DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS;
 
     // Adjust, because smoothing is done only once in each processBlock()
     int blockSize = 512;
@@ -97,7 +100,7 @@ NLAirAudioProcessor::~NLAirAudioProcessor()
     for (int i = 0; i < _wetGainSmoothers.size(); i++)
         delete _wetGainSmoothers[i];
 
-    delete _splitFreqSmoother
+    delete _splitFreqSmoother;
         
     for (int i = 0; i < _bandSplittersIn.size(); i++)
         delete _bandSplittersIn[i];
@@ -282,7 +285,7 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         
         for (int i = 0; i < numInputChannels; i++)
         {
-            Delay *delay = new DelayObj(fftSize);
+            Delay *delay = new Delay(fftSize);
             _inputDelays.push_back(delay);
         }
 
@@ -344,11 +347,15 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     setLatencySamples(latency);
     updateHostDisplay();
 
+    // Update the delays
+    for (int i = 0; i < _inputDelays.size(); i++)
+        _inputDelays[i]->setDelay(latency);
+    
     for (int i = 0; i < _bandSplittersIn.size(); i++)
-        _bandSplittersIn.reset(sampleRate);
+        _bandSplittersIn[i]->reset(sampleRate);
     
     for (int i = 0; i < _bandSplittersOut.size(); i++)
-        _bandSplittersOut.reset(sampleRate);
+        _bandSplittersOut[i]->reset(sampleRate);
 }
 
 void
@@ -422,7 +429,7 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     for (int i = 0; i < _processors.size(); i++)
     {
         _processors[i]->setThreshold(threshold);
-        _processors[i]->setMix(mix);
+        _processors[i]->setMix(harmoAirMix);
         _processors[i]->setUseSoftMasks(smartResynth > 0.5);
     }
 
@@ -470,20 +477,20 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
             vector<float> inHi;
             
             vector<float> resultBufIn[2];
-            _bandSplittersIn[channel]->split(inBuf, &resultBufIn);
+            _bandSplittersIn[channel]->split(inBuf, (vector<float> *)&resultBufIn);
 
-            inLo[i] = resultBufIn[0];
-            inHi[i] = resultBufIn[1];
+            inLo = resultBufIn[0];
+            inHi = resultBufIn[1];
 
             // Split out
-            vector<float> > outLo;
-            vector<float> > outHi;
+            vector<float> outLo;
+            vector<float> outHi;
             
-            WDL_TypedBuf<BL_FLOAT> resultBufOut[2];
-            _bandSplittersOut[i]->split(out[i], resultBufOut);
+            vector<float> resultBufOut[2];
+            _bandSplittersOut[channel]->split(outBuf, resultBufOut);
 
-            outLo[i] = resultBufOut[0];
-            outHi[i] = resultBufOut[1];
+            outLo = resultBufOut[0];
+            outHi = resultBufOut[1];
 
             // Delay input
             _inputDelays[channel]->processSamples(&inLo);
@@ -509,15 +516,12 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
 
-        if (_processors[0]->newCurvesAvailable())
-        {
-            _processors[0]->getNoiseBuffer(&_noiseBuffer);
-            _processors[0]->getHarmoBuffer(&_harmoBuffer);
+        _processors[0]->getNoiseBuffer(&_airBuffer);
+        _processors[0]->getHarmoBuffer(&_harmoBuffer);
 
-            _outProcessors[0]->getMagnsBuffer(&_sumBuffer);
+        _outProcessors[0]->getMagnsBuffer(&_sumBuffer);
 
-            _newBuffersAvailable = true;
-        }
+        _newBuffersAvailable = true;
     }
 }
 
@@ -540,31 +544,6 @@ void NLAirAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
     constexpr int version = 700; // Unified version number
     stateToSave.setProperty("version", version, nullptr);
 
-    vector<vector< float> > noiseProfileArray;
-    noiseProfileArray.resize(_processors.size());
-    for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->getNativeNoiseCurve(&noiseProfileArray[i]);
-    
-    // Serialize the noise profile array into a MemoryBlock
-    juce::MemoryBlock noiseProfileBlock;
-    {
-        juce::MemoryOutputStream noiseStream(noiseProfileBlock, true);
-
-        // Write the number of vectors
-        noiseStream.writeInt(static_cast<int>(noiseProfileArray.size()));
-
-        // Write each vector
-        for (const auto& vector : noiseProfileArray)
-        {
-            noiseStream.writeInt(static_cast<int>(vector.size()));
-            for (float value : vector)
-                noiseStream.writeFloat(value);
-        }
-    }
-
-    // Convert the noise profile binary data to a Base64 string and save it
-    stateToSave.setProperty("noiseProfile", noiseProfileBlock.toBase64Encoding(), nullptr);
-
     // Serialize the entire state to destData
     juce::MemoryOutputStream stream(destData, true);
     stateToSave.writeToStream(stream);
@@ -582,50 +561,6 @@ void NLAirAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
         {
             // Load the parameter state
             _parameters.state = newState;
-
-            // Restore the noise profile from the binary blob
-            if (newState.hasProperty("noiseProfile"))
-            {
-                vector<vector<float> > noiseProfileArray;
-                
-                juce::String encodedBlob = newState["noiseProfile"].toString();
-                juce::MemoryBlock noiseProfileBlock;
-                if (noiseProfileBlock.fromBase64Encoding(encodedBlob))
-                {
-                    juce::MemoryInputStream noiseStream(noiseProfileBlock, false);
-
-                    // Clear existing data
-                    noiseProfileArray.clear();
-
-                    // Read the number of vectors
-                    int numVectors = noiseStream.readInt();
-
-                    // Read each vector
-                    for (int i = 0; i < numVectors; ++i)
-                    {
-                        int vectorSize = noiseStream.readInt();
-                        std::vector<float> vector;
-
-                        for (int j = 0; j < vectorSize; ++j)
-                            vector.push_back(noiseStream.readFloat());
-
-                        noiseProfileArray.push_back(std::move(vector));
-                    }
-                }
-
-                for (int i = 0; i < _processors.size(); i++)
-                {
-                    if (i < noiseProfileArray.size())
-                        _processors[i]->setNativeNoiseCurve(noiseProfileArray[i]);
-                }
-
-                if (_processors.empty())
-                    // prepareToPlay has not been called yet
-                {
-                    _nativeNoiseProfiles = noiseProfileArray;
-                    _mustSetNativeNoiseProfiles = true;
-                }
-            }
         }
         else
         {
@@ -642,7 +577,7 @@ NLAirAudioProcessor::setSampleRateChangeListener(SampleRateChangeListener listen
 }
 
 bool
-NLAirAudioProcessor::getBuffers(vector<float> *noiseBuffer,
+NLAirAudioProcessor::getBuffers(vector<float> *airBuffer,
                                 vector<float> *harmoBuffer,
                                 vector<float> *sumBuffer)
 {
@@ -651,7 +586,7 @@ NLAirAudioProcessor::getBuffers(vector<float> *noiseBuffer,
     
     std::lock_guard<std::mutex> lock(_curvesMutex);
 
-    *noiseBuffer = _noiseBuffer;
+    *airBuffer = _airBuffer;
     *harmoBuffer = _harmoBuffer;
     *sumBuffer = _sumBuffer;
 

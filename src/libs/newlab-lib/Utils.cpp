@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "Defines.h"
-
+#include "ParamSmoother.h"
 #include "Utils.h"
 
 void
@@ -55,7 +55,7 @@ Utils::complexToMagn(vector<float> *result, const vector<complex<float> > &compl
     result->resize(complexBuf.size());
     
     int complexBufSize = complexBuf.size();
-    complex<float> *complexBufData = complexBuf.data();
+    const complex<float> *complexBufData = complexBuf.data();
     float *resultData = result->data();
     
     for (int i = 0; i < complexBufSize; i++)
@@ -130,7 +130,7 @@ Utils::addBuffers(vector<float> *result, const vector<float> &buf0, const vector
 {
     result->resize(buf0.size());
     
-    for (int i = 0; i < buf0->size(); i++)
+    for (int i = 0; i < buf0.size(); i++)
         (*result)[i] = buf0[i] + buf1[i];
 }
 
@@ -160,6 +160,24 @@ Utils::multBuffers(vector<float> *buf,
     {
         float val = valuesData[i];
         bufData[i] *= val;
+    }
+}
+
+void
+Utils::substractBuffers(vector<float> *ioBuf, const vector<float> &subBuf)
+{
+    int ioBufSize = ioBuf->size();
+    float *ioBufData = ioBuf->data();
+    const float *subBufData = subBuf.data();
+        
+    for (int i = 0; i < ioBufSize; i++)
+    {
+        float val = ioBufData[i];
+        float sub = subBufData[i];
+        
+        val -= sub;
+        
+        ioBufData[i] = val;
     }
 }
 
@@ -653,7 +671,7 @@ float
 Utils::computeMin(const vector<float> &buf)
 {
     int bufSize = buf.size();
-    float *bufData = buf.data();
+    const float *bufData = buf.data();
     
     if (bufSize == 0)
         return 0.0;
@@ -675,7 +693,7 @@ float
 Utils::computeMax(const vector<float> &buf)
 {
     int bufSize = buf.size();
-    float *bufData = buf.data();
+    const float *bufData = buf.data();
     
     if (bufSize == 0)
         return 0.0;
@@ -794,7 +812,7 @@ Utils::fillMissingValues(vector<float> *values,
         float lastValue = undefinedValue;
         
         int valuesSize = values->size();
-        float *valuesData = values->Get();
+        float *valuesData = values->data();
         
         for (int i = valuesSize - 1; i > 0; i--)
         {
@@ -894,7 +912,7 @@ Utils::findMaxIndex(const vector<float> &values,
     float maxValue = -NL_INF;
     
     int valuesSize = values.size();
-    float *valuesData = values.data();
+    const float *valuesData = values.data();
 
     if (endIdx > valuesSize - 1)
         endIdx = valuesSize - 1;
