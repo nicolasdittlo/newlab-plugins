@@ -19,51 +19,143 @@
 #include <algorithm>
 using namespace std;
 
-#include "Scale.h"
+#include "Window.h"
 #include "AWeighting.h"
-#include "PartialFilterMarchand.h"
-#include "PartialFilterAMFM.h"
-#include "PeakDetectorNL.h"
-#include "PeakDetectorBillauer.h"
-#include "QIFFT.h"
-#include "PhasesUnwrapper.h"
 #include "Utils.h"
-#include "Defines.h"
 #include "PartialTracker.h"
 
 #define MIN_AMP_DB -120.0
+#define MIN_NORM_AMP 1e-15
 
-#define DISCARD_FLAT_PARTIAL 1
+#define PARTIALS_HISTORY_SIZE 2
+
+// Detect partials
+
+#define DETECT_PARTIALS_START_INDEX 2
 #define DISCARD_FLAT_PARTIAL_COEFF 25000.0
-
-#define GLUE_BARBS              1
 #define GLUE_BARBS_AMP_RATIO    10.0
 
 // Filter
+#define MAX_ZOMBIE_AGE 2
 
-// Do we filter ?
-#define FILTER_PARTIALS 1
+// Seems better with 200Hz (tested on "oohoo")
+#define DELTA_FREQ_ASSOC 0.01 // For normalized freqs. Around 100Hz
 
-// NOTE: See: https://www.dsprelated.com/freebooks/sasp/Spectral_Modeling_Synthesis.html
+// Kalman
+// "How much do we expect to our measurement vary"
+#define PT5_KF_E_MEA 0.01 // 200.0Hz
+#define PT5_KF_E_EST PT5_KF_E_MEA
+
+// "usually a small number between 0.001 and 1"
+#define PT5_KF_Q 5.0
+
+// Expe
+// 1 gives good results for "Ooohoo" (method "Min")
+// 2 gives good results for "Ti Tsu Koi" (method "Min")
+#define NUM_ITER_EXTRACT_NOISE 4
+
+// Musical denoise
+#define HISTORY_SIZE_MUS_NOISE 4
+
+// We use phases interpolation
+//
+// See: https://www.dsprelated.com/freebooks/sasp/Spectral_Modeling_Synthesis.html
 //
 // and: https://www.dsprelated.com/freebooks/sasp/PARSHL_Program.html#app:parshlapp
 //
 // and: https://ccrma.stanford.edu/~jos/parshl/
-
+//
 // Get the precision when interpolating peak magns, but also for phases
-#define INTERPOLATE_PHASES 1
 
-// Better mel filtering of phase if they are unwrapped!
-#define MEL_UNWRAP_PHASES 1
+unsigned long PartialTracker::Partial::mCurrentId = 0;
 
-#define DENORM_PARTIAL_INDICES 1
 
-#define USE_QIFFT 1
+PartialTracker::Partial::Partial()
+: _kf(PT5_KF_E_MEA, PT5_KF_E_EST, PT5_KF_Q)
+{
+    _peakIndex = 0;
+    _leftIndex = 0;
+    _rightIndex = 0;
+    
+    _freq = 0.0;
+    _amp = 0.0;
+    
+    _phase = 0.0;
+    
+    _state = ALIVE;
+    
+    _id = -1;
+    
+    _wasAlive = false;
+    _zombieAge = 0;
+    
+    _age = 0;
+    
+    _cookie = 0.0;
+    
+    // Kalman
+    _predictedFreq = 0.0;
+}
 
-// It is better with log then just with dB!
-#define USE_QIFFT_YLOG 1
+    
+PartialTracker::Partial::Partial(const Partial &other)
+: _kf(other._kf)
+{
+    _peakIndex = other._peakIndex;
+    _leftIndex = other._leftIndex;
+    _rightIndex = other._rightIndex;
+    
+    _freq = other._freq;
+    _amp = other._amp;
+    
+    _phase = other._phase;
+        
+    _state = other._state;;
+        
+    _id = other._id;
+    
+    _wasAlive = other._wasAlive;
+    _zombieAge = other._zombieAge;
+    
+    _age = other._age;
+    
+    _cookie = other._cookie;
+    
+    // Kalman
+    _predictedFreq = other._predictedFreq;
+}
 
-#define USE_A_WEIGHTING 1
+PartialTracker::Partial::~Partial() {}
+
+void
+PartialTracker::Partial::genNewId()
+{
+    _id = mCurrentId++;
+}
+    
+bool
+PartialTracker::Partial::freqLess(const Partial &p1, const Partial &p2)
+{
+    return (p1._freq < p2._freq);
+}
+
+bool
+PartialTracker::Partial::ampLess(const Partial &p1, const Partial &p2)
+{
+    return (p1._amp < p2._amp);
+}
+
+bool
+PartialTracker::Partial::idLess(const Partial &p1, const Partial &p2)
+{
+    return (p1._id < p2._id);
+}
+
+bool
+PartialTracker::Partial::cookieLess(const Partial &p1, const Partial &p2)
+{
+    return (p1._cookie < p2._cookie);
+}
 
 PartialTracker::PartialTracker(int bufferSize, float sampleRate)
 {
@@ -77,62 +169,50 @@ PartialTracker::PartialTracker(int bufferSize, float sampleRate)
     // Scale
     _scale = new Scale();
     
-    //
-    
-    _xScale = Scale::LINEAR;
+    _xScale = Scale::MEL_FILTER;
     _yScale = Scale::DB;
-
-#if USE_QIFFT_YLOG
-    _yScale2 = Scale::LOG_NO_NORM;
-#endif
     
-    _xScaleInv = Scale::LINEAR;
-
+    _xScaleInv = Scale::MEL_FILTER_INV;
     _yScaleInv = Scale::DB_INV;
-#if USE_QIFFT_YLOG
-    _yScaleInv2 = Scale::LOG_NO_NORM_INV;
-#endif
     
     _timeSmoothCoeff = 0.5;
+    _timeSmoothNoiseCoeff = 0.5;
+
+    // Default behavior, computed frequencies are not very accurate
+    // (e.g ~6/8Hz accuracy)
+    _computeAccurateFreqs = false;
     
     // Optim
     computeAWeights(bufferSize/2, sampleRate);
-
-#if USE_NL_PEAK_DETECTOR
-    _peakDetector = new PeakDetectorBL();
-#endif
-#if USE_BILLAUER_PEAK_DETECTOR
-    float maxDelta = (USE_QIFFT_YLOG == 0) ? 1.0 : -MIN_AMP_DB/4;
-    _peakDetector = new PeakDetectorBillauer(maxDelta);
-#endif
-
-#if USE_PARTIAL_FILTER_MARCHAND
-    _partialFilter = new PartialFilterMarchand(bufferSize, sampleRate);
-#endif
-#if USE_PARTIAL_FILTER_AMFM
-    _partialFilter = new PartialFilterAMFM(bufferSize, sampleRate);
-#endif
 }
 
 PartialTracker::~PartialTracker()
 {
     delete _scale;
-    delete _peakDetector;
-    delete _partialFilter;
 }
 
 void
-PartialTracker::reset()
+PartialTracker::Reset()
 {
+    _partials.clear();
     _result.clear();
     
+    _noiseEnvelope.resize(0);
+    _harmonicEnvelope.resize(0);;
+
     _currentMagns.resize(0);
     _currentPhases.resize(0);
     
-    _prevMagns.resize(0);
+    _smoothWinNoise.resize(0);
 
-    if (_partialFilter != NULL)
-        _partialFilter->reset(_bufferSize, _sampleRate);
+    _prevNoiseEnvelope.resize(0);
+
+    // For ComputeMusicalNoise()
+    _prevNoiseMasks.unfreeze();
+    _prevNoiseMasks.clear();
+    
+    _timeSmoothPrevMagns.resize(0);
+    _timeSmoothPrevNoise.resize(0);
 }
 
 void
@@ -143,7 +223,16 @@ PartialTracker::reset(int bufferSize, float sampleRate)
     
     reset();
 
+    // Optim
     computeAWeights(bufferSize/2, sampleRate);
+    
+    reserveTmpBufs();
+}
+
+void
+PartialTracker::setComputeAccurateFreqs(bool flag)
+{
+    _computeAccurateFreqs = flag;
 }
 
 float
@@ -156,14 +245,6 @@ void
 PartialTracker::setThreshold(float threshold)
 {
     _threshold = threshold;
-
-    _peakDetector->setThreshold(threshold);
-}
-
-void
-PartialTracker::setThreshold2(float threshold2)
-{
-    _peakDetector->setThreshold2(threshold2);
 }
 
 void
@@ -172,10 +253,6 @@ PartialTracker::setData(const vector<float> &magns,
 {
     _currentMagns = magns;
     _currentPhases = phases;
-
-    // Time smooth
-    // Removes the noise and make more neat peaks
-    Utils::smooth(&_currentMagns, &_prevMagns, _timeSmoothCoeff);
     
     preProcess(&_currentMagns, &_currentPhases);
 }
@@ -196,54 +273,264 @@ PartialTracker::detectPartials()
     partials.resize(0);
     detectPartials(magns0, _currentPhases, &partials);
 
-#if USE_NL_PEAK_DETECTOR
-    // For first partial detection
-    postProcessPartials(magns0, &partials);
-#endif
+    if (_computeAccurateFreqs)
+        computeAccurateFreqs(&partials);
+    
+    suppressZeroFreqPartials(&partials);
+    
+    // Some operations
+    vector<Partial> &prev = _tmpPartials1;
+    prev = partials;
+    
+    gluePartialBarbs(magns0, &partials);
+        
+    discardFlatPartials(magns0, &partials);
+    
+    computePeaksHeights(_currentMagns, &partials);
+    
+    // Threshold
+    thresholdPartialsPeakHeight(&partials);
+    
+    _partials.push_front(partials);
+    
+    while(_partials.size() > PARTIALS_HISTORY_SIZE)
+        _partials.pop_back();
     
     _result = partials;
 }
 
 void
+PartialTracker::extractNoiseEnvelope()
+{    
+    extractNoiseEnvelopeSimple();
+    
+    timeSmoothNoise(&_noiseEnvelope);
+}
+
+void
+PartialTracker::extractNoiseEnvelopeSimple()
+{
+    vector<Partial> &partials = _tmpPartials4;
+    partials.resize(0);
+    
+    // Must get the alive partials only,
+    // otherwise we would get additional "garbage" partials,
+    // that would corrupt the partial rectangle
+    // and then compute incorrect noise peaks
+    // (the state must be ALIVE, and not _wasAlive !)
+    getAlivePartials(&partials);
+    
+    _harmonicEnvelope = _currentMagns;
+    
+    // Just in case
+    for (int i = 0; i < DETECT_PARTIALS_START_INDEX; i++)
+        _harmonicEnvelope.data()[i] = MIN_NORM_AMP;
+    
+    keepOnlyPartials(partials, &_harmonicEnvelope);
+    
+    // Compute harmonic envelope
+    // (origin signal less noise)
+    _noiseEnvelope = _currentMagns;
+    
+    BLUtils::SubstractValues(&_noiseEnvelope, _harmonicEnvelope);
+    
+    // Because it is in dB
+    BLUtils::AddValues(&_noiseEnvelope, (float)0.0);
+    
+    BLUtils::ClipMin(&_noiseEnvelope, (float)0.0);
+    
+    // Avoids interpolation from 0 to the first valid index
+    // (could have made an artificial increasing slope in the low freqs)
+    for (int i = 0; i < _noiseEnvelope.dataSize(); i++)
+    {
+        float val = _noiseEnvelope.data()[i];
+        if (val > NL_EPS)
+            // First value
+        {
+            int prevIdx = i - 1;
+            if (prevIdx > 0)
+                _noiseEnvelope.data()[prevIdx] = NL_EPS;
+            
+            break;
+        }
+    }
+        
+    // Works well, but do not remove all musical noise
+    processMusicalNoise(&_noiseEnvelope);
+    
+    // Create an envelope
+    Utils::fillMissingValues(&_noiseEnvelope, false, (float)0.0);
+}
+
+// Supress musical noise in the raw noise
+void
+PartialTracker::processMusicalNoise(vector<float> *noise)
+{
+// Must choose bigger value than 1e-15
+// (otherwise the threshold won't work)
+#define MUS_NOISE_EPS 1e-8
+    
+    // Better with an history
+    // => suppress only spots that are in zone where partials are erased
+    
+    // If history is small => remove more spots (but unwanted ones)
+    // If history too big => keep some spots that should have been erased
+    if (_prevNoiseMasks.size() < HISTORY_SIZE_MUS_NOISE)
+    {
+        _prevNoiseMasks.push_back(*noise);
+
+        if (_prevNoiseMasks.size() == HISTORY_SIZE_MUS_NOISE)
+            _prevNoiseMasks.freeze();
+        
+        return;
+    }
+    
+    vector<float> &noiseCopy = _tmpBuf2;
+    noiseCopy = *noise;
+    
+    // Search for begin of first isle: values with zero borders
+    
+    int startIdx = 0;
+    while (startIdx < noise->size())
+    {
+        float val = noise->data()[startIdx];
+        if (val < MUS_NOISE_EPS)
+        // Zero
+            break;
+        
+        startIdx++;
+    }
+    
+    // Loop to search for isles
+    
+    while(startIdx < noise->size())
+    {
+        // Find "isles" in the current noise
+        int startIdxIsle = startIdx;
+        while (startIdxIsle < noise->size())
+        {
+            float val = noise->data()[startIdxIsle];
+            if (val > MUS_NOISE_EPS)
+            // One
+                // Start of isle found
+                break;
+            
+            startIdxIsle++;
+        }
+        
+        // Search for isles: values with zero borders
+        int endIdxIsle = startIdxIsle;
+        while (endIdxIsle < noise->size())
+        {
+            float val = noise->data()[endIdxIsle];
+            if (val < MUS_NOISE_EPS)
+            // Zero
+            {
+                // End of isle found
+                
+                // Adjust the index to the last zero value
+                if (endIdxIsle > startIdxIsle)
+                    endIdxIsle--;
+                
+                break;
+            }
+            
+            endIdxIsle++;
+        }
+        
+        // Check that the prev mask is all zero
+        // at in front of the isle
+        bool prevMaskZero = true;
+        for (int i = 0; i < _prevNoiseMasks.size(); i++)
+        {
+            const vector<float> &mask = _prevNoiseMasks[i];
+            
+            for (int j = startIdxIsle; j <= endIdxIsle; j++)
+            {
+                float prevVal = mask.data()[j];
+                if (prevVal > MUS_NOISE_EPS)
+                {
+                    prevMaskZero = false;
+                
+                    break;
+                }
+            }
+            
+            if (!prevMaskZero)
+                break;
+        }
+        
+        if (prevMaskZero)
+        // We have a real isle
+        {            
+            // Earse the isle
+            for (int i = startIdxIsle; i <= endIdxIsle; i++)
+                noise->data()[i] = 0.0;
+        }
+        
+        startIdx = endIdxIsle + 1;
+    }
+    
+    // Fill the history at the end
+    _prevNoiseMasks.push_pop(noiseCopy);
+}
+
+void
+PartialTracker::keepOnlyPartials(const vector<Partial> &partials,
+                                 vector<float> *magns)
+{
+    vector<float> &result = _tmpBuf4;
+    result.resize(magns->size());
+    Utils::fillZero(&result);
+                   
+    for (int i = 0; i < partials.size(); i++)
+    {
+        const Partial &partial = partials[i];
+        
+        int minIdx = partial._leftIndex;
+        if (minIdx >= magns->size())
+            continue;
+        
+        int maxIdx = partial._rightIndex;
+        if (maxIdx >= magns->size())
+            continue;
+        
+        for (int j = minIdx; j <= maxIdx; j++)
+        {
+            float val = magns->data()[j];
+            result.data()[j] = val;
+        }
+    }
+                           
+    *magns = result;
+}
+
+void
 PartialTracker::filterPartials()
 {    
-#if FILTER_PARTIALS
-    
-#if USE_PARTIAL_FILTER_AMFM
-    // Adjust the scale
-    for (int i = 0; i < _result.size(); i++)
-    {
-        Partial &p = _result[i];
+    FilterPartials(&_result);
+}
 
-        float amp =
-            _scale->applyScale(_yScaleInv, p._amp,
-                               (float)MIN_AMP_DB, (float)0.0);
-        
-        float ampNorm =
-            _scale->applyScale(_yScale2, amp,
-                               (float)MIN_AMP_DB, (float)0.0);
-        p._amp = ampNorm;
-    }
-#endif
+// For noise envelope extraction, the
+// state must be ALIVE, and not _wasAlive
+bool
+PartialTracker::getAlivePartials(vector<Partial> *partials)
+{
+    if (_partials.empty())
+        return false;
     
-    _partialFilter->filterPartials(&_result);
-
-#if USE_PARTIAL_FILTER_AMFM
-    // Adjust the scale
-    for (int i = 0; i < _result.size(); i++)
+    partials->clear();
+    
+    for (int i = 0; i < _partials[0].size(); i++)
     {
-        Partial &p = _result[i];
-        float ampNorm =
-            _scale->applyScale(_yScaleInv2, p._amp,
-                               (float)MIN_AMP_DB, (float)0.0);
-        float ampDbNorm =
-            _scale->applyScale(_yScale, ampNorm,
-                               (float)MIN_AMP_DB, (float)0.0);
-        p._amp = ampDbNorm;
+        const Partial &p = _partials[0][i];
+        if (p._state == Partial::ALIVE)
+        {
+            partials->push_back(p);
+        }
     }
-#endif
     
-#endif
+    return true;
 }
 
 void
@@ -267,12 +554,14 @@ PartialTracker::getPartials(vector<Partial> *partials)
 {
     *partials = _result;
     
-    // For sending good result to SASFrame
+    for (int i = 0; i < partials->size(); i++)
+        (*partials)[i]._freq = (*partials)[i]._predictedFreq;
+    
     removeRealDeadPartials(partials);
 }
 
 void
-PartialTracker::getRawPartials(vector<Partial> *partials)
+PartialTracker::getPartialsRAW(vector<Partial> *partials)
 {
     *partials = _result;
 }
@@ -284,51 +573,196 @@ PartialTracker::clearResult()
 }
 
 void
+PartialTracker::getNoiseEnvelope(vector<float> *noiseEnv)
+{
+    *noiseEnv = _noiseEnvelope;
+}
+
+void
+PartialTracker::getHarmonicEnvelope(vector<float> *harmoEnv)
+{
+    *harmoEnv = _harmonicEnvelope;
+}
+
+void
 PartialTracker::setMaxDetectFreq(float maxFreq)
 {
     _maxDetectFreq = maxFreq;
 }
 
+// Optimized version (original version removed)
 void
 PartialTracker::detectPartials(const vector<float> &magns,
                                const vector<float> &phases,
                                vector<Partial> *outPartials)
 {
-    int maxIndex = magns.size() - 1;
+    outPartials->clear();
+    
+    // prevIndex, currentIndex, nextIndex
+    
+    // Skip the first ones
+    // (to avoid artifacts of very low freq partial)
+    //int currentIndex = 0;
+    int currentIndex = DETECT_PARTIALS_START_INDEX;
+    
+    float prevVal = 0.0;
+    float nextVal = 0.0;
+    float currentVal = 0.0;
+    
+    int maxDetectIndex = magns.size() - 1;
+    
     if (_maxDetectFreq > 0.0)
-        maxIndex = _maxDetectFreq*_bufferSize*0.5;
-    if (maxIndex > magns.size() - 1)
-        maxIndex = magns.size() - 1;
+        maxDetectIndex = _maxDetectFreq*_bufferSize*0.5;
     
-    vector<PeakDetector::Peak> peaks;
-
-#if !USE_QIFFT_YLOG
-    _peakDetector->detectPeaks(magns, &peaks,
-                               DETECT_PARTIALS_START_INDEX, maxIndex);
+    if (maxDetectIndex > magns.size() - 1)
+        maxDetectIndex = magns.size() - 1;
     
-    computePartials(peaks, magns, phases, outPartials);
-#else
-    _peakDetector->detectPeaks(_logMagns, &peaks,
-                               DETECT_PARTIALS_START_INDEX, maxIndex);
-
-    // Log
-    computePartials(peaks, _logMagns, phases, outPartials);
-
-    // Adjust the scale
-    //
-    // We keep alpha0 in log scale
-    for (int i = 0; i < outPartials->size(); i++)
+    while(currentIndex < maxDetectIndex)
     {
-        Partial &p = (*outPartials)[i];
-        float ampNorm =
-            _scale->applyScale(_yScaleInv2, p._amp,
-                               (float)MIN_AMP_DB, (float)0.0);
-        float ampDbNorm =
-            _scale->applyScale(_yScale, ampNorm,
-                               (float)MIN_AMP_DB, (float)0.0);
-        p._amp = ampDbNorm;
+        if ((currentVal > prevVal) && (currentVal >= nextVal))
+        // Maximum found
+        {
+            if (currentIndex - 1 >= 0)
+            {
+                // Take the left and right "feets" of the partial,
+                // then the middle.
+                // (in order to be more precise)
+                
+                // Left
+                int leftIndex = currentIndex;
+                if (leftIndex > 0)
+                {
+                    float prevLeftVal = magns.data()[leftIndex];
+                    while(leftIndex > 0)
+                    {
+                        leftIndex--;
+                        
+                        float leftVal = magns.data()[leftIndex];
+                        
+                        // Stop if we reach 0 or if it goes up again
+                        if ((leftVal < MIN_NORM_AMP) || (leftVal > prevLeftVal))
+                        {
+                            if (leftVal >= prevLeftVal)
+                                leftIndex++;
+                            
+                            // Check bounds
+                            if (leftIndex < 0)
+                                leftIndex = 0;
+                            
+                            if (leftIndex > maxDetectIndex)
+                                leftIndex = maxDetectIndex;
+                            
+                            break;
+                        }
+                        
+                        prevLeftVal = leftVal;
+                    }
+                }
+                
+                // Right
+                int rightIndex = currentIndex;
+                
+                if (rightIndex <= maxDetectIndex)
+                {
+                    float prevRightVal = magns.data()[rightIndex];
+                    
+                    while(rightIndex < maxDetectIndex)
+                    {
+                        rightIndex++;
+                                
+                        float rightVal = magns.data()[rightIndex];
+                                
+                        // Stop if we reach 0 or if it goes up again
+                        if ((rightVal < MIN_NORM_AMP) || (rightVal > prevRightVal))
+                        {
+                            if (rightVal >= prevRightVal)
+                                rightIndex--;
+                                    
+                            // Check bounds
+                            if (rightIndex < 0)
+                                rightIndex = 0;
+                                    
+                            if (rightIndex > maxDetectIndex)
+                                rightIndex = maxDetectIndex;
+                                    
+                            break;
+                        }
+                                
+                        prevRightVal = rightVal;
+                    }
+                }
+                
+                // Take the max (better than taking the middle)
+                int peakIndex = currentIndex;
+                
+                if ((peakIndex < 0) || (peakIndex > maxDetectIndex))
+                // Out of bounds
+                    continue;
+                
+                bool discard = false;
+    
+                if (!discard)
+                    discard = discardInvalidPeaks(magns, peakIndex, leftIndex, rightIndex);
+                
+                if (!discard)
+                {
+                    // Create new partial
+                    //
+                    Partial p;
+                    p._leftIndex = leftIndex;
+                    p._rightIndex = rightIndex;
+
+                    if (!_computeAccurateFreqs) // Do not recompute 2 times!
+                    {                    
+                        float peakIndexF =
+                            computePeakIndexHalfProminenceAvg(magns,
+                                                              peakIndex,
+                                                              p._leftIndex,
+                                                              p._rightIndex);
+
+                        p._peakIndex = round(peakIndexF);
+                        if (p._peakIndex < 0)
+                            p._peakIndex = 0;
+                    
+                        if (p._peakIndex > maxDetectIndex)
+                            p._peakIndex = maxDetectIndex;
+
+                        // Remainder: freq is normalized here
+                        float peakFreq = peakIndexF/(_bufferSize*0.5);
+                        p._freq = peakFreq;
+                    
+                        // Kalman
+                        //
+                        // Update the estimate with the first value
+                        p._kf.initEstimate(p._freq);
+                    
+                        // For predicted freq to be freq for the first value
+                        p._predictedFreq = p._freq;
+
+                        computePeakMagnPhaseInterp(magns, phases, peakFreq,
+                                                   &p._amp, &p._phase);
+                    } // end _computeAccurateFreqs
+                    
+                    outPartials->push_back(p);
+                }
+                
+                // Go just after the right foot of the partial
+                currentIndex = rightIndex;
+            }
+        }
+        else
+            // No maximum found, continue 1 step
+            currentIndex++;
+        
+        // Update the values
+        currentVal = magns.data()[currentIndex];
+        
+        if (currentIndex - 1 >= 0)
+            prevVal = magns.data()[currentIndex - 1];
+        
+        if (currentIndex + 1 <= maxDetectIndex)
+            nextVal = magns.data()[currentIndex + 1];
     }
-#endif
 }
 
 bool
@@ -339,7 +773,7 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
     result.resize(0);
     bool glued = false;
     
-    sort(partials->begin(), partials->end(), Partial::freqLess);
+    sort(partials->begin(), partials->end(), Partial::FreqLess);
     
     int idx = 0;
     while(idx < partials->size())
@@ -356,7 +790,7 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
             const Partial &otherPartial = (*partials)[j];
             
             if (otherPartial._leftIndex == currentPartial._rightIndex)
-                // This is a twin partial...
+            // This is a twin partial...
             {
                 float promCur = computePeakProminence(magns,
                                                       currentPartial._peakIndex,
@@ -374,35 +808,30 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
                 if (promOther > NL_EPS)
                 {
                     ratio = promCur/promOther;
-                    if ((ratio > GLUE_BARBS_AMP_RATIO) ||
-                        (ratio < 1.0/GLUE_BARBS_AMP_RATIO))
-                        // ... with a big amp ratio
+                    if ((ratio > GLUE_BARBS_AMP_RATIO) || (ratio < 1.0/GLUE_BARBS_AMP_RATIO))
+                    // ... with a big amp ratio
                     {
-                        // Check that the barb is "in the middle" of a side
-                        // of the main partial (in height)
+                        // Check that the barb is "in the middle" of a side of the main partial
+                        // (in height)
                         bool inTheMiddle = false;
                         bool onTheSide = false;
                         if (promCur < promOther)
                         {
-                            float hf =
-                                computePeakHigherFoot(magns,
-                                                      currentPartial._leftIndex,
-                                                      currentPartial._rightIndex);
+                            float hf = computePeakHigherFoot(magns,
+                                                             currentPartial._leftIndex,
+                                                             currentPartial._rightIndex);
 
                             
-                            float lf =
-                                computePeakLowerFoot(magns,
-                                                     otherPartial._leftIndex,
-                                                     otherPartial._rightIndex);
+                            float lf = computePeakLowerFoot(magns,
+                                                            otherPartial._leftIndex,
+                                                            otherPartial._rightIndex);
                             
                             if ((hf > lf) && (hf < otherPartial._amp))
                                 inTheMiddle = true;
                             
                             // Check that the barb is on the right side
-                            float otherLeftFoot =
-                                magns.data()[otherPartial._leftIndex];
-                            float otherRightFoot =
-                                magns.data()[otherPartial._rightIndex];
+                            float otherLeftFoot = magns.data()[otherPartial._leftIndex];
+                            float otherRightFoot = magns.data()[otherPartial._rightIndex];
                             if (otherLeftFoot > otherRightFoot)
                                 onTheSide = true;
                             
@@ -424,8 +853,10 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
                                 inTheMiddle = true;
                             
                             // Check that the barb is on the right side
-                            float curLeftFoot = magns.data()[currentPartial._leftIndex];
-                            float curRightFoot = magns.data()[currentPartial._rightIndex];
+                            float curLeftFoot =
+                                magns.data()[currentPartial._leftIndex];
+                            float curRightFoot =
+                                magns.data()[currentPartial._rightIndex];
                             if (curLeftFoot < curRightFoot)
                                 onTheSide = true;
                         }
@@ -439,7 +870,6 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
         }
         
         // Glue ?
-        //
         
         if (twinPartials.size() > 1)
         {
@@ -473,17 +903,15 @@ PartialTracker::gluePartialBarbs(const vector<float> &magns,
             
             // Kalman
             res._kf.initEstimate(res._freq);
-            //res.mPredictedFreq = res.mFreq;
+            res._predictedFreq = res._freq;
             
-            // Do not set mPhase for now
+            // Do not set _phase for now
             
             result.push_back(res);
         }
         else
             // Not twin, simply add the partial
-        {
             result.push_back(twinPartials[0]);
-        }
         
         // 1 or more
         idx += twinPartials.size();
@@ -532,6 +960,21 @@ PartialTracker::discardFlatPartials(const vector<float> &magns,
     *partials = result;
 }
 
+bool
+PartialTracker::discardInvalidPeaks(const vector<float> &magns,
+                                    int peakIndex, int leftIndex, int rightIndex)
+{
+    float peakAmp = magns.data()[peakIndex];
+    float leftAmp = magns.data()[leftIndex];
+    float rightAmp = magns.data()[rightIndex];
+    
+    if ((peakAmp > leftAmp) && (peakAmp > rightAmp))
+        // Correct, do not discard
+        return false;
+    
+    return true;
+}
+
 void
 PartialTracker::suppressZeroFreqPartials(vector<Partial> *partials)
 {
@@ -544,7 +987,7 @@ PartialTracker::suppressZeroFreqPartials(vector<Partial> *partials)
         
         float peakFreq = partial._freq;
         
-        // Zero frequency
+        // Zero frequency (because of very small magn) ?
         bool discard = false;
         if (peakFreq < NL_EPS)
             discard = true;
@@ -557,8 +1000,7 @@ PartialTracker::suppressZeroFreqPartials(vector<Partial> *partials)
 }
 
 void
-PartialTracker::thresholdPartialsPeakHeight(const vector<float> &magns,
-                                            vector<Partial> *partials)
+PartialTracker::thresholdPartialsPeakHeight(vector<Partial> *partials)
 {
     vector<Partial> &result = _tmpPartials10;
     result.resize(0);
@@ -567,22 +1009,20 @@ PartialTracker::thresholdPartialsPeakHeight(const vector<float> &magns,
     {
         const Partial &partial = (*partials)[i];
         
-        float height = computePeakHeight(magns,
-                                         partial._peakIndex,
-                                         partial._leftIndex,
-                                         partial._rightIndex);
+        float height = partial.mPeakHeight;
         
         // Just in case
         if (height < 0.0)
             height = 0.0;
         
         // Threshold
+        //
         
         int binNum = partial._freq*_bufferSize*0.5;
         float thrsNorm = getThreshold(binNum);
         
         if (height >= thrsNorm)
-            result.push_back(partial);
+             result.push_back(partial);
     }
     
     *partials = result;
@@ -594,9 +1034,7 @@ PartialTracker::computePeakProminence(const vector<float> &magns,
                                       int peakIndex, int leftIndex, int rightIndex)
 {
     // Compute prominence
-    //
     // See: https://www.mathworks.com/help/signal/ref/findpeaks.html
-    //
     float maxFootAmp = magns.data()[leftIndex];
     if (magns.data()[rightIndex] > maxFootAmp)
         maxFootAmp = magns.data()[rightIndex];
@@ -608,15 +1046,104 @@ PartialTracker::computePeakProminence(const vector<float> &magns,
     return prominence;
 }
 
+float
+PartialTracker::
+computePeakIndexHalfProminenceAvg(const vector<float> &magns,
+                                  int peakIndex, int leftIndex, int rightIndex)
+{
+    // First step: find float indices corresponding to the half prominence
+    // Find float indices, and intermediate interpolated magns, for more accuracy
+    float prominence =
+        ComputePeakProminence(magns, peakIndex, leftIndex, rightIndex);
+
+    // Half-prominence threshold
+    float thrs = magns.data()[peakIndex] - prominence*0.5;
+    
+    // Left and right float points
+    float LP[2];
+    LP[0] = leftIndex;
+    LP[1] = magns.data()[leftIndex];
+    
+    float RP[2];
+    RP[0] = rightIndex;
+    RP[1] = magns.data()[rightIndex];
+    
+    // Left
+    while(LP[0] < peakIndex)
+    {
+        if (magns.data()[(int)LP[0] + 1] > thrs)
+        {
+            float m0 = magns.data()[(int)LP[0]];
+            float m1 = magns.data()[(int)LP[0] + 1];
+            
+            float t = (thrs - m0)/(m1 - m0);
+            
+            LP[0] = LP[0] + t;
+            LP[1] = m0 + t*(m1 - m0);
+            
+            break;
+        }
+        
+        LP[0]++;
+    }
+    
+    // Right
+    while(RP[0] > peakIndex)
+    {
+        if (magns.data()[(int)RP[0] - 1] > thrs)
+        {
+            float m0 = magns.data()[(int)RP[0]];
+            float m1 = magns.data()[(int)RP[0] - 1];
+            
+            float t = (thrs - m0)/(m1 - m0);
+            
+            RP[0] = RP[0] - t;
+            RP[1] = m0 + t*(m1 - m0);
+            
+            break;
+        }
+        
+        RP[0]--;
+    }
+    
+    // Second step: compute the result float peak index (weighted avg)
+    // Separate first and last float indices from the loop
+    float sumMagns = 0.0;
+    float sumIndices = 0.0;
+    
+    // First float point
+    sumMagns += LP[1];
+    sumIndices += LP[0]*LP[1];
+    
+    // Middle points
+    for (int i = (int)(LP[0] + 1); i <= (int)RP[0]; i++)
+    {
+        float m = magns.data()[i];
+        
+        sumMagns += m;
+        sumIndices += i*m;
+    }
+    
+    // Last float point
+    sumMagns += RP[1];
+    sumIndices += RP[0]*RP[1];
+    
+    if (sumMagns < NL_EPS)
+        return 0.0;
+    
+    // Result
+    float indexF = sumIndices/sumMagns;
+    
+    return indexF;
+}
+
 // Inverse of prominence
 float
 PartialTracker::computePeakHeight(const vector<float> &magns,
                                   int peakIndex, int leftIndex, int rightIndex)
 {
     // Compute height
-    //
     // See: https://www.mathworks.com/help/signal/ref/findpeaks.html
-    //
     float minFootAmp = magns.data()[leftIndex];
     if (magns.data()[rightIndex] < minFootAmp)
         minFootAmp = magns.data()[rightIndex];
@@ -624,6 +1151,28 @@ PartialTracker::computePeakHeight(const vector<float> &magns,
     float peakAmp = magns.data()[peakIndex];
     
     float height = peakAmp - minFootAmp;
+    
+    return height;
+}
+
+// Compute difference in amp, then convert back to Db
+float
+PartialTracker::computePeakHeightDb(const vector<float> &magns,
+                                    int peakIndex, int leftIndex, int rightIndex,
+                                    const Partial &partial)
+{
+    // Compute height
+    // See: https://www.mathworks.com/help/signal/ref/findpeaks.html
+    
+    // Get in Db
+    float minFoot = magns.data()[leftIndex];
+    if (magns.data()[rightIndex] < minFoot)
+        minFoot = magns.data()[rightIndex];
+    
+    float peak = partial._amp;
+    
+    // Compute height
+    float height = peak - minFoot;
     
     return height;
 }
@@ -654,6 +1203,193 @@ PartialTracker::computePeakLowerFoot(const vector<float> &magns,
         return rightVal;
 }
 
+void
+PartialTracker::computePeaksHeights(const vector<float> &magns,
+                                    vector<Partial> *partials)
+{
+    for (int i = 0; i < partials->size(); i++)
+    {
+        Partial &partial = (*partials)[i];
+        
+        float height = computePeakHeight(magns,
+                                         partial._peakIndex,
+                                         partial._leftIndex,
+                                         partial._rightIndex);
+        
+        partial.mPeakHeight = height;
+    }
+}
+
+void
+PartialTracker::suppressBarbs(vector<Partial> *partials)
+{
+#define HEIGHT_COEFF 2.0
+#define WIDTH_COEFF 1.0
+    
+    vector<Partial> &result = _tmpPartials11;
+    result.resize(0);
+    
+    for (int i = 0; i < partials->size(); i++)
+    {
+        const Partial &partial = (*partials)[i];
+    
+        // Check if the partial is a barb
+        bool isBarb = false;
+        for (int j = 0; j < partials->size(); j++)
+        {
+            const Partial &other = (*partials)[j];
+            
+            if (other._amp < partial._amp*HEIGHT_COEFF)
+                // Amplitudes of tested partial is not small enough
+                // compared to the current partial
+                // => Not a candidate for barb
+                continue;
+            
+            int center = other._peakIndex;
+            int size = other._rightIndex - other._leftIndex;
+            
+            if ((partial._peakIndex > center - size*WIDTH_COEFF) &&
+                (partial._peakIndex < center + size*WIDTH_COEFF))
+            {
+                // Tested partial peak is "inside" a margin around
+                // the current partial.
+                // And its amplitude is small compared to the current partial
+                // => this is a barb !
+                isBarb = true;
+                
+                break;
+            }
+        }
+        
+        // It is not a barb
+        if (!isBarb)
+            result.push_back(partial);
+    }
+    
+    *partials = result;
+}
+
+// Filter
+void
+PartialTracker::filterPartials(vector<Partial> *result)
+{
+    result->clear();
+    
+    if (_partials.empty())
+        return;
+    
+    if (_partials.size() == 1)
+        // Assigne ids to the first series of partials
+    {
+        for (int j = 0; j < _partials[0].size(); j++)
+        {
+            Partial &currentPartial = _partials[0][j];
+            currentPartial.genNewId();
+        }
+        
+        // Not enough partials to filter, need 2 series
+        return;
+    }
+    
+    if (_partials.size() < 2)
+        return;
+    
+    const vector<Partial> &prevPartials = _partials[1];
+    vector<Partial> &currentPartials = _tmpPartials12;
+    currentPartials = _partials[0];
+    
+    // Partials that was not associated at the end
+    vector<Partial> &remainingPartials = _tmpPartials13;
+    remainingPartials.resize(0);
+    
+    associatePartialsPARSHL(prevPartials, &currentPartials, &remainingPartials);
+    
+    // Add the new zombie and dead partials
+    for (int i = 0; i < prevPartials.size(); i++)
+    {
+        const Partial &prevPartial = prevPartials[i];
+
+        bool found = false;
+        for (int j = 0; j < currentPartials.size(); j++)
+        {
+            const Partial &currentPartial = currentPartials[j];
+            
+            if (currentPartial._id == prevPartial._id)
+            {
+                found = true;
+                
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            if (prevPartial._state == Partial::ALIVE)
+            {
+                // We set zombie for 1 frame only
+                Partial newPartial = prevPartial;
+                newPartial._state = Partial::ZOMBIE;
+                newPartial._zombieAge = 0;
+                
+                // Kalman:
+                // Also extrapolate the zombies
+                newPartial._predictedFreq =
+                    newPartial._kf.updateEstimate(newPartial._freq);
+                
+                currentPartials.push_back(newPartial);
+            }
+            else if (prevPartial._state == Partial::ZOMBIE)
+            {
+                Partial newPartial = prevPartial;
+                
+                newPartial._zombieAge++;
+                if (newPartial._zombieAge >= MAX_ZOMBIE_AGE)
+                    newPartial._state = Partial::DEAD;
+  
+                // Kalman
+                // Also extrapolate the zombies
+                newPartial._predictedFreq =
+                    newPartial._kf.updateEstimate(newPartial._freq);
+
+                currentPartials.push_back(newPartial);
+            }
+            
+            // If DEAD, do not add, forget it
+        }
+    }
+    
+    // Get the result here
+    // So we get the partials that are well tracked over time
+    *result = currentPartials;
+    
+    // At the end, there remains the partial that have not been matched
+    //
+    // Add them at to the history for next time
+    //
+    for (int i = 0; i < remainingPartials.size(); i++)
+    {
+        Partial p = remainingPartials[i];
+        
+        p.genNewId();
+        
+        currentPartials.push_back(p);
+    }
+    
+    // Then sort the new partials by frequency
+    sort(currentPartials.begin(), currentPartials.end(), Partial::FreqLess);
+    
+    //
+    // Update: add the partials to the history
+    // (except the dead ones)
+    _partials[0].clear();
+    for (int i = 0; i < currentPartials.size(); i++)
+    {
+        const Partial &currentPartial = currentPartials[i];
+        
+        _partials[0].push_back(currentPartial);
+    }
+}
+
 // Better than "Simple" => do not make jumps between bins
 float
 PartialTracker::computePeakIndexAvg(const vector<float> &magns,
@@ -671,7 +1407,29 @@ PartialTracker::computePeakIndexAvg(const vector<float> &magns,
     {
         float magn = magns.data()[i];
         
-        magn = pow(magn, COEFF);
+        magn = std::pow(magn, COEFF);
+        
+        sumIndex += i*magn;
+        sumMagns += magn;
+    }
+    
+    if (sumMagns < BL_EPS)
+        return 0.0;
+    
+    float result = sumIndex/sumMagns;
+    
+    return result;
+}
+
+float
+PartialTracker::computePeakIndexAvgSimple(const vector<float> &magns,
+                                          int leftIndex, int rightIndex)
+{
+    float sumIndex = 0.0;
+    float sumMagns = 0.0;
+    for (int i = leftIndex; i <= rightIndex; i++)
+    {
+        float magn = magns.data()[i];
         
         sumIndex += i*magn;
         sumMagns += magn;
@@ -683,68 +1441,6 @@ PartialTracker::computePeakIndexAvg(const vector<float> &magns,
     float result = sumIndex/sumMagns;
     
     return result;
-}
-
-// Parabola peak center detection
-// Works well
-//
-// See: http://eprints.maynoothuniversity.ie/4523/1/thesis.pdf (p32)
-//
-// and: https://ccrma.stanford.edu/~jos/parshl/Peak_Detection_Steps_3.html#sec:peakdet
-//
-float
-PartialTracker::computePeakIndexParabola(const vector<float> &magns,
-                                         int peakIndex)
-{
-    if ((peakIndex - 1 < 0) || (peakIndex + 1 >= magns.size()))
-        return peakIndex;
-    
-    // magns are in DB
-    float alpha = magns.data()[peakIndex - 1];
-    float beta = magns.data()[peakIndex];
-    float gamma = magns.data()[peakIndex + 1];
-
-    // Will avoid wrong negative result
-    if ((beta < alpha) || (beta < gamma))
-        return peakIndex;
-    
-    // Center
-    float denom = (alpha - 2.0*beta + gamma);
-    if (std::fabs(denom) < NL_EPS)
-        return peakIndex;
-    
-    float c = 0.5*((alpha - gamma)/denom);
-    
-    float result = peakIndex + c;
-    
-    return result;
-}
-
-// Simple method
-float
-PartialTracker::computePeakAmpInterp(const vector<float> &magns,
-                                     float peakFreq)
-{
-    float bin = peakFreq*_bufferSize*0.5;
-    
-    int prevBin = (int)bin;
-    int nextBin = (int)bin + 1;
-    
-    if (nextBin >= magns.size())
-    {
-        float peakAmp = magns.data()[prevBin];
-        
-        return peakAmp;
-    }
-    
-    float prevAmp = magns.data()[prevBin];
-    float nextAmp = magns.data()[nextBin];
-    
-    float t = bin - prevBin;
-    
-    float peakAmp = (1.0 - t)*prevAmp + t*nextAmp;
-    
-    return peakAmp;
 }
 
 void
@@ -775,23 +1471,238 @@ PartialTracker::computePeakMagnPhaseInterp(const vector<float> &magns,
     *peakPhase = (1.0 - t)*uwPhases.data()[prevBin] + t*uwPhases.data()[nextBin];
 }
 
+int
+PartialTracker::findPartialById(const vector<PartialTracker::Partial> &partials, int idx)
+{
+    for (int i = 0; i < partials.size(); i++)
+    {
+        const Partial &partial = partials[i];
+        
+        if (partial._id == idx)
+            return i;
+    }
+    
+    return -1;
+}
+
+// Use method similar to SAS
+void
+PartialTracker::
+associatePartials(const vector<PartialTracker::Partial> &prevPartials,
+                  vector<PartialTracker::Partial> *currentPartials,
+                  vector<PartialTracker::Partial> *remainingPartials)
+{
+    // Sort current partials and prev partials by decreasing amplitude
+    vector<Partial> &currentPartialsSort = _tmpPartials14;
+    currentPartialsSort = *currentPartials;
+    sort(currentPartialsSort.begin(), currentPartialsSort.end(), Partial::ampLess);
+    reverse(currentPartialsSort.begin(), currentPartialsSort.end());
+    
+    vector<Partial> &prevPartialsSort = _tmpPartials15;
+    prevPartialsSort = prevPartials;
+    
+    sort(prevPartialsSort.begin(), prevPartialsSort.end(), Partial::ampLess);
+    reverse(prevPartialsSort.begin(), prevPartialsSort.end());
+ 
+    // Associate
+    
+    // Associated partials
+    vector<Partial> &currentPartialsAssoc = _tmpPartials16;
+    currentPartialsAssoc.resize(0);
+    
+    for (int i = 0; i < prevPartialsSort.size(); i++)
+    {
+        const Partial &prevPartial = prevPartialsSort[i];
+        
+        for (int j = 0; j < currentPartialsSort.size(); j++)
+        {
+            Partial &currentPartial = currentPartialsSort[j];
+            
+            if (currentPartial._id != -1)
+                // Already assigned
+                continue;
+            
+            float diffFreq = std::fabs(prevPartial._freq - currentPartial._freq);
+            
+            int binNum = currentPartial._freq*_bufferSize*0.5;
+            float diffCoeff = getDeltaFreqCoeff(binNum);
+            if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff*mDbgParam)
+            // Associated !
+            {
+                currentPartial._id = prevPartial._id;
+                currentPartial._state = Partial::ALIVE;
+                currentPartial._wasAlive = true;
+                
+                currentPartial._age = prevPartial._age + 1;
+            
+                // Kalman
+                currentPartial._kf = prevPartial._kf;
+                currentPartial._predictedFreq =
+                    currentPartial._kf.updateEstimate(currentPartial._freq);
+                
+                currentPartialsAssoc.push_back(currentPartial);
+                
+                // We have associated to the prev partial
+                // We are done!
+                // Stop the search here.
+                break;
+            }
+        }
+    }
+    
+    sort(currentPartialsAssoc.begin(), currentPartialsAssoc.end(), Partial::idLess);
+     *currentPartials = currentPartialsAssoc;
+    
+    // Add the remaining partials
+    remainingPartials->clear();
+    for (int i = 0; i < currentPartialsSort.size(); i++)
+    {
+        const Partial &p = currentPartialsSort[i];
+        if (p._id == -1)
+            remainingPartials->push_back(p);
+    }
+}
+
+// Use PARSHL method
+void
+PartialTracker::
+associatePartialsPARSHL(const vector<PartialTracker::Partial> &prevPartials,
+                        vector<PartialTracker::Partial> *currentPartials,
+                        vector<PartialTracker::Partial> *remainingPartials)
+{
+    // Sort current partials and prev partials by increasing frequency
+    sort(currentPartials->begin(), currentPartials->end(), Partial::FreqLess);
+    
+    vector<PartialTracker::Partial> &prevPartials0 = _tmpPartials17;
+    prevPartials0 = prevPartials;
+    sort(prevPartials0.begin(), prevPartials0.end(), Partial::FreqLess);
+    
+    // Associated partials
+    bool stopFlag = true;
+    do {
+        stopFlag = true;
+        
+        for (int i = 0; i < prevPartials0.size(); i++)
+        {
+            const Partial &prevPartial = prevPartials0[i];
+            for (int j = 0; j < currentPartials->size(); j++)
+            {
+                Partial &currentPartial = (*currentPartials)[j];
+                if (currentPartial._id != -1)
+                    // Already associated, nothing to do on this step!
+                    continue;
+                
+                float diffFreq =
+                    fabs(prevPartial._freq - currentPartial._freq);
+
+                int binNum = currentPartial._freq*_bufferSize*0.5;
+                float diffCoeff = getDeltaFreqCoeff(binNum);
+            
+                if (diffFreq < DELTA_FREQ_ASSOC*diffCoeff*mDbgParam)
+                    // Associate!
+                {
+                    int otherIdx =
+                        findPartialById(*currentPartials, (int)prevPartial._id);
+                    
+                    if (otherIdx == -1)
+                        // This partial is not yet associated
+                        // => No fight
+                    {
+                        currentPartial._id = prevPartial._id;
+                        currentPartial._age = prevPartial._age;
+                        currentPartial._kf = prevPartial._kf;
+                        
+                        stopFlag = false;
+                    }
+                    else // Fight!
+                    {
+                        Partial &otherPartial = (*currentPartials)[otherIdx];
+                        
+                        float otherDiffFreq =
+                            fabs(prevPartial._freq - otherPartial._freq);
+                        
+                        if (diffFreq < otherDiffFreq)
+                        // Current partial won
+                        {
+                            currentPartial._id = prevPartial._id;
+                            currentPartial._age = prevPartial._age;
+                            currentPartial._kf = prevPartial._kf; //
+                            
+                            // Detach the other
+                            otherPartial._id = -1;
+                            
+                            stopFlag = false;
+                        }
+                        else
+                        // Other partial won
+                        {
+                            // Just keep it like it is!
+                        }
+                    }
+                }
+            }
+        }
+    } while (!stopFlag);
+    
+    
+    // Update partials
+    vector<PartialTracker::Partial> &newPartials = _tmpPartials18;
+    newPartials.resize(0);
+    
+    for (int j = 0; j < currentPartials->size(); j++)
+    {
+        Partial &currentPartial = (*currentPartials)[j];
+        
+        if (currentPartial._id != -1)
+        {
+            currentPartial._state = Partial::ALIVE;
+            currentPartial._wasAlive = true;
+    
+            // Increment age
+            currentPartial._age = currentPartial._age + 1;
+            currentPartial._predictedFreq =
+                    currentPartial._kf.updateEstimate(currentPartial._freq);
+    
+            newPartials.push_back(currentPartial);
+        }
+    }
+    
+    // Add the remaining partials
+    remainingPartials->clear();
+    for (int i = 0; i < currentPartials->size(); i++)
+    {
+        const Partial &p = (*currentPartials)[i];
+        if (p._id == -1)
+            remainingPartials->push_back(p);
+    }
+    
+    // Update current partials
+    *currentPartials = newPartials;
+}
+
 float
 PartialTracker::getThreshold(int binNum)
 {
-#if USE_NL_PEAK_DETECTOR
     float thrsNorm = -(MIN_AMP_DB - _threshold)/(-MIN_AMP_DB);
-#else // For debugging
-    const float defaultThrs = -100.0;
-    float thrsNorm = -(MIN_AMP_DB - defaultThrs)/(-MIN_AMP_DB);
-#endif
     
     return thrsNorm;
 }
 
+float
+PartialTracker::getDeltaFreqCoeff(int binNum)
+{
+#define END_COEFF 0.25
+    
+    float t = ((float)binNum)/(_bufferSize*0.5);
+    float diffCoeff = 1.0 - (1.0 - END_COEFF)*t;
+    
+    return diffCoeff;
+}
+
 void
 PartialTracker::preProcessDataX(vector<float> *data)
-{        
-    // Use FilterBank (avoid stairs effect)
+{
+    // Use FilterBank internally to avoid stairs effect
     vector<float> &scaledData = _tmpBuf8;
     Scale::FilterBankType type = _scale->typeToFilterBankType(_xScale);
     _scale->applyScaleFilterBank(type, &scaledData, *data,
@@ -804,11 +1715,9 @@ PartialTracker::preProcessDataY(vector<float> *data)
 {
     // Y
     _scale->applyScaleForEach(_yScale, data, (float)MIN_AMP_DB, (float)0.0);
-
-#if USE_A_WEIGHTING
+    
     // Better tracking on high frequencies with this!
     preProcessAWeighting(data, true);
-#endif
 }
 
 void
@@ -821,29 +1730,23 @@ PartialTracker::preProcessDataXY(vector<float> *data)
     
 // Unwrap phase before converting to mel
 void
-PartialTracker::preProcess(vector<float> *magns,
-                           vector<float> *phases)
+PartialTracker::preProcess(vector<float> *magns, vector<float> *phases)
 {
+    // Smooth only magns
+    preProcessTimeSmooth(magns);
+
     // Use time smooth on raw magns too
     // (time smoothed, but linearly scaled)
     _linearMagns = *magns;
     preProcessDataY(&_linearMagns); // We want raw data in dB (just keep linear on x)
-    
-#if USE_QIFFT_YLOG
-    _logMagns = *magns;
-    _scale->applyScaleForEach(_yScale2, &_logMagns);
-#endif
-    
+        
     preProcessDataXY(magns);
     
-#if MEL_UNWRAP_PHASES
     Utils::unwrapPhases(phases);
-#endif
 
     // Phases
-
     vector<float> &scaledPhases = _tmpBuf9;
-    Scale::FilterBankType type = _scale->typeToFilterBankType(_xScale);
+    Scale::FilterBankType type = _scale->yypeToFilterBankType(_xScale);
     _scale->applyScaleFilterBank(type, &scaledPhases, *phases,
                                  _sampleRate, phases->size());
     *phases = scaledPhases;
@@ -856,13 +1759,67 @@ PartialTracker::setTimeSmoothCoeff(float coeff)
 }
 
 void
-PartialTracker::denormPartials(vector<Partial> *partials)
+PartialTracker::setTimeSmoothNoiseCoeff(float coeff)
+{
+    _timeSmoothNoiseCoeff = coeff;
+}
+
+// Time smooth
+void
+PartialTracker::preProcessTimeSmooth(vector<float> *magns)
+{
+    if (_timeSmoothPrevMagns.size() == 0)
+    {
+        _timeSmoothPrevMagns = *magns;
+        
+        return;
+    }
+    
+    for (int i = 0; i < magns->size(); i++)
+    {
+        float val = magns->data()[i];
+        float prevVal = _timeSmoothPrevMagns.data()[i];
+        
+        float newVal = (1.0 - _timeSmoothCoeff)*val + _timeSmoothCoeff*prevVal;
+        
+        magns->data()[i] = newVal;
+    }
+    
+    _timeSmoothPrevMagns = *magns;
+}
+
+// Time smooth noise
+void
+PartialTracker::timeSmoothNoise(vector<float> *noise)
+{
+    if (_timeSmoothPrevNoise.size() == 0)
+    {
+        _timeSmoothPrevNoise = *noise;
+        
+        return;
+    }
+    
+    for (int i = 0; i < noise->size(); i++)
+    {
+        float val = noise->data()[i];
+        float prevVal = _timeSmoothPrevNoise.data()[i];
+        
+        float newVal = (1.0 - _timeSmoothNoiseCoeff)*val + _timeSmoothNoiseCoeff*prevVal;
+        
+        noise->data()[i] = newVal;
+    }
+    
+    _timeSmoothPrevNoise = *noise;
+}
+
+void
+PartialTracker::denormPartials(vector<PartialTracker::Partial> *partials)
 {
     float hzPerBin =  _sampleRate/_bufferSize;
     
     for (int i = 0; i < partials->size(); i++)
     {
-        Partial &partial = (*partials)[i];
+        PartialTracker::Partial &partial = (*partials)[i];
         
         // Reverse Mel
         float freq = partial._freq;
@@ -872,102 +1829,52 @@ PartialTracker::denormPartials(vector<Partial> *partials)
         
         // Convert to real freqs
         partial._freq *= _sampleRate*0.5;
-
-#if !USE_QIFFT_YLOG
-
-#if USE_A_WEIGHTING
+        
         // Reverse AWeighting
         int binNum = partial._freq/hzPerBin;
-        partial.mAmp = processAWeighting(binNum, _bufferSize*0.5,
+        partial._amp = processAWeighting(binNum, _bufferSize*0.5,
                                          partial._amp, false);
-#endif
-        
+    
         // Y
         partial._amp = _scale->applyScale(_yScaleInv, partial._amp,
                                           (float)MIN_AMP_DB, (float)0.0);
-#endif
-#if USE_QIFFT_YLOG
-        // Y
-        partial._amp = _scale->applyScale(_yScaleInv, partial._amp,
-                                          (float)MIN_AMP_DB, (float)0.0);
-#endif
 
-#if DENORM_PARTIAL_INDICES
         partial._leftIndex = denormBinIndex(partial._leftIndex);
         partial._peakIndex = denormBinIndex(partial._peakIndex);
         partial._rightIndex = denormBinIndex(partial._rightIndex);
-#endif
     }
 }
 
 void
 PartialTracker::denormData(vector<float> *data)
 {
-    // Use FilterBank internally (avoid stairs effect)
+    // Use FilterBank internally to avoid stairs effect
     vector<float> &scaledData = _tmpBuf7;
     Scale::FilterBankType type = _scale->typeToFilterBankType(_xScale);
     _scale->applyScaleFilterBankInv(type, &scaledData, *data,
                                     _sampleRate, data->size());
     *data = scaledData;
-
-#if USE_A_WEIGHTING
+    
     // A-Weighting
     preProcessAWeighting(data, false);
-#endif
     
+    // Y
     _scale->applyScaleForEach(_yScaleInv, data, (float)MIN_AMP_DB, (float)0.0);
 }
 
 void
-PartialTracker::partialsAmpToAmpDB(vector<Partial> *partials)
+PartialTracker::partialsAmpToAmpDB(vector<PartialTracker::Partial> *partials)
 {
     for (int i = 0; i < partials->size(); i++)
     {
-        Partial &partial = (*partials)[i];
+        PartialTracker::Partial &partial = (*partials)[i];
         
-        partial._ampDB = Utils::ampToDB(partial._amp);
+        partial._ampDB = Utils::AmpToDB(partial._amp);
     }
 }
 
-float
-PartialTracker::partialScaleToQIFFTScale(float ampDbNorm)
-{
-    float amp =
-        _scale->applyScale(_yScaleInv, ampDbNorm,
-                           (float)MIN_AMP_DB, (float)0.0);
-
-    float ampLog =
-        _scale->applyScale(_yScale2, amp,
-                           (float)MIN_AMP_DB, (float)0.0);
-
-    return ampLog;
-}
-
-float
-PartialTracker::QIFFTScaleToPartialScale(float ampLog)
-{
-    float amp =
-        _scale->applyScale(_yScaleInv2, ampLog,
-                           (float)MIN_AMP_DB, (float)0.0);
-    
-    float ampDbNorm =
-        _scale->applyScale(_yScale, amp,
-                           (float)MIN_AMP_DB, (float)0.0);
-    
-    return ampDbNorm;
-}
-
 void
-PartialTracker::setNeriDelta(float delta)
-{
-#if USE_PARTIAL_FILTER_AMFM
-    ((PartialFilterAMFM *)_partialFilter)->setNeriDelta(delta);
-#endif
-}
-
-void
-PartialTracker::preProcessAWeighting(vector<float> *magns,
-                                     bool reverse)
+PartialTracker::preProcessAWeighting(vector<float> *magns, bool reverse)
 {
     // Input magns are in normalized dB
     
@@ -1019,6 +1926,7 @@ PartialTracker::processAWeighting(int binNum, int numBins,
         // Do nothing
         return magn;
     
+    //float a = AWeighting::ComputeAWeight(binNum, numBins, _sampleRate);
     float a = _aWeights.data()[binNum];
     
     float normDbMagn = magn;
@@ -1039,95 +1947,11 @@ PartialTracker::processAWeighting(int binNum, int numBins,
     return normDbMagn;
 }
 
-// Pre-compute a weights
+// Optim: pre-compute a weights
 void
 PartialTracker::computeAWeights(int numBins, float sampleRate)
 {
     AWeighting::computeAWeights(&_aWeights, numBins, sampleRate);
-}
-
-void
-PartialTracker::computePartials(const vector<PeakDetector::Peak> &peaks,
-                                const vector<float> &magns,
-                                const vector<float> &phases,
-                                vector<Partial> *partials)
-{
-    partials->resize(peaks.size());
-
-    vector<float> &phasesUW = _tmpBuf10;
-    phasesUW = phases;
-    
-    PhasesUnwrapper::unwrapPhasesFreq(&phasesUW);
-    
-    for (int i = 0; i < peaks.size(); i++)
-    {
-        const PeakDetector::Peak &peak = peaks[i];
-        Partial &p = (*partials)[i];
-
-        // Indices
-        p._peakIndex = peak._peakIndex;
-        p._leftIndex = peak._leftIndex;
-        p._rightIndex = peak._rightIndex;
-
-        
-#if !USE_QIFFT
-        float peakIndexF = computePeakIndexParabola(magns, p._peakIndex);
-#else
-        QIFFT::Peak qifftPeak;
-        QIFFT::findPeak(magns, phasesUW, _bufferSize, peak._peakIndex, &qifftPeak);
-        // QIFFT::FindPeak2() is not fixed yet...
-
-        // Apply empirical coeffs, so that next values will match
-        // current values + deta.
-        //
-        // NOTE: this may depend on window type, maybe on overlap too..
-        qifftPeak._alpha0 *= EMPIR_ALPHA0_COEFF;
-        qifftPeak._beta0 *= EMPIR_BETA0_COEFF;
-            
-        p._binIdxF = qifftPeak._binIdx;
-        p._freq = qifftPeak._freq;
-        p._amp = qifftPeak._amp;
-        
-        p._phase = qifftPeak._phase;
-        p._alpha0 = qifftPeak._alpha0;
-        p._beta0 = qifftPeak._beta0;
-
-        float peakIndexF = qifftPeak._binIdx;
-#endif
-        
-        p._peakIndex = round(peakIndexF);
-        if (p._peakIndex < 0)
-            p._peakIndex = 0;
-            
-        if (p._peakIndex > magns.size() - 1)
-            p._peakIndex = magns.size() - 1;
-
-#if !USE_QIFFT
-        // Remainder: freq is normalized here
-        float peakFreq = peakIndexF/(_bufferSize*0.5);
-        p._freq = peakFreq;
-#endif
-        
-        // Kalman
-        //
-        // Update the estimate with the first value
-        p._kf.initEstimate(p._freq);
-
-#if !USE_QIFFT
-        
-#if !INTERPOLATE_PHASES
-        // Magn
-        p._amp = computePeakAmpInterp(magns, peakFreq);
-        
-        // Phase
-        p._phase = phases.data()[(int)peakIndexF];
-#else
-        computePeakMagnPhaseInterp(magns, phases, peakFreq,
-                                   &p._amp, &p._phase);
-#endif
-
-#endif
-    }
 }
 
 int
@@ -1149,23 +1973,95 @@ PartialTracker::denormBinIndex(int idx)
 }
 
 void
-PartialTracker::postProcessPartials(const vector<float> &magns,
-                                    vector<Partial> *partials)
-{
-    suppressZeroFreqPartials(partials);
+PartialTracker::computeAccurateFreqs(vector<Partial> *partials)
+{    
+    // The most accurate frequencies are acheived using linear scale on x,
+    // db scale on y, and parabola peak finding,
+    // (and with and offset of 0.5 to get centered on bins) <- mistake ?
 
-    // Some operations
-#if GLUE_BARBS
-    vector<Partial> &prev = _tmpPartials1;
-    prev = *partials;
+    // With this method, we get an accuracy of less than 1Hz!
     
-    gluePartialBarbs(magns, partials);
-#endif
+    // Compute the frequencies using this most accurate method
+    for (int i = 0; i < partials->size(); i++)
+    {
+        Partial &p = (*partials)[i];
 
-#if DISCARD_FLAT_PARTIAL
-    discardFlatPartials(magns, partials);
-#endif
+        // First, find the left and right indices, scaled to linear
+        float leftIndexF = ((float)p._leftIndex)/(_bufferSize*0.5);
+        float rightIndexF = ((float)p._rightIndex)/(_bufferSize*0.5);
 
-    // Threshold
-    thresholdPartialsPeakHeight(magns, partials);
+        leftIndexF = _scale->applyScale(_xScaleInv, leftIndexF, (float)0.0,
+                                        (float)(_sampleRate*0.5));
+        rightIndexF = _scale->applyScale(_xScaleInv, rightIndexF, (float)0.0,
+                                         (float)(_sampleRate*0.5));
+
+        float leftIndex0 = leftIndexF*(_bufferSize*0.5);
+        float rightIndex0 = rightIndexF*(_bufferSize*0.5);
+
+        // Necessary to round(), otherwise we have the risk to have several peaks in
+        // the range [leftIndex, leftIndex] (due to inaccurate L/R bounds)
+        int leftIndex = round(leftIndex0);
+        int rightIndex = round(rightIndex0);
+        
+        // Then find the integer peak index, still in linear scale
+        // Use the raw magns we previously kept (possibly time smoothed) 
+        int peakIndex = Utils::findMaxIndex(_linearMagns, leftIndex, rightIndex);
+
+        // Won't work well with peaks with almost flat top ?
+        //
+        // Make smooth partials change
+        // But makes wobble in the sound volume
+        float peakIndexF = computePeakIndexParabola(_linearMagns, peakIndex);
+        
+        // NOTE: this seemed to be a mistake, fixed here by a hack
+        //
+        // Then adjust to be centered on the bins (the magic comes here :)
+        // => this way we get the right result
+        //peakIndexF = peakIndexF + 0.5;
+
+        // Update the partial peak index (just in case)
+        p._peakIndex = round(peakIndexF);
+        
+        // Get the normalized frequency (linear scale)
+        float peakFreq = peakIndexF/(_bufferSize*0.5);
+                        
+        // Rescale it to the current scale
+        peakFreq = _scale->applyScale(_xScale, peakFreq, (float)0.0,
+                                      (float)(_sampleRate*0.5));
+
+        // And finally, update the partial
+        p._freq = peakFreq;
+
+        // Some updates
+        //
+
+        // NOTE: not sure this computation is very exact...
+        //
+        // Update the partial peak index (just in case)
+        float newPeakIndex = peakFreq*(_bufferSize*0.5);
+        p._peakIndex = bl_round(newPeakIndex);
+        if (p._peakIndex < 0)
+            p._peakIndex = 0;
+        
+        int maxDetectIndex = _currentMagns.size();
+        if (_maxDetectFreq > 0.0)
+            maxDetectIndex = _maxDetectFreq*(_bufferSize*0.5);
+        if (maxDetectIndex > _currentMagns.size() - 1)
+            maxDetectIndex = _currentMagns.size() - 1;
+        if (p._peakIndex > maxDetectIndex)
+            p._peakIndex = maxDetectIndex;
+    
+        // Kalman
+        
+        // Update the estimate with the first value
+        //p._kf.updateEstimate(p._freq);
+        p._kf.initEstimate(p._freq);
+                    
+        // For predicted freq to be freq for the first value
+        p._predictedFreq = p._freq;
+
+        // (Re)compute amp more accurately
+        computePeakMagnPhaseInterp(_currentMagns, _currentPhases, peakFreq,
+                                   &p._amp, &p._phase);
+    }
 }

@@ -138,6 +138,12 @@ class Utils
     static void computeOpposite(vector<float> *buf);
 
     static void applyGain(const vector<float> &in, vector<float> *out, ParamSmoother *smoother);
+
+    static void fillMissingValues(vector<float> *values,
+                                  bool extendBounds, float undefinedValue);
+
+    static int findMaxIndex(const vector<float> &values,
+                            int startIdx, int endIdx);
 };
 
 #endif

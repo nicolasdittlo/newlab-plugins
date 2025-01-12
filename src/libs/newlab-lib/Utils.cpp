@@ -781,3 +781,134 @@ Utils::applyGain(const vector<float> &in, vector<float> *out, ParamSmoother *smo
         (*out)[i] = in[i]*gain;
     }
 }
+
+void
+Utils::fillMissingValues(vector<float> *values,
+                         bool extendBounds, float undefinedValue)
+{
+    if (extendBounds)
+        // Extend the last value to the end
+    {
+        // Find the last max
+        int lastIndex = values->size() - 1;
+        float lastValue = undefinedValue;
+        
+        int valuesSize = values->size();
+        float *valuesData = values->Get();
+        
+        for (int i = valuesSize - 1; i > 0; i--)
+        {
+            float val = valuesData[i];
+            if (val > undefinedValue)
+            {
+                lastValue = val;
+                lastIndex = i;
+                
+                break;
+            }
+        }
+        
+        // Fill the last values with last max
+        for (int i = valuesSize - 1; i > lastIndex; i--)
+            valuesData[i] = lastValue;
+    }
+    
+    // Fill the holes by linear interpolation
+    float startVal = undefinedValue;
+    
+    // First, find start val
+    
+    int valuesSize = values->size();
+    float *valuesData = values->data();
+    
+    for (int i = 0; i < valuesSize; i++)
+    {
+        float val = valuesData[i];
+        if (val > undefinedValue)
+            startVal = val;
+    }
+    
+    int loopIdx = 0;
+    int startIndex = 0;
+    
+    // Then start the main loop
+    while(loopIdx < valuesSize)
+    {
+        float val = valuesData[loopIdx];
+        
+        if (val > undefinedValue)
+            // Defined
+        {
+            startVal = val;
+            startIndex = loopIdx;
+            
+            loopIdx++;
+        }
+        else
+            // Undefined
+        {
+            // Start at 0
+            if (!extendBounds &&
+                (loopIdx == 0))
+                startVal = undefinedValue;
+            
+            // Find how many missing values we have
+            int endIndex = startIndex + 1;
+            float endVal = undefinedValue;
+            bool defined = false;
+            
+            while(endIndex < valuesSize)
+            {
+                if (endIndex < valuesSize)
+                    endVal = valuesData[endIndex];
+                
+                defined = (endVal > undefinedValue);
+                if (defined)
+                    break;
+                
+                endIndex++;
+            }
+            
+            // Fill the missing values with lerp
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                float t =
+                    ((float)(i - startIndex))/(endIndex - startIndex);
+                
+                float newVal = (1.0 - t)*startVal + t*endVal;
+                
+                valuesData[i] = newVal;
+            }
+            
+            startIndex = endIndex;
+            loopIdx = endIndex;
+        }
+    }
+}
+
+int
+Utils::findMaxIndex(const vector<float> &values,
+                    int startIdx, int endIdx)
+{
+    int maxIndex = -1;
+    float maxValue = -NL_INF;
+    
+    int valuesSize = values.size();
+    float *valuesData = values.data();
+
+    if (endIdx > valuesSize - 1)
+        endIdx = valuesSize - 1;
+    
+    for (int i = startIdx; i <= endIdx; i++)
+    {
+        float value = valuesData[i];
+        
+        if (value > maxValue)
+        {
+            maxValue = value;
+            maxIndex = i;
+        }
+    }
+    
+    return maxIndex;
+}

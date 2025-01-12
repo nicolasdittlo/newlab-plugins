@@ -19,34 +19,76 @@
 #ifndef PARTIAL_TRACKER_H
 #define PARTIAL_TRACKER_H
 
-#include <vector>
-using namespace std;
-
-#include "PeakDetector.h"
-#include "Scale.h"
-#include "Partial.h"
-
-// Use PeakDetector class, original NewLab implementation
-#define USE_NL_PEAK_DETECTOR 0
-
-// Use smart peak detection from http://billauer.co.il/peakdet.html
-// See also: https://github.com/xuphys/peakdetect/blob/master/peakdetect.c
-#define USE_BILLAUER_PEAK_DETECTOR 1
-
-#define USE_PARTIAL_FILTER_MARCHAND 0
-#define USE_PARTIAL_FILTER_AMFM 1
-
-#if USE_NL_PEAK_DETECTOR
-#define DETECT_PARTIALS_START_INDEX 2
-#else
-// Better, in order to not discard low freq peaks with Billauer real prominence
-#define DETECT_PARTIALS_START_INDEX 0
-#endif
-
-class PartialFilter;
 class PartialTracker
 {
 public:
+    // class Partial
+    class Partial
+    {
+    public:
+        enum State
+        {
+            ALIVE,
+            ZOMBIE,
+            DEAD
+        };
+        
+        Partial();
+        
+        Partial(const Partial &other);
+        
+        virtual ~Partial();
+        
+        void genNewId();
+        
+        //
+        static bool freqLess(const Partial &p1, const Partial &p2);
+        
+        static bool ampLess(const Partial &p1, const Partial &p2);
+        
+        static bool idLess(const Partial &p1, const Partial &p2);
+        
+        static bool cookieLess(const Partial &p1, const Partial &p2);
+        
+    public:
+        int _peakIndex;
+        int _leftIndex;
+        int _rightIndex;
+        
+        // When detecting and filtering, mFreq and mAmp are "scaled and normalized"
+        // After processing, we can compute the real frequencies in Hz and amp in dB.
+        float _freq;
+        union{
+            // Inside PartialTracker5
+            float _amp;
+            
+            // After, outside PartialTracker5, if external classes need amp in dB
+            // Need to call DenormPartials() then PartialsAmpToAmpDB()
+            float _ampDB;
+        };
+        float _phase;
+        
+        float _peakHeight;
+        
+        long _id;
+        
+        enum State _state;
+        
+        bool _wasAlive;
+        long _zombieAge;
+        
+        long _age;
+        
+        // All-purpose field
+        float _cookie;
+        
+        KalmanFilter _kf;
+        float _predictedFreq;
+        
+    protected:
+        static unsigned long _currentId;
+    };
+    
     PartialTracker(int bufferSize, float sampleRate);
     
     virtual ~PartialTracker();
@@ -54,12 +96,13 @@ public:
     void reset();
     
     void reset(int bufferSize, float sampleRate);
+
+    void setComputeAccurateFreqs(bool flag);
     
     float getMinAmpDB();
     
     void setThreshold(float threshold);
-    void setThreshold2(float threshold2);
-
+    
     // Magn/phase
     void setData(const vector<float> &magns,
                  const vector<float> &phases);
@@ -67,24 +110,31 @@ public:
     void getPreProcessedMagns(vector<float> *magns);
     
     void detectPartials();
+    void extractNoiseEnvelope();
     void filterPartials();
     
     void getPartials(vector<Partial> *partials);
 
     // For getting current partials before filtering
-    void getRawPartials(vector<Partial> *partials);
+    void getPartialsRAW(vector<Partial> *partials);
     
     void clearResult();
     
-    // Maximum frequency we try to detect
+    void getNoiseEnvelope(vector<float> *noiseEnv);
+    void getHarmonicEnvelope(vector<float> *harmoEnv);
+    
+    // Maximum frequency we try to detect (limit for BL-Infra for example)
     void setMaxDetectFreq(float maxFreq);
     
-    // Preprocess time smooth
+    // Preprocess time smoth
     void setTimeSmoothCoeff(float coeff);
+    
+    void setTimeSmoothNoiseCoeff(float coeff);
     
     // For processing result warping for example
     void preProcessDataX(vector<float> *data);
 
+    //
     void preProcessDataY(vector<float> *data);
     
     // For processing result color for example, just before display
@@ -94,24 +144,18 @@ public:
     void preProcessUnwrapPhases(vector<float> *magns,
                                 vector<float> *phases);
     
-    void denormPartials(vector<Partial> *partials);
+    void denormPartials(vector<PartialTracker5::Partial> *partials);
     void denormData(vector<float> *data);
     
-    void partialsAmpToAmpDB(vector<Partial> *partials);
-
-    float partialScaleToQIFFTScale(float ampDbNorm);
-    float QIFFTScaleToPartialScale(float ampLog);
-
-    void setNeriDelta(float delta);
+    void partialsAmpToAmpDB(vector<PartialTracker5::Partial> *partials);
     
 protected:
-    // Pre processing
+    // Pre process
     
-    void preProcess(vector<float> *magns,
-                    vector<float> *phases);
+    void preProcess(vector<float> *magns, vector<float> *phases);
     
-    // Do it in the complex domain (to be compatible with AM/FM parameters)
-    void preProcessTimeSmooth(vector<complex<float> > *data);
+    // Apply time smooth (removes the noise and make more neat peaks)
+    void preProcessTimeSmooth(vector<float> *magns);
     
     // Apply A-Weighting, so the peaks at highest frequencies will not be small
     void preProcessAWeighting(vector<float> *magns, bool reverse = false);
@@ -119,14 +163,12 @@ protected:
     float processAWeighting(int binNum, int numBins,
                             float magn, bool reverse);
 
-
-    void computePartials(const vector<PeakDetector::Peak> &peaks,
-                         const vector<float> &magns,
-                         const vector<float> &phases,
-                         vector<Partial> *partials);
-
+    
+    // Get the partials which are alive
+    bool getAlivePartials(vector<Partial> *partials);
+    
     void removeRealDeadPartials(vector<Partial> *partials);
-        
+    
     // Detection
     
     void detectPartials(const vector<float> &magns,
@@ -137,102 +179,188 @@ protected:
     
     float computePeakIndexAvg(const vector<float> &magns,
                               int leftIndex, int rightIndex);
+    float computePeakIndexAvgSimple(const vector<float> &magns,
+                                    int leftIndex, int rightIndex);
     
     float computePeakIndexParabola(const vector<float> &magns,
                                    int peakIndex);
+    
+    // Advanced method
+    float computePeakIndexHalfProminenceAvg(const vector<float> &magns,
+                                            int peakIndex,
+                                            int leftIndex, int rightIndex);
     
     // Peak amp
     
     float computePeakAmpInterp(const vector<float> &magns,
                                float peakFreq);
     
-    void computePeakMagnPhaseInterp(const vector<float> &magns,
+    void ComputePeakMagnPhaseInterp(const vector<float> &magns,
                                     const vector<float> &unwrappedPhases,
                                     float peakFreq,
                                     float *peakAmp, float *peakPhase);
     
     
+    // Avoid the partial foot to leak on the left and right
+    // with very small amplitudes
+    void narrowPartialFoot(const vector<float> &magns,
+                           int peakIndex,
+                           int *leftIndex, int *rightIndex);
+    
+    void NarrowPartialFoot(const vector<float> &magns,
+                           vector<Partial> *partials);
+    
     // Glue the barbs to the main partial
     // Return true if some barbs have been glued
     bool gluePartialBarbs(const vector<float> &magns,
                           vector<Partial> *partials);
-     
+    
+    // Suppress the "barbs" (tiny partials on a side of a bigger partial)
+    void suppressBarbs(vector<Partial> *partials);
+    
     // Discard partials which are almost flat
-    // (compare height of the partial, and width in the middle)
-    bool discardFlatPartial(const vector<float> &magns,
+    // (compare height of the partial, and width in the middle
+    bool DiscardFlatPartial(const vector<float> &magns,
                             int peakIndex, int leftIndex, int rightIndex);
     
     void discardFlatPartials(const vector<float> &magns,
                              vector<Partial> *partials);
     
+    bool discardInvalidPeaks(const vector<float> &magns,
+                             int peakIndex, int leftIndex, int rightIndex);
+
+    
     // Suppress partials with zero frequencies
     void suppressZeroFreqPartials(vector<Partial> *partials);
-
-    float computePeakHeight(const vector<float> &magns,
-                            int peakIndex, int leftIndex, int rightIndex);
-    void thresholdPartialsPeakHeight(const vector<float> &magns,
-                                     vector<Partial> *partials);
+    
+    void thresholdPartialsPeakHeight(vector<Partial> *partials);
+    
+    void timeSmoothNoise(vector<float> *noise);
     
     // Peaks
     
+    // Fixed
     float computePeakProminence(const vector<float> &magns,
                                 int peakIndex, int leftIndex, int rightIndex);
 
+    // Inverse of prominence
+    float computePeakHeight(const vector<float> &magns,
+                            int peakIndex, int leftIndex, int rightIndex);
+    
+    float computePeakHeightDb(const vector<float> &magns,
+                              int peakIndex, int leftIndex, int rightIndex,
+                              const Partial &partial);
+    
     float computePeakHigherFoot(const vector<float> &magns,
                                 int leftIndex, int rightIndex);
 
     float computePeakLowerFoot(const vector<float> &magns,
                                int leftIndex, int rightIndex);
+
+    // Compute for all peaks
+    void computePeaksHeights(const vector<float> &magns,
+                             vector<Partial> *partials);
+
     
+    // Filter
+    
+    void filterPartials(vector<Partial> *result);
+    
+    void keepOnlyPartials(const vector<Partial> &partials,
+                          vector<float> *magns);
+
+    
+    // Extract noise envelope
+    
+    void extractNoiseEnvelopeMax();
+    
+    void extractNoiseEnvelopeTrack();
+    
+    void extractNoiseEnvelopeSimple();
+    
+    
+    void processMusicalNoise(vector<float> *noise);
+
+    void thresholdNoiseIsles(vector<float> *noise);
+
+    int findPartialById(const vector<PartialTracker::Partial> &partials, int idx);
+    
+    // Associate partials
+    
+    // Simple method, based on frequencies only
+    void associatePartials(const vector<PartialTracker5::Partial> &prevPartials,
+                           vector<PartialTracker5::Partial> *currentPartials,
+                           vector<PartialTracker5::Partial> *remainingPartials);
+    
+    // See: https://www.dsprelated.com/freebooks/sasp/PARSHL_Program.html#app:parshlapp
+    // "Peak Matching (Step 5)"
+    // Use fight/winner/loser
+    void associatePartialsPARSHL(const vector<PartialTracker5::Partial> &prevPartials,
+                                 vector<PartialTracker5::Partial> *currentPartials,
+                                 vector<PartialTracker5::Partial> *remainingPartials);
+
     // Adaptive threshold, depending on bin num;
     float getThreshold(int binNum);
+    float getDeltaFreqCoeff(int binNum);
 
     // Optim: pre-compute a weights
     void computeAWeights(int numBins, float sampleRate);
-        
+
     int denormBinIndex(int idx);
 
-    void postProcessPartials(const vector<float> &magns,
-                             vector<Partial> *partials);
+    void computeAccurateFreqs(vector<Partial> *partials);
+    
     
     int _bufferSize;
     float _sampleRate;
     
     float _threshold;
     
+    //
     vector<float> _currentMagns;
     vector<float> _currentPhases;
 
     vector<float> _linearMagns;
-    vector<float> _logMagns;
+    
+    deque<vector<Partial> > _partials;
     
     vector<Partial> _result;
+    vector<float> _noiseEnvelope;
+    vector<float> _harmonicEnvelope;
+    
+    vector<float> _smoothWinNoise;
+    
+    // For SmoothNoiseEnvelopeTime()
+    vector<float> _prevNoiseEnvelope;
+    
+    // For ComputeMusicalNoise()
+    bl_queue<vector<float> > _prevNoiseMasks;
     
     float _maxDetectFreq;
     
     // For Pre-Process
     float _timeSmoothCoeff;
-        
     // Smooth only magns
-    vector<float> _prevMagns;
+    vector<float> _timeSmoothPrevMagns;
     
     // Scales
     Scale *_scale;
     Scale::Type _xScale;
     Scale::Type _yScale;
-    Scale::Type _yScale2; // For log
     
     Scale::Type _xScaleInv;
     Scale::Type _yScaleInv;
-    Scale::Type _yScaleInv2; // for log
+    
+    // Time smooth noise
+    float _timeSmoothNoiseCoeff;
+    vector<float> _timeSmoothPrevNoise;
 
     // Optim
     vector<float> _aWeights;
 
-    PeakDetector *_peakDetector;
-    PartialFilter *_partialFilter;
+    bool _computeAccurateFreqs;
     
-private:
+private:    
     // Tmp buffers
     vector<float> _tmpBuf0;
     vector<float> _tmpBuf1;
@@ -241,11 +369,10 @@ private:
     vector<float> _tmpBuf4;
     vector<float> _tmpBuf5;
     vector<float> _tmpBuf6;
+
     vector<float> _tmpBuf7;
     vector<float> _tmpBuf8;
     vector<float> _tmpBuf9;
-    vector<float> _tmpBuf10;
-    vector<complex<float> > _tmpBuf11;
     
     vector<Partial> _tmpPartials0;
     vector<Partial> _tmpPartials1;
@@ -259,6 +386,13 @@ private:
     vector<Partial> _tmpPartials9;
     vector<Partial> _tmpPartials10;
     vector<Partial> _tmpPartials11;
+    vector<Partial> _tmpPartials12;
+    vector<Partial> _tmpPartials13;
+    vector<Partial> _tmpPartials14;
+    vector<Partial> _tmpPartials15;
+    vector<Partial> _tmpPartials16;
+    vector<Partial> _tmpPartials17;
+    vector<Partial> _tmpPartials18;
 };
 
 #endif
