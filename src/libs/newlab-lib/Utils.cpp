@@ -263,7 +263,7 @@ Utils::removeValuesCyclic(vector<float> *buf, int index, int numValues)
     // Copy cyclicly
     int bufPos = index + 1;
     int resultPos = index + 1 - numValues;
-    if (resultPos < 0)
+    while (resultPos < 0)
         resultPos += result.size();
     
     int resultSize = result.size();
