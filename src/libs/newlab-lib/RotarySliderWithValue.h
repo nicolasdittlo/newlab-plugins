@@ -31,11 +31,9 @@ enum class SliderSize
 class CustomRotarySlider : public juce::Slider
 {
 public:
-    CustomRotarySlider(SliderSize size, double skewFactor = 1.0)
+    CustomRotarySlider(SliderSize size)
         : _sliderSize(size)
     {
-        setSkewFactor(skewFactor); // Apply the skew factor
-
         // Load SVG from resources
         auto svgData = BinaryData::knob_svg;
         auto svgSize = BinaryData::knob_svgSize;
@@ -69,6 +67,23 @@ public:
         }
     }
 
+    void setParamShape(double paramShape)
+    {
+        _paramShape = paramShape;
+    }
+
+    double valueToProportionOfLength(double value) override
+    {
+        double normValue = (value - getMinimum()) / (getMaximum() - getMinimum());
+        return applyParamShape(normValue);
+    }
+
+    double proportionOfLengthToValue(double proportion) override
+    {
+        double shapedProportion = reverseParamShape(proportion);
+        return shapedProportion * (getMaximum() - getMinimum()) + getMinimum();
+    }
+
     void paint(juce::Graphics& g) override
     {
         // Background
@@ -76,8 +91,15 @@ public:
 
         if (_knobDrawable)
         {
+            auto value = getValue();
+            auto minimum = getMinimum();
+            auto maximum = getMaximum();
+
+            double normValue = valueToProportionOfLength(value);
+            value = minimum + normValue * (maximum - minimum);
+
             // Calculate rotation from -135 to 135 degrees
-            auto rotation = juce::jmap(getValue(), getMinimum(), getMaximum(), -130.0 * juce::MathConstants<double>::pi / 180.0, 130.0 * juce::MathConstants<double>::pi / 180.0);
+            auto rotation = juce::jmap(value, minimum, maximum, -130.0 * juce::MathConstants<double>::pi / 180.0, 130.0 * juce::MathConstants<double>::pi / 180.0);
 
             // Draw rotated SVG
             auto bounds = getLocalBounds().toFloat(); // Use full bounds for drawing
@@ -100,16 +122,27 @@ public:
     }
 
 private:
+    double applyParamShape(double normValue) const
+    {
+        return pow(normValue, _paramShape);
+    }
+
+    double reverseParamShape(double proportion) const
+    {
+        return pow(proportion, 1.0 / _paramShape);
+    }
+
     SliderSize _sliderSize;
     double _defaultValue = 0.0; // Default value for the slider
+    double _paramShape = 1.0;   // Computed parameter shape factor
     std::unique_ptr<juce::Drawable> _knobDrawable;
 };
 
 class RotarySliderWithValue : public juce::Component, public juce::SettableTooltipClient
 {
 public:
-    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size, double skewFactor = 1.0)
-        : _valueLabel("ValueLabel", ""), _slider(size, skewFactor), _sliderSize(size)
+    RotarySliderWithValue(const juce::String& sliderTitle, const juce::String& units, SliderSize size)
+        : _valueLabel("ValueLabel", ""), _slider(size), _sliderSize(size)
     {
         // Slider setup
         _slider.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -165,6 +198,11 @@ public:
     void setValue(double value)
     {
         _slider.setValue(value);
+    }
+
+    void setParamShape(double paramShape)
+    {
+        _slider.setParamShape(paramShape);
     }
 
     double getValue() const

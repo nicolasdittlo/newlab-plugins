@@ -82,6 +82,7 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     _wetFreqSlider = std::make_unique<RotarySliderWithValue>("", "Hz", SliderSize::SmallSlider);
     _wetFreqSlider->setRange(20.0, 20000.0, 1.0);
     _wetFreqSlider->setDefaultValue(20.0);
+    _wetFreqSlider->setParamShape(0.25);
     _wetFreqSlider->setTooltip("Wet Limit Frequency - Signal is untouched before");
     _wetFreqAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
         (_audioProcessor._parameters, "wetFreq", _wetFreqSlider->getSlider());
