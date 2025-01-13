@@ -77,7 +77,7 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
 
     // Add the smart resynth check box to the editor
     addAndMakeVisible(_smartResynthCheckBox);
-    
+
     // Configure the wet freq slider with units
     _wetFreqSlider = std::make_unique<RotarySliderWithValue>("", "Hz", SliderSize::SmallSlider);
     _wetFreqSlider->setRange(20.0, 20000.0, 0.1);
@@ -85,10 +85,10 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     _wetFreqSlider->setTooltip("Wet Limit Frequency - Signal is untouched before");
     _wetFreqAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
         (_audioProcessor._parameters, "wetFreq", _wetFreqSlider->getSlider());
-    
+
     // Add the rotary slider to the editor
     addAndMakeVisible(*_wetFreqSlider);
-    
+
     // Configure the wet gain slider with units
     _wetGainSlider = std::make_unique<RotarySliderWithValue>("", "dB", SliderSize::SmallSlider);
     _wetGainSlider->setRange(-12.0, 12.0, 0.1);
@@ -170,6 +170,7 @@ void NLAirAudioProcessorEditor::resized()
 {
     auto smallSliderWidth = 72; // Updated width to match the label width for small sliders
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
+
     _thresholdSlider->setBounds(60 - (smallSliderWidth - 36) / 2, // Center the slider
                                 374,
                                 smallSliderWidth,
@@ -185,7 +186,7 @@ void NLAirAudioProcessorEditor::resized()
                               smallSliderHeight);
 
     _smartResynthCheckBox.setBounds(40, 282, 20, 20);
-    
+
     _wetFreqSlider->setBounds(270 - (smallSliderWidth - 36) / 2, // Center the slider
                               374,
                               smallSliderWidth,
