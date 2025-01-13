@@ -151,6 +151,9 @@ public:
     void setRange(double min, double max, double interval)
     {
         _slider.setRange(min, max, interval);
+        _interval = interval;
+        
+        updateValueLabel();
     }
 
     void setDefaultValue(double value)
@@ -183,7 +186,11 @@ public:
 private:
     void updateValueLabel()
     {
-        _valueLabel.setText(juce::String(_slider.getValue(), 2) + " " + _units, juce::dontSendNotification);
+        int decimalPlaces = std::max(0, static_cast<int>(-std::log10(_interval)));
+        double value = _slider.getValue();
+        if (decimalPlaces == 0)
+            value = round(value);
+        _valueLabel.setText(juce::String(value, decimalPlaces) + " " + _units, juce::dontSendNotification);
     }
 
     void updateSliderFromLabel()
@@ -198,4 +205,5 @@ private:
     SliderSize _sliderSize;
     juce::String _units;
     double _defaultValue = 0.0; // Default value for the slider
+    double _interval = 0.0; // Interval for formatting
 };
