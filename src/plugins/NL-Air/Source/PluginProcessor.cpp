@@ -441,6 +441,7 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         updateHostDisplay();
     }
 
+    _splitFreqSmoother->setTargetValue(wetFreq);
     if (!_splitFreqSmoother->isStable())
     {
         float splitFreq = _splitFreqSmoother->process();
