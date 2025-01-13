@@ -439,6 +439,10 @@ NLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         int latency = getLatency(buffer.getNumSamples());
         setLatencySamples(latency);
         updateHostDisplay();
+
+        // Update the delays
+        for (int i = 0; i < _inputDelays.size(); i++)
+            _inputDelays[i]->setDelay(latency);
     }
 
     _splitFreqSmoother->setTargetValue(wetFreq);
