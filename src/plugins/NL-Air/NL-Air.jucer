@@ -6,11 +6,11 @@
               companyWebsite="www.newlab-plugins.com" companyEmail="contact@newlab-plugins.com"
               pluginFormats="buildAAX,buildAU,buildLV2,buildVST,buildVST3"
               pluginCharacteristicsValue="pluginAAXDisableBypass,pluginAAXDisableMultiMono"
-              pluginDesc="Noise removal plugin" pluginManufacturerCode="Nlpl"
-              pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
+              pluginDesc="Air extraction and remixer" pluginManufacturerCode="Nlpl"
               headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/newlab-lib&#10;../../../../libs/fftw-3.3.10/api&#10;../../../../libs/nanovg/src"
               defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1&#10;JUCE_DISABLE_JUCE_VERSION_PRINTING=1&#10;"
-              lv2Uri="https://www.newlab-plugins.com/plugins/NL-Air">
+              lv2Uri="https://www.newlab-plugins.com/plugins/NL-Air" pluginCode="Nlai"
+              pluginAAXCategory="8192">
   <MAINGROUP id="LE9YKO" name="NL-Air">
     <GROUP id="{A7E4A4B9-0F14-99AB-E614-E8A83EECBBF2}" name="nanovg">
       <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
