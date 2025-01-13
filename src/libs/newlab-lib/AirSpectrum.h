@@ -42,7 +42,9 @@ class AirSpectrum
     void updateCurves(const vector<float> &airCurve,
                       const vector<float> &harmoCurve,
                       const vector<float> &sumCurve);
-        
+
+    void setMix(float mix);
+    
  protected:
     void createAxes(SpectrumView *spectrumView,
                     float sampleRate, int bufferSize);

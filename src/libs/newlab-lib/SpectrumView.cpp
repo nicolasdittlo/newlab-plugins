@@ -472,9 +472,19 @@ SpectrumView::drawCurveDescriptions(NVGcontext *nvgContext)
         float prevLineWidth = curve->_lineWidth;
         if (curve->_lineWidth < 0)
             curve->_lineWidth = -curve->_lineWidth;
+
+        // Save alpha and set it to 1
+        float strokeAlpha = curve->_color[3];
+        curve->_color[3] = 1.0;
+        float fillAlpha = curve->_fillColor[3];
+        curve->_fillColor[3] = 1.0;
         
         setCurveDrawStyle(nvgContext, curve);
 
+        // Restore alpha
+        curve->_color[3] = strokeAlpha;
+        curve->_fillColor[3] = fillAlpha;
+            
         curve->_lineWidth = prevLineWidth;
         
         y += TEXT_Y_OFFSET;

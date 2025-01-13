@@ -148,6 +148,18 @@ Curve::setFillColor(int r, int g, int b, int a)
 }
 
 void
+Curve::setAlpha(float alpha)
+{
+    _color[3] = alpha;
+}
+
+void
+Curve::setFillAlpha(float alpha)
+{
+    _fillColor[3] = alpha;
+}
+
+void
 Curve::setValues(const vector<float> &values,
                  bool applyXScale, bool applyYScale)
 {

@@ -230,6 +230,11 @@ NLAirAudioProcessorEditor::timerCallback()
                                    harmoBuffer,
                                    sumBuffer);
     }
-    
+
+    auto harmoAirMix = _audioProcessor._parameters.getRawParameterValue("harmoAirMix")->load();
+    harmoAirMix *= 0.01;
+    harmoAirMix = -harmoAirMix;
+    _airSpectrum->setMix(harmoAirMix);
+        
     _spectrumComponent->repaint();
 }

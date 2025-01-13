@@ -188,3 +188,35 @@ AirSpectrum::updateCurves(const vector<float> &airCurve,
 
     _sumCurveSmooth->setValues(sumCurve);
 }
+
+void
+AirSpectrum::setMix(float mix)
+{
+    float fillAlpha = 0.5f;
+    
+    if (mix <= 0.0f)
+    {
+        float t = 1.0f + mix;
+        
+        t = pow(t, 1.0f/2.0f);
+        
+        _harmoCurve->setAlpha(t);
+        _harmoCurve->setFillAlpha(t*fillAlpha);
+    
+        _airCurve->setAlpha(1.0f);
+        _airCurve->setFillAlpha(fillAlpha);
+    }
+    
+    if (mix >= 0.0f)
+    {
+        float t = (1.0f - mix);
+
+        t = pow(t, 1.0f/2.0f);
+        
+        _airCurve->setAlpha(t);
+        _airCurve->setFillAlpha(t*fillAlpha);
+        
+        _harmoCurve->setAlpha(1.0f);
+        _harmoCurve->setFillAlpha(fillAlpha);
+    }
+}

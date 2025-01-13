@@ -55,6 +55,9 @@ public:
     
     void setFill(bool flag);
     void setFillColor(int r, int g, int b, int a);
+
+    void setAlpha(float alpha);
+    void setFillAlpha(float alpha);
     
  protected:
     friend class SpectrumView;
