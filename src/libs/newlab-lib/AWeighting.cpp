@@ -29,7 +29,7 @@ AWeighting::computeAWeights(vector<float> *result,
 {
     result->resize(numBins);
     
-    float hzPerBin = sampleRate/(numBins*2);
+    float hzPerBin = sampleRate/((numBins - 1)*2);
     for (int i = 0; i < result->size(); i++)
     {
         float freq = i*hzPerBin;
@@ -43,7 +43,7 @@ AWeighting::computeAWeights(vector<float> *result,
 float
 AWeighting::computeAWeight(int binNum, int numBins, float sampleRate)
 {
-    float hzPerBin = sampleRate/(numBins*2);
+    float hzPerBin = sampleRate/((numBins - 1)*2);
     
     float freq = binNum*hzPerBin;
         

@@ -184,7 +184,7 @@ PartialTracker::PartialTracker(int bufferSize, float sampleRate)
     _computeAccurateFreqs = false;
     
     // Optim
-    computeAWeights(bufferSize/2, sampleRate);
+    computeAWeights(bufferSize/2 + 1, sampleRate);
 }
 
 PartialTracker::~PartialTracker()
@@ -225,7 +225,7 @@ PartialTracker::reset(int bufferSize, float sampleRate)
     reset();
 
     // Optim
-    computeAWeights(bufferSize/2, sampleRate);
+    computeAWeights(bufferSize/2 + 1, sampleRate);
 }
 
 void
@@ -1863,7 +1863,7 @@ PartialTracker::denormPartials(vector<PartialTracker::Partial> *partials)
         
         // Reverse AWeighting
         int binNum = partial._freq/hzPerBin;
-        partial._amp = processAWeighting(binNum, _bufferSize*0.5,
+        partial._amp = processAWeighting(binNum, _bufferSize*0.5 + 1,
                                          partial._amp, false);
     
         // Y
@@ -1957,7 +1957,6 @@ PartialTracker::processAWeighting(int binNum, int numBins,
         // Do nothing
         return magn;
     
-    //float a = AWeighting::ComputeAWeight(binNum, numBins, _sampleRate);
     float a = _aWeights.data()[binNum];
     
     float normDbMagn = magn;

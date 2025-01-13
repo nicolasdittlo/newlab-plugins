@@ -312,7 +312,7 @@ NLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->reset(fftSize/2 + 1, OVERLAP, sampleRate);
+        _processors[i]->reset(fftSize, OVERLAP, sampleRate);
 
     // Out
     for (int i = 0; i < _outOverlapAdds.size(); i++)
