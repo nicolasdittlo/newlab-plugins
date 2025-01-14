@@ -64,7 +64,7 @@ AWeighting::computeR(float frequency)
     
     float denom1 = sqrt(denom1_2_1*denom1_2_2);
     
-    float denom2 = pow(frequency, (float)2) + std::pow(12194, 2);
+    float denom2 = pow(frequency, (float)2) + pow(12194, 2);
     
     float denom = denom0*denom1*denom2;
     

@@ -7,6 +7,7 @@
 #define CFX_RBJ_FILTER_H
 
 #include <math.h>
+#include <cmath>
 
 // See: https://forum.cockos.com/showthread.php?t=121016
 // " If you put two filters back-to-back with a Q=0.707, you should get a 4th order filter that sums flat."
