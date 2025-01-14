@@ -35,12 +35,23 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
+      <FILE id="zsDH9D" name="AirProcessor.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/AirProcessor.cpp"/>
+      <FILE id="zWcqdq" name="AirProcessor.h" compile="0" resource="0" file="../../libs/newlab-lib/AirProcessor.h"/>
+      <FILE id="aUG9j9" name="AirSpectrum.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AirSpectrum.cpp"/>
+      <FILE id="AR4cCX" name="AirSpectrum.h" compile="0" resource="0" file="../../libs/newlab-lib/AirSpectrum.h"/>
       <FILE id="MrGHFX" name="AmpAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AmpAxis.cpp"/>
       <FILE id="cUzZWV" name="AmpAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/AmpAxis.h"/>
+      <FILE id="mxyuIW" name="AWeighting.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AWeighting.cpp"/>
+      <FILE id="Efjy2T" name="AWeighting.h" compile="0" resource="0" file="../../libs/newlab-lib/AWeighting.h"/>
       <FILE id="VRdMcA" name="Axis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Axis.cpp"/>
       <FILE id="Qc79By" name="Axis.h" compile="0" resource="0" file="../../libs/newlab-lib/Axis.h"/>
       <FILE id="ofQqTx" name="BitmapCheckBox.h" compile="0" resource="0"
             file="../../libs/newlab-lib/BitmapCheckBox.h"/>
+      <FILE id="RFi5tC" name="BufProcessor.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/BufProcessor.cpp"/>
+      <FILE id="Z4Pb1l" name="BufProcessor.h" compile="0" resource="0" file="../../libs/newlab-lib/BufProcessor.h"/>
+      <FILE id="BYouXo" name="CFxRbjFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/CFxRbjFilter.h"/>
       <FILE id="M3SesC" name="CircularBuffer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/CircularBuffer.h"/>
       <FILE id="sIRBCO" name="CMA2Smoother.cpp" compile="1" resource="0"
@@ -49,6 +60,10 @@
       <FILE id="txdpl6" name="CMASmoother.cpp" compile="1" resource="0" file="../../libs/newlab-lib/CMASmoother.cpp"/>
       <FILE id="WVf3Cb" name="CMASmoother.h" compile="0" resource="0" file="../../libs/newlab-lib/CMASmoother.h"/>
       <FILE id="LDmlKX" name="Config.h" compile="0" resource="0" file="../../libs/newlab-lib/Config.h"/>
+      <FILE id="KqJMq7" name="CrossoverSplitterNBands.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/CrossoverSplitterNBands.cpp"/>
+      <FILE id="Z18MsW" name="CrossoverSplitterNBands.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/CrossoverSplitterNBands.h"/>
       <FILE id="LHF1Xa" name="Curve.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Curve.cpp"/>
       <FILE id="tDoq1F" name="Curve.h" compile="0" resource="0" file="../../libs/newlab-lib/Curve.h"/>
       <FILE id="DDZikU" name="CustomComboBox.h" compile="0" resource="0"
@@ -70,10 +85,22 @@
             file="../../libs/newlab-lib/DenoiserSpectrum.h"/>
       <FILE id="VGk7dL" name="FilterBank.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterBank.cpp"/>
       <FILE id="zASwSB" name="FilterBank.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterBank.h"/>
+      <FILE id="qqAxaT" name="FilterRBJ.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterRBJ.h"/>
+      <FILE id="by4fw8" name="FilterRBJ1X.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterRBJ1X.cpp"/>
+      <FILE id="qHd7O6" name="FilterRBJ1X.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterRBJ1X.h"/>
+      <FILE id="DzHQXQ" name="FilterRBJ2X.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FilterRBJ2X.cpp"/>
+      <FILE id="TioaIB" name="FilterRBJ2X.h" compile="0" resource="0" file="../../libs/newlab-lib/FilterRBJ2X.h"/>
+      <FILE id="WNfVHg" name="FilterTransparentRBJ2X.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/FilterTransparentRBJ2X.cpp"/>
+      <FILE id="wX2aI9" name="FilterTransparentRBJ2X.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/FilterTransparentRBJ2X.h"/>
       <FILE id="GGWd8d" name="FontManager.h" compile="0" resource="0" file="../../libs/newlab-lib/FontManager.h"/>
       <FILE id="yMAPMV" name="FreqAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FreqAxis.cpp"/>
       <FILE id="S2rKnl" name="FreqAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/FreqAxis.h"/>
       <FILE id="sa3wNV" name="HelpButton.h" compile="0" resource="0" file="../../libs/newlab-lib/HelpButton.h"/>
+      <FILE id="rHPFxQ" name="KalmanFilter.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/KalmanFilter.cpp"/>
+      <FILE id="vzWCxg" name="KalmanFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/KalmanFilter.h"/>
       <FILE id="kiCgpQ" name="ManualPdfViewer.h" compile="0" resource="0"
             file="../../libs/newlab-lib/ManualPdfViewer.h"/>
       <FILE id="dFjkKg" name="MelScale.cpp" compile="1" resource="0" file="../../libs/newlab-lib/MelScale.cpp"/>
@@ -87,8 +114,38 @@
       <FILE id="Od5NTt" name="OverlapAdd.cpp" compile="1" resource="0" file="../../libs/newlab-lib/OverlapAdd.cpp"/>
       <FILE id="VAPbYz" name="OverlapAdd.h" compile="0" resource="0" file="../../libs/newlab-lib/OverlapAdd.h"/>
       <FILE id="mSKDEP" name="ParamSmoother.h" compile="0" resource="0" file="../../libs/newlab-lib/ParamSmoother.h"/>
+      <FILE id="SATYSL" name="Partial.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Partial.cpp"/>
+      <FILE id="xE9qyo" name="Partial.h" compile="0" resource="0" file="../../libs/newlab-lib/Partial.h"/>
+      <FILE id="dguoNR" name="PartialFilter.h" compile="0" resource="0" file="../../libs/newlab-lib/PartialFilter.h"/>
+      <FILE id="K3uEfe" name="PartialFilterAMFM.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialFilterAMFM.cpp"/>
+      <FILE id="OBZRip" name="PartialFilterAMFM.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialFilterAMFM.h"/>
+      <FILE id="GJIedj" name="PartialFilterMarchand.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialFilterMarchand.cpp"/>
+      <FILE id="MON7Dn" name="PartialFilterMarchand.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialFilterMarchand.h"/>
+      <FILE id="i1q3e9" name="PartialTracker.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PartialTracker.cpp"/>
+      <FILE id="MIHLY2" name="PartialTracker.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PartialTracker.h"/>
+      <FILE id="gFPZPV" name="PeakDetector.h" compile="0" resource="0" file="../../libs/newlab-lib/PeakDetector.h"/>
+      <FILE id="tSDZVe" name="PeakDetectorBillauer.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorBillauer.cpp"/>
+      <FILE id="snKiKq" name="PeakDetectorBillauer.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorBillauer.h"/>
+      <FILE id="r2WMHj" name="PeakDetectorNL.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorNL.cpp"/>
+      <FILE id="AEJgJE" name="PeakDetectorNL.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PeakDetectorNL.h"/>
+      <FILE id="VcXPD6" name="PhasesUnwrapper.cpp" compile="1" resource="0"
+            file="../../libs/newlab-lib/PhasesUnwrapper.cpp"/>
+      <FILE id="o9Yvg3" name="PhasesUnwrapper.h" compile="0" resource="0"
+            file="../../libs/newlab-lib/PhasesUnwrapper.h"/>
       <FILE id="UJFUzI" name="PlugNameComponent.h" compile="0" resource="0"
             file="../../libs/newlab-lib/PlugNameComponent.h"/>
+      <FILE id="JpRnP2" name="QIFFT.cpp" compile="1" resource="0" file="../../libs/newlab-lib/QIFFT.cpp"/>
+      <FILE id="ul2Fxc" name="QIFFT.h" compile="0" resource="0" file="../../libs/newlab-lib/QIFFT.h"/>
       <FILE id="jqrsw5" name="RotarySliderWithValue.h" compile="0" resource="0"
             file="../../libs/newlab-lib/RotarySliderWithValue.h"/>
       <FILE id="GMGRBz" name="Scale.cpp" compile="1" resource="0" file="../../libs/newlab-lib/Scale.cpp"/>

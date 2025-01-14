@@ -196,7 +196,7 @@ DenoiserProcessor::setBuildingNoiseStatistics(bool flag)
 {    
     if (flag && !_isBuildingNoiseStatistics)
     {
-        _noiseCurve.resize(_bufferSize);
+        _noiseCurve.resize(_bufferSize/2 + 1);
         for (int i = 0; i < _noiseCurve.size(); i++)
             _noiseCurve[i] = DEFAULT_VALUE_SIGNAL;
     }
@@ -306,7 +306,7 @@ DenoiserProcessor::getLatency()
             latency = _softMasking->getLatency();
     }
     else // Res noise
-        latency = RES_NOISE_LINE_NUM*(_bufferSize - 1)*2/_overlap;
+        latency = RES_NOISE_LINE_NUM*_bufferSize/_overlap;
     
     return latency;
 }
@@ -324,7 +324,7 @@ DenoiserProcessor::resetResNoiseHistory()
     _historyPhases.clear();
     
     vector<float> &zeroBuf = _tmpBuf5;
-    zeroBuf.resize(_bufferSize);
+    zeroBuf.resize(_bufferSize/2 + 1);
     Utils::fillZero(&zeroBuf);
     
     for (int i = 0; i < RES_NOISE_HISTORY_SIZE; i++)
@@ -749,7 +749,7 @@ DenoiserProcessor::resampleNoiseCurve()
 {
     _noiseCurve = _nativeNoiseCurve;
     
-    Utils::resizeFillZeros(&_noiseCurve, _bufferSize);
+    Utils::resizeFillZeros(&_noiseCurve, _bufferSize/2 + 1);
 }
 
 void

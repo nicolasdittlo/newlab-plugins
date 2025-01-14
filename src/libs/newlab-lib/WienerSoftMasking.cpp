@@ -122,7 +122,7 @@ WienerSoftMasking::getLatency()
     // (this covers the case of odd and even history size)
     // Index 0 has 0 latency, since we have just added the current data to it.
     int revIndex = (_historySize - 1) - _historySize/2;
-    int latency = revIndex*(((_bufferSize - 1)*2)/_overlap);
+    int latency = revIndex*(_bufferSize/_overlap);
     
     return latency;
 }

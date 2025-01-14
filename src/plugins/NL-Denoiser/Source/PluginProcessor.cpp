@@ -188,7 +188,7 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         
         for (int i = 0; i < numInputChannels; i++)
         {
-            DenoiserProcessor *processor = new DenoiserProcessor(fftSize/2 + 1, overlap, threshold);
+            DenoiserProcessor *processor = new DenoiserProcessor(fftSize, overlap, threshold);
             _processors.push_back(processor);
 
             TransientShaperProcessor *transientProcessor = new TransientShaperProcessor(sampleRate);
@@ -219,7 +219,7 @@ NLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->reset(fftSize/2 + 1, overlap, sampleRate);
+        _processors[i]->reset(fftSize, overlap, sampleRate);
 
     for (int i = 0; i < _transientProcessors.size(); i++)
         _transientProcessors[i]->reset(sampleRate);
