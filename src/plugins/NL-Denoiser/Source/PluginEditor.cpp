@@ -271,6 +271,8 @@ NLDenoiserAudioProcessorEditor::timerCallback()
                                         noiseProfileBuffer,
                                         isLearning);
     }
-    
+
+#ifdef __linux__
     _spectrumComponent->repaint();
+#endif
 }

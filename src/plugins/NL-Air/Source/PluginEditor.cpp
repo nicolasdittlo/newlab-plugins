@@ -238,5 +238,7 @@ NLAirAudioProcessorEditor::timerCallback()
     harmoAirMix = -harmoAirMix;
     _airSpectrum->setMix(harmoAirMix);
         
+#ifdef __linux__
     _spectrumComponent->repaint();
+#endif
 }

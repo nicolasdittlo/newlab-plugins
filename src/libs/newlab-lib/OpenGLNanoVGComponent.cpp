@@ -47,7 +47,9 @@ OpenGLNanoVGComponent::OpenGLNanoVGComponent()
     _openGLContext->setRenderer(this);
     _openGLContext->attachTo(*this);
     
-    //_openGLContext->setContinuousRepainting(true); // Optional, for continuous updates
+#ifdef _WIN32
+    _openGLContext->setContinuousRepainting(true); // Optional, for continuous updates
+#endif
 }
 
 OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
