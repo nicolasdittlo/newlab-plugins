@@ -27,6 +27,9 @@
 
 #define VERSION_STR "7.0.0"
 
+#define PLUGIN_WIDTH 456
+#define PLUGIN_HEIGHT 520
+
 NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
 {    
@@ -125,7 +128,7 @@ NLAirAudioProcessorEditor::NLAirAudioProcessorEditor(NLAirAudioProcessor& p)
     _spectrumComponent->setSpectrumView(_spectrumView.get());
     
     // Set the editor's size
-    setSize(456, 520);
+    setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
 
     // Register the sample rate change listener
     _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
@@ -169,6 +172,12 @@ void NLAirAudioProcessorEditor::paint(juce::Graphics& g)
 
 void NLAirAudioProcessorEditor::resized()
 {
+    if ((getWidth() != PLUGIN_WIDTH) || (getHeight() != PLUGIN_HEIGHT))
+    {
+        setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
+        return;
+    }
+
     auto smallSliderWidth = 72; // Updated width to match the label width for small sliders
     auto smallSliderHeight = 36 + 25 + 20; // 36 for slider, 25 for spacing, 20 for label height
 

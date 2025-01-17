@@ -27,6 +27,9 @@
 
 #define VERSION_STR "7.0.0"
 
+#define PLUGIN_WIDTH 464
+#define PLUGIN_HEIGHT 464
+
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
 {    
@@ -143,9 +146,9 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(_spectrumView.get(), 44100.0, 2048);
 
     _spectrumComponent->setSpectrumView(_spectrumView.get());
-    
+
     // Set the editor's size
-    setSize(464, 464);
+    setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
 
     // Register the sample rate change listener
     _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
@@ -198,6 +201,12 @@ void NLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
 
 void NLDenoiserAudioProcessorEditor::resized()
 {
+    if ((getWidth() != PLUGIN_WIDTH) || (getHeight() != PLUGIN_HEIGHT))
+    {
+        setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
+        return;
+    }
+
     auto bigSliderWidth = 72;
     auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
     _ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
