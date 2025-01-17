@@ -237,6 +237,11 @@ void NLDenoiserAudioProcessorEditor::resized()
     _spectrumComponent->setBounds(0, 0, 464, 198);
 }
 
+void NLDenoiserAudioProcessorEditor::setScaleFactor(float newScale)
+{
+    // Do nothing to prevent host scaling
+}
+
 void NLDenoiserAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
 {
     if (_denoiserSpectrum != nullptr)

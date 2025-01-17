@@ -208,6 +208,12 @@ void NLAirAudioProcessorEditor::resized()
     _spectrumComponent->setBounds(0, 0, 456, 236);
 }
 
+void 
+NLAirAudioProcessorEditor::setScaleFactor(float newScale)
+{
+    // Do nothing to prevent host scaling
+}
+
 void
 NLAirAudioProcessorEditor::handleSampleRateChange(double sampleRate, int bufferSize)
 {

@@ -40,6 +40,8 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void setScaleFactor(float newScale) override;
+
 private:
     void drawVersionText(juce::Graphics& g);
 
