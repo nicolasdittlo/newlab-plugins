@@ -17,7 +17,11 @@
  */
 
 #include <JuceHeader.h>
+#ifndef __APPLE__
 #include <GL/gl.h>
+#else
+#include <OpenGL/gl.h>
+#endif
 
 using namespace juce::gl;
 
