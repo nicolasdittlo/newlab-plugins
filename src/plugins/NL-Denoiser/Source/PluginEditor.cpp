@@ -289,4 +289,8 @@ NLDenoiserAudioProcessorEditor::timerCallback()
 #ifdef __linux__
     _spectrumComponent->repaint();
 #endif
+#ifdef __APPLE__
+    _spectrumComponent->repaint();
+#endif
+
 }
