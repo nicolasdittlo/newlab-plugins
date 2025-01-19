@@ -255,7 +255,8 @@
         <MODULEPATH id="juce_opengl" path="../../../libs/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
-    <XCODE_MAC targetFolder="Builds/MacOSX" hardenedRuntime="1">
+    <XCODE_MAC targetFolder="Builds/MacOSX" hardenedRuntime="1" extraLinkerFlags="-L../../../../libs/fftw-3.3.10/build-mac&#10;"
+               externalLibraries="fftw3f">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="NL-Denoiser"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="NL-Denoiser"/>
