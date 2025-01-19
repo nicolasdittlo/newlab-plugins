@@ -32,7 +32,7 @@ class VersionTextDrawer
         // Set the text attributes
         attributedString.setText(text);
         attributedString.setColour(juce::Colour(0xff939393));
-        attributedString.setFont(FontManager::getInstance().getFont("Roboto-Bold", 13.0));
+        attributedString.setFont(FontManager::getInstance()->getFont("Roboto-Bold", 13.0));
 
         // Create the layout
         textLayout.createLayout(attributedString, editor.getWidth());

@@ -94,6 +94,7 @@
             file="../../libs/newlab-lib/FilterTransparentRBJ2X.cpp"/>
       <FILE id="wX2aI9" name="FilterTransparentRBJ2X.h" compile="0" resource="0"
             file="../../libs/newlab-lib/FilterTransparentRBJ2X.h"/>
+      <FILE id="BKsbFd" name="FontManager.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FontManager.cpp"/>
       <FILE id="GGWd8d" name="FontManager.h" compile="0" resource="0" file="../../libs/newlab-lib/FontManager.h"/>
       <FILE id="yMAPMV" name="FreqAxis.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FreqAxis.cpp"/>
       <FILE id="S2rKnl" name="FreqAxis.h" compile="0" resource="0" file="../../libs/newlab-lib/FreqAxis.h"/>

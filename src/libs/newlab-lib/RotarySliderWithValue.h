@@ -152,7 +152,7 @@ public:
 
         // Value label setup
         _valueLabel.setEditable(true);
-        _valueLabel.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 19.0f));
+        _valueLabel.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 19.0f));
         _valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         _valueLabel.setJustificationType(juce::Justification::centred);
         _valueLabel.onTextChange = [this]() { updateSliderFromLabel(); };

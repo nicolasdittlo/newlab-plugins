@@ -62,7 +62,7 @@ private:
     public:
         juce::Font getComboBoxFont(ComboBox& box) override
         {
-            return FontManager::getInstance().getFont("Roboto-Bold", 16.0);
+            return FontManager::getInstance()->getFont("Roboto-Bold", 16.0);
         }
         
         void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
@@ -97,7 +97,7 @@ private:
             }
 
             g.setColour(isHighlighted ? juce::Colours::black : juce::Colours::white);
-            g.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 16.0));
+            g.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 16.0));
             g.drawFittedText(text, r, juce::Justification::centredLeft, 1);
 
             if (isTicked)

@@ -32,7 +32,7 @@ class DemoTextDrawer
         // Set the text attributes
         attributedString.setText(text);
         attributedString.setColour(juce::Colour(0xffff0000));
-        attributedString.setFont(FontManager::getInstance().getFont("OpenSans-ExtraBold", 16.0));
+        attributedString.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 16.0));
 
         // Create the layout
         textLayout.createLayout(attributedString, editor.getWidth());
