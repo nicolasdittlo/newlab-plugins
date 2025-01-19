@@ -32,7 +32,7 @@
 
 NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
-{    
+{
     // Set the custom look and feel
     juce::LookAndFeel::setDefaultLookAndFeel(new CustomLookAndFeel());
     
@@ -146,10 +146,10 @@ NLDenoiserAudioProcessorEditor::NLDenoiserAudioProcessorEditor(NLDenoiserAudioPr
     _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(_spectrumView.get(), 44100.0, 2048);
 
     _spectrumComponent->setSpectrumView(_spectrumView.get());
-
+    
     // Set the editor's size
     setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
-
+    
     // Register the sample rate change listener
     _audioProcessor.setSampleRateChangeListener([this](double sampleRate, int bufferSize)
     {
@@ -206,7 +206,7 @@ void NLDenoiserAudioProcessorEditor::resized()
         setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
         return;
     }
-
+    
     auto bigSliderWidth = 72;
     auto bigSliderHeight = 72 + 25 + 20; // 72 for slider, 25 for spacing, 20 for label height
     _ratioSlider->setBounds(172, 282, bigSliderWidth, bigSliderHeight);
@@ -242,7 +242,7 @@ void NLDenoiserAudioProcessorEditor::resized()
                                   _plugNameComponent->getHeight());
 
     _helpButton->setBounds(getWidth() - 20 - 14, getHeight() - 20 - 10, 20, 20);
-
+    
     _spectrumComponent->setBounds(0, 0, 464, 198);
 }
 
@@ -292,5 +292,5 @@ NLDenoiserAudioProcessorEditor::timerCallback()
 #ifdef __APPLE__
     _spectrumComponent->repaint();
 #endif
-
 }
+

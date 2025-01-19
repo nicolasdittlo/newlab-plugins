@@ -109,14 +109,21 @@ OpenGLNanoVGComponent::renderOpenGL()
 {    
     // Clear the screen
     juce::OpenGLHelpers::clear(juce::Colours::black);
-        
+    
     // Get component size
     const int width = getWidth();
     const int height = getHeight();
     
-    // Set NanoVG viewport
-    glViewport(0, 0, width, height);
+    float scale = 1.0;
     
+#ifdef __APPLE__
+    scale = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds())->scale;
+#endif
+    
+    // Set NanoVG viewport
+    glViewport(0, 0, width*scale, height*scale);
+    
+    // Don't scale here, so the font and other will have a good scale
     nvgBeginFrame(_nvgContext, width, height, static_cast<float>(width) / height);
 
     // Draw using NanoVG

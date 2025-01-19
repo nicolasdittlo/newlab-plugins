@@ -40,7 +40,7 @@ public:
     // Deleted to prevent copying or assignment
     FontManager(const FontManager&) = delete;
     FontManager& operator=(const FontManager&) = delete;
-
+    
     // Retrieve a Font object by name
     juce::Font getFont(const juce::String& fontName, float fontSize = 12.0f) const
     {
