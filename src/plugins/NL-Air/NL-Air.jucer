@@ -35,6 +35,7 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="newlab-lib">
+      <FILE id="uAF8Fu" name="FontManager.cpp" compile="1" resource="0" file="../../libs/newlab-lib/FontManager.cpp"/>
       <FILE id="qCBSeb" name="AWeighting.cpp" compile="1" resource="0" file="../../libs/newlab-lib/AWeighting.cpp"/>
       <FILE id="VU6kLD" name="AWeighting.h" compile="0" resource="0" file="../../libs/newlab-lib/AWeighting.h"/>
       <FILE id="I3a3yL" name="BufProcessor.cpp" compile="1" resource="0"
@@ -254,7 +255,8 @@
         <MODULEPATH id="juce_opengl" path="../../../libs/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="-L../../../../libs/fftw-3.3.10/build-mac&#10;"
+               externalLibraries="fftw3f" hardenedRuntime="1" xcodeValidArchs="arm64,arm64e,x86_64">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="NL-Air"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="NL-Air"/>

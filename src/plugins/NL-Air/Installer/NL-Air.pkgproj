@@ -79,14 +79,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/VST/BL-Air.vst</string>
+															<string>../Builds/MacOSX/build/Release/NL-Air.vst</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -604,7 +616,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -686,14 +698,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/VST3/BL-Air.vst3</string>
+															<string>../Builds/MacOSX/build/Release/NL-Air.vst3</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -1211,7 +1235,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1293,14 +1317,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/Components/BL-Air.component</string>
+															<string>../Builds/MacOSX/build/Release/NL-Air.component</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -1818,7 +1854,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1887,14 +1923,26 @@
 															<key>CHILDREN</key>
 															<array>
 																<dict>
+																	<key>BUNDLE_CAN_DOWNGRADE</key>
+																	<false/>
+																	<key>BUNDLE_POSTINSTALL_PATH</key>
+																	<dict>
+																		<key>PATH_TYPE</key>
+																		<integer>0</integer>
+																	</dict>
+																	<key>BUNDLE_PREINSTALL_PATH</key>
+																	<dict>
+																		<key>PATH_TYPE</key>
+																		<integer>0</integer>
+																	</dict>
 																	<key>CHILDREN</key>
 																	<array/>
 																	<key>GID</key>
 																	<integer>80</integer>
 																	<key>PATH</key>
-																	<string>/Library/Application Support/Avid/Audio/Plug-Ins/BL-Air.aaxplugin</string>
+																	<string>../Builds/MacOSX/build/Release/NL-Air.aaxplugin</string>
 																	<key>PATH_TYPE</key>
-																	<integer>0</integer>
+																	<integer>1</integer>
 																	<key>PERMISSIONS</key>
 																	<integer>493</integer>
 																	<key>TYPE</key>
@@ -2410,7 +2458,7 @@
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
-				<string>com.BlueLab.aax.pkg.BL-Air</string>
+				<string>com.BlueLab.aax.pkg.NL-Air</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -2426,7 +2474,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -2687,7 +2735,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>BL-Air</string>
+						<string>NL-Air</string>
 					</dict>
 				</array>
 			</dict>
@@ -2708,7 +2756,7 @@
 			<key>BUILD_PATH</key>
 			<dict>
 				<key>PATH</key>
-				<string>build-mac</string>
+				<string>.</string>
 				<key>PATH_TYPE</key>
 				<integer>1</integer>
 			</dict>
@@ -2865,7 +2913,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>BL-Air_Installer</string>
+			<string>NL-Air-Installer</string>
 			<key>PAYLOAD_ONLY</key>
 			<false/>
 			<key>TREAT_MISSING_PRESENTATION_DOCUMENTS_AS_WARNING</key>

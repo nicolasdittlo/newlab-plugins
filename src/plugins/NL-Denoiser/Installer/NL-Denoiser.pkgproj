@@ -79,14 +79,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/VST/BL-Denoiser.vst</string>
+															<string>../Builds/MacOSX/build/Release/NL-Denoiser.vst</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -588,7 +600,7 @@
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
-				<string>com.BlueLab.vst.pkg.BL-Denoiser</string>
+				<string>com.NewLab.vst.pkg.NL-Denoiser</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -604,7 +616,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -686,14 +698,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/VST3/BL-Denoiser.vst3</string>
+															<string>../Builds/MacOSX/build/Release/NL-Denoiser.vst3</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -1195,7 +1219,7 @@
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
-				<string>com.BlueLab.vst3.pkg.BL-Denoiser</string>
+				<string>com.NewLab.vst3.pkg.NL-Denoiser</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -1211,7 +1235,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1293,14 +1317,26 @@
 													<key>CHILDREN</key>
 													<array>
 														<dict>
+															<key>BUNDLE_CAN_DOWNGRADE</key>
+															<false/>
+															<key>BUNDLE_POSTINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
+															<key>BUNDLE_PREINSTALL_PATH</key>
+															<dict>
+																<key>PATH_TYPE</key>
+																<integer>0</integer>
+															</dict>
 															<key>CHILDREN</key>
 															<array/>
 															<key>GID</key>
 															<integer>80</integer>
 															<key>PATH</key>
-															<string>/Library/Audio/Plug-Ins/Components/BL-Denoiser.component</string>
+															<string>../Builds/MacOSX/build/Release/NL-Denoiser.component</string>
 															<key>PATH_TYPE</key>
-															<integer>0</integer>
+															<integer>1</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -1802,7 +1838,7 @@
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
-				<string>com.BlueLab.au.pkg.BL-Denoiser</string>
+				<string>com.NewLab.au.pkg.NL-Denoiser</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -1818,7 +1854,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1887,14 +1923,26 @@
 															<key>CHILDREN</key>
 															<array>
 																<dict>
+																	<key>BUNDLE_CAN_DOWNGRADE</key>
+																	<false/>
+																	<key>BUNDLE_POSTINSTALL_PATH</key>
+																	<dict>
+																		<key>PATH_TYPE</key>
+																		<integer>0</integer>
+																	</dict>
+																	<key>BUNDLE_PREINSTALL_PATH</key>
+																	<dict>
+																		<key>PATH_TYPE</key>
+																		<integer>0</integer>
+																	</dict>
 																	<key>CHILDREN</key>
 																	<array/>
 																	<key>GID</key>
 																	<integer>80</integer>
 																	<key>PATH</key>
-																	<string>/Library/Application Support/Avid/Audio/Plug-Ins/BL-Denoiser.aaxplugin</string>
+																	<string>../Builds/MacOSX/build/Release/NL-Denoiser.aaxplugin</string>
 																	<key>PATH_TYPE</key>
-																	<integer>0</integer>
+																	<integer>1</integer>
 																	<key>PERMISSIONS</key>
 																	<integer>493</integer>
 																	<key>TYPE</key>
@@ -2331,7 +2379,36 @@
 							<array>
 								<dict>
 									<key>CHILDREN</key>
-									<array/>
+									<array>
+										<dict>
+											<key>BUNDLE_CAN_DOWNGRADE</key>
+											<false/>
+											<key>BUNDLE_POSTINSTALL_PATH</key>
+											<dict>
+												<key>PATH_TYPE</key>
+												<integer>0</integer>
+											</dict>
+											<key>BUNDLE_PREINSTALL_PATH</key>
+											<dict>
+												<key>PATH_TYPE</key>
+												<integer>0</integer>
+											</dict>
+											<key>CHILDREN</key>
+											<array/>
+											<key>GID</key>
+											<integer>0</integer>
+											<key>PATH</key>
+											<string>../Builds/MacOSX/build/Release/NL-Denoiser.aaxplugin</string>
+											<key>PATH_TYPE</key>
+											<integer>1</integer>
+											<key>PERMISSIONS</key>
+											<integer>493</integer>
+											<key>TYPE</key>
+											<integer>3</integer>
+											<key>UID</key>
+											<integer>0</integer>
+										</dict>
+									</array>
 									<key>GID</key>
 									<integer>0</integer>
 									<key>PATH</key>
@@ -2410,7 +2487,7 @@
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
-				<string>com.BlueLab.aax.pkg.BL-Denoiser</string>
+				<string>com.NewLab.aax.pkg.NL-Denoiser</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -2426,7 +2503,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>6.2.4</string>
+				<string>7.0.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -2708,7 +2785,7 @@
 			<key>BUILD_PATH</key>
 			<dict>
 				<key>PATH</key>
-				<string>build-mac</string>
+				<string>.</string>
 				<key>PATH_TYPE</key>
 				<integer>1</integer>
 			</dict>
@@ -2865,7 +2942,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>BL-Denoiser_Installer</string>
+			<string>NL-Denoiser-installer</string>
 			<key>PAYLOAD_ONLY</key>
 			<false/>
 			<key>TREAT_MISSING_PRESENTATION_DOCUMENTS_AS_WARNING</key>
