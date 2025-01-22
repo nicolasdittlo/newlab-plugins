@@ -2913,7 +2913,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>NL-Air-Installer</string>
+			<string>NL-Air-v7.0.0-installer</string>
 			<key>PAYLOAD_ONLY</key>
 			<false/>
 			<key>TREAT_MISSING_PRESENTATION_DOCUMENTS_AS_WARNING</key>

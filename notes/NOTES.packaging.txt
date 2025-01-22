@@ -1,0 +1,16 @@
+packaging Windows:
+- build in release using Visual Studio 2019
+- codesign-plugins.bat
+- pace eden sign aax
+- cd Installer && make-installer.bat
+- codesign-installer.bat
+- pack-windows.bat
+
+packaging Mac
+- build in release using XCode
+- aax-sign-mac.sh
+- cd Installer && make-installer-mac.sh
+- codesign-installer-mac.sh
+- pack-mac.sh
+- make-dmg-mac.sh
+- notarize-dmg-mac.sh

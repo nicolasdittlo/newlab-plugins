@@ -1,0 +1,6 @@
+on top of XCode, choose "Any Mac" for building universal binary
+
+XCode flags to set after JUCE generation:
+Code Signing -> "Nicolas Dittlo" + "Developer ID Application" (no automatic)
+Use Hardened Runtime: set to Yes for all the plugins but not for the helpers and not globally
+VST3: add other code signing flags: --deep

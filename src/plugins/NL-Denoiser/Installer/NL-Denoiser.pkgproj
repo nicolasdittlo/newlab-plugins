@@ -2942,7 +2942,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>NL-Denoiser-installer</string>
+			<string>NL-Denoiser-v7.0.0-installer</string>
 			<key>PAYLOAD_ONLY</key>
 			<false/>
 			<key>TREAT_MISSING_PRESENTATION_DOCUMENTS_AS_WARNING</key>
