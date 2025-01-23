@@ -4,7 +4,7 @@ packaging Windows:
 - pace eden sign aax
 - cd Installer && make-installer.bat
 - codesign-installer.bat
-- pack-windows.bat
+- pack-win.bat
 
 packaging Mac
 - build in release using XCode
