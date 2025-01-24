@@ -35,4 +35,5 @@ open src/plugins/BL_Denoiser/BL_Denoiser.jucer
 save the project to generate the Makefile  
 
 cd src/plugins/BL_Denoiser/Builds/LinuxMakefile  
-CONFIG=Release && make
+export CONFIG=Release
+make
