@@ -10,7 +10,8 @@
               pluginVST3Category="Restoration" pluginAAXCategory="128" pluginVSTCategory="kPlugCategRestoration"
               headerPath="/usr/include/freetype2 &#10;/usr/include/gtk-3.0&#10;/usr/include/glib-2.0&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include&#10;/usr/include/pango-1.0&#10;/usr/include/harfbuzz&#10;/usr/include/cairo&#10;/usr/include/gdk-pixbuf-2.0&#10;/usr/include/atk-1.0&#10;../../../../libs/bluelab-lib&#10;../../../../libs/fftw-3.3.10/api&#10;../../../../libs/nanovg/src"
               defines="AUDIOFFT_FFTW3=1&#10;JUCE_DSP_USE_STATIC_FFTW=1&#10;JUCE_DISABLE_JUCE_VERSION_PRINTING=1&#10;"
-              lv2Uri="https://www.bluelab-plugins.com/plugins/BL_Denoiser">
+              lv2Uri="https://www.bluelab-plugins.com/plugins/BL_Denoiser"
+              pluginCode="Blde">
   <MAINGROUP id="LE9YKO" name="BL_Denoiser">
     <GROUP id="{A7E4A4B9-0F14-99AB-E614-E8A83EECBBF2}" name="nanovg">
       <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
