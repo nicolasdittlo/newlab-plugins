@@ -1,6 +1,6 @@
 # newlab-plugins
 
-### This is the NewLab | Audio Plugins sources repository.
+### This is the new BlueLab | Audio Plugins sources repository.
 
 This is a work in progress rework of the BlueLab plugins.
 This rework includes:
@@ -9,7 +9,7 @@ This rework includes:
 - small fixes
 - rewrite the code more cleanly
 
-The plugins here are for sale on the site www.newlab-plugins.com
+The plugins here are for sale on the site www.bluelab-plugins.com
 So please do not build them and put the builds online.
 
 ### To build the plugins on Linux:
@@ -31,8 +31,8 @@ git clone https://github.com/nicolasdittlo/nanovg.git
 find vstsdk2_4.zip and unzip it in src/libs  
 
 launch Projucer  
-open src/plugins/NL-Denoiser/NL-Denoiser.jucer  
+open src/plugins/BL_Denoiser/BL_Denoiser.jucer  
 save the project to generate the Makefile  
 
-cd src/plugins/NL-Denoiser/Builds/LinuxMakefile  
+cd src/plugins/BL_Denoiser/Builds/LinuxMakefile  
 CONFIG=Release && make
