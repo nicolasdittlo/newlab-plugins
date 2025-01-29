@@ -495,10 +495,10 @@ BLDenoiserAudioProcessor::getBuffers(vector<float> *signalBuffer,
                                      vector<float> *noiseBuffer,
                                      vector<float> *noiseProfileBuffer)
 {
+    std::lock_guard<std::mutex> lock(_curvesMutex);
+    
     if (!_newBuffersAvailable)
         return false;
-    
-    std::lock_guard<std::mutex> lock(_curvesMutex);
 
     *signalBuffer = _signalBuffer;
     *noiseBuffer = _noiseBuffer;

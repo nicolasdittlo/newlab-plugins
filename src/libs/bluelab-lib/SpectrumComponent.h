@@ -38,7 +38,7 @@ class SpectrumComponent : public OpenGLNanoVGComponent
         _spectrumView = spectrumView;
     }
     
-    void drawNanoVGGraphics()
+    void drawNanoVGGraphics() override
     {
         _spectrumView->draw(_nvgContext);
     }
