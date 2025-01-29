@@ -326,6 +326,7 @@ BLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
         _transientProcessors[i]->setSoftHard(transientBoost);
     }
 
+    
     if (qualityChanged || softDenoiseChanged)
     {            
         // Update latency

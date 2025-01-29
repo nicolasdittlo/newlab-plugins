@@ -243,5 +243,5 @@ private:
     SliderSize _sliderSize;
     juce::String _units;
     double _defaultValue = 0.0; // Default value for the slider
-    double _interval = 0.0; // Interval for formatting
+    double _interval = 1.0; // Interval for formatting
 };
