@@ -16,8 +16,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef SPECTRUM_VIEW_H
-#define SPECTRUM_VIEW_H
+#ifndef SPECTRUM_VIEW_NVG_H
+#define SPECTRUM_VIEW_NVG_H
 
 #include <vector>
 using namespace std;
@@ -26,11 +26,11 @@ typedef struct NVGcontext NVGcontext;
 
 class Axis;
 class Curve;
-class SpectrumView
+class SpectrumViewNVG
 {
  public:
-    SpectrumView();
-    virtual ~SpectrumView();
+    SpectrumViewNVG();
+    virtual ~SpectrumViewNVG();
 
     void setHAxis(Axis *axis);
     void setVAxis(Axis *axis);

@@ -27,8 +27,8 @@
 #include "CustomComboBox.h"
 #include "PlugNameComponent.h"
 #include "HelpButton.h"
-#include "SpectrumComponent.h"
-#include "SpectrumView.h"
+#include "SpectrumComponentGL.h"
+#include "SpectrumViewNVG.h"
 #include "DenoiserSpectrum.h"
 
 class BLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
@@ -85,10 +85,10 @@ private:
 
     std::unique_ptr<HelpButton> _helpButton;
 
-    std::unique_ptr<SpectrumComponent> _spectrumComponent;
-
     std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum = nullptr;
-    std::unique_ptr<SpectrumView> _spectrumView;
+    
+    std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
+    std::unique_ptr<SpectrumViewNVG> _spectrumView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BLDenoiserAudioProcessorEditor)
 };

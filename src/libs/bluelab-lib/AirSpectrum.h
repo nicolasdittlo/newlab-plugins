@@ -22,7 +22,7 @@
 #include <vector>
 using namespace std;
 
-class SpectrumView;
+class SpectrumViewNVG;
 class Axis;
 class AmpAxis;
 class FreqAxis;
@@ -32,7 +32,7 @@ class SmoothCurveDB;
 class AirSpectrum
 {
  public:
-    AirSpectrum(SpectrumView *spectrumView,
+    AirSpectrum(SpectrumViewNVG *spectrumView,
                 float sampleRate, int bufferSize);
 
     virtual ~AirSpectrum();
@@ -46,12 +46,12 @@ class AirSpectrum
     void setMix(float mix);
     
  protected:
-    void createAxes(SpectrumView *spectrumView,
+    void createAxes(SpectrumViewNVG *spectrumView,
                     float sampleRate, int bufferSize);
 
     void createCurves(float sampleRate);
 
-    SpectrumView *_spectrumView;
+    SpectrumViewNVG *_spectrumView;
     
     AmpAxis *_ampAxis;
     Axis *_hAxis;

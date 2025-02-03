@@ -21,19 +21,19 @@
 #include <stdlib.h>
 
 #include "OpenGLNanoVGComponent.h"
-#include "SpectrumView.h"
+#include "SpectrumViewNVG.h"
 
-class SpectrumComponent : public OpenGLNanoVGComponent
+class SpectrumComponentGL : public OpenGLNanoVGComponent
 {
  public:
-    SpectrumComponent()
+    SpectrumComponentGL()
     {
         _spectrumView = NULL;
     }
     
-    ~SpectrumComponent() {}
+    ~SpectrumComponentGL() {}
 
-    void setSpectrumView(SpectrumView *spectrumView)
+    void setSpectrumView(SpectrumViewNVG *spectrumView)
     {
         _spectrumView = spectrumView;
     }
@@ -49,5 +49,5 @@ class SpectrumComponent : public OpenGLNanoVGComponent
     }
     
  protected:
-    SpectrumView *_spectrumView;
+    SpectrumViewNVG *_spectrumView;
 };

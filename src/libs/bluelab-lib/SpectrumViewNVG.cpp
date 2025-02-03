@@ -22,33 +22,33 @@
 
 #include "Axis.h"
 #include "Curve.h"
-#include "SpectrumView.h"
+#include "SpectrumViewNVG.h"
 
 #define FONT "Roboto-Bold"
 #define FONT_SIZE 12.0
 
-SpectrumView::SpectrumView()
+SpectrumViewNVG::SpectrumViewNVG()
 {
     _width = 256;
     _height = 256;
 }
 
-SpectrumView::~SpectrumView() {}
+SpectrumViewNVG::~SpectrumViewNVG() {}
 
 void
-SpectrumView::setHAxis(Axis *axis)
+SpectrumViewNVG::setHAxis(Axis *axis)
 {
     _hAxis = axis;
 }
 
 void
-SpectrumView::setVAxis(Axis *axis)
+SpectrumViewNVG::setVAxis(Axis *axis)
 {
     _vAxis = axis;
 }
 
 void
-SpectrumView::addCurve(Curve *curve)
+SpectrumViewNVG::addCurve(Curve *curve)
 {
     curve->setViewSize(_width, _height);
     
@@ -56,7 +56,7 @@ SpectrumView::addCurve(Curve *curve)
 }
 
 void
-SpectrumView::draw(NVGcontext *nvgContext)
+SpectrumViewNVG::draw(NVGcontext *nvgContext)
 {
     drawAxis(nvgContext, true);
 
@@ -72,14 +72,14 @@ SpectrumView::draw(NVGcontext *nvgContext)
 }
 
 void
-SpectrumView::getViewSize(int *width, int *height)
+SpectrumViewNVG::getViewSize(int *width, int *height)
 {
     *width = _width;
     *height = _height;
 }
 
 void
-SpectrumView::setViewSize(int width, int height)
+SpectrumViewNVG::setViewSize(int width, int height)
 {
     _width = width;
     _height = height;
@@ -89,7 +89,7 @@ SpectrumView::setViewSize(int width, int height)
 }
 
 void
-SpectrumView::drawAxis(NVGcontext *nvgContext, bool lineLabelFlag)
+SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, bool lineLabelFlag)
 {
     if (_hAxis != NULL)
         drawAxis(nvgContext, _hAxis, true, lineLabelFlag);
@@ -99,7 +99,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, bool lineLabelFlag)
 }
 
 void
-SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool lineLabelFlag)
+SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool lineLabelFlag)
 {
     nvgSave(nvgContext);
 
@@ -272,7 +272,7 @@ SpectrumView::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool
 }
 
 void
-SpectrumView::drawCurves(NVGcontext *nvgContext)
+SpectrumViewNVG::drawCurves(NVGcontext *nvgContext)
 {
     for (int i = 0; i < _curves.size(); i++)
     {
@@ -284,7 +284,7 @@ SpectrumView::drawCurves(NVGcontext *nvgContext)
 }
 
 void
-SpectrumView::drawText(NVGcontext *nvgContext,
+SpectrumViewNVG::drawText(NVGcontext *nvgContext,
                        float x, float y,
                        float fontSize,
                        const char *text, int color[4],
@@ -311,8 +311,8 @@ SpectrumView::drawText(NVGcontext *nvgContext,
 }
 
 void
-SpectrumView::drawSeparatorY0(NVGcontext *nvgContext)
-{    
+SpectrumViewNVG::drawSeparatorY0(NVGcontext *nvgContext)
+{
     nvgSave(nvgContext);
     nvgStrokeWidth(nvgContext, 2.0);
     
@@ -338,8 +338,8 @@ SpectrumView::drawSeparatorY0(NVGcontext *nvgContext)
 }
 
 void
-SpectrumView::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
-{        
+SpectrumViewNVG::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
+{
     bool curveUndefined = isCurveUndefined(curve->_xValues, curve->_yValues, 2);
     if (curveUndefined)
         return;
@@ -380,7 +380,7 @@ SpectrumView::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
 }
 
 void
-SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
+SpectrumViewNVG::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
 {
     bool curveUndefined = isCurveUndefined(curve->_xValues, curve->_yValues, 2);
     if (curveUndefined)
@@ -441,7 +441,7 @@ SpectrumView::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
 }
 
 void
-SpectrumView::drawCurveDescriptions(NVGcontext *nvgContext)
+SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
 {
 #define OFFSET_Y 4.0
     
@@ -513,7 +513,7 @@ SpectrumView::drawCurveDescriptions(NVGcontext *nvgContext)
 }
 
 bool
-SpectrumView::isCurveUndefined(const vector<float> &x,
+SpectrumViewNVG::isCurveUndefined(const vector<float> &x,
                                const vector<float> &y,
                                int minNumValues)
 {
@@ -542,7 +542,7 @@ SpectrumView::isCurveUndefined(const vector<float> &x,
 }
 
 void
-SpectrumView::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
+SpectrumViewNVG::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
 {
     nvgLineJoin(nvgContext, NVG_BEVEL);
     

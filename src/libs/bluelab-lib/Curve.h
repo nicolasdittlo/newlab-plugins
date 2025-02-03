@@ -60,7 +60,7 @@ public:
     void setFillAlpha(float alpha);
     
  protected:
-    friend class SpectrumView;
+    friend class SpectrumViewNVG;
     
     // Description
     char *_description;

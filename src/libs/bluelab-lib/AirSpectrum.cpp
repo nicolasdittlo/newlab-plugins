@@ -22,7 +22,7 @@
 #include "Curve.h"
 #include "SmoothCurveDB.h"
 #include "ParamSmoother.h"
-#include "SpectrumView.h"
+#include "SpectrumViewNVG.h"
 
 #include "AirSpectrum.h"
 
@@ -33,7 +33,7 @@
 
 #define CURVE_NUM_VALUES 256
 
-AirSpectrum::AirSpectrum(SpectrumView *spectrumView,
+AirSpectrum::AirSpectrum(SpectrumViewNVG *spectrumView,
                          float sampleRate, int bufferSize)
 {
     _spectrumView = spectrumView;
@@ -62,7 +62,7 @@ AirSpectrum::~AirSpectrum()
 }
 
 void
-AirSpectrum::createAxes(SpectrumView *spectrumView,
+AirSpectrum::createAxes(SpectrumViewNVG *spectrumView,
                         float sampleRate, int bufferSize)
 {
     _hAxis = new Axis();

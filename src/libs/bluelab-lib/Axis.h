@@ -58,7 +58,7 @@ protected:
               int axisLabelColor[4],
               float lineWidth);
 
-    friend class SpectrumView;
+    friend class SpectrumViewNVG;
         
     typedef struct
     {

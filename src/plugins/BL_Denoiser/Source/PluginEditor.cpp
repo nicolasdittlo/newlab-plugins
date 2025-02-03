@@ -139,10 +139,10 @@ BLDenoiserAudioProcessorEditor::BLDenoiserAudioProcessorEditor(BLDenoiserAudioPr
     _helpButton->onStateChange = [] () { ManualPdfViewer::openEmbeddedPdf(); };
     addAndMakeVisible(*_helpButton);
 
-    _spectrumComponent = std::make_unique<SpectrumComponent>();
+    _spectrumComponent = std::make_unique<SpectrumComponentGL>();
     addAndMakeVisible(*_spectrumComponent);
 
-    _spectrumView = std::make_unique<SpectrumView>();
+    _spectrumView = std::make_unique<SpectrumViewNVG>();
     _denoiserSpectrum = std::make_unique<DenoiserSpectrum>(_spectrumView.get(), 44100.0, 2048);
 
     _spectrumComponent->setSpectrumView(_spectrumView.get());

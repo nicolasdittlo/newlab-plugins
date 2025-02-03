@@ -22,7 +22,7 @@
 #include "Curve.h"
 #include "SmoothCurveDB.h"
 #include "ParamSmoother.h"
-#include "SpectrumView.h"
+#include "SpectrumViewNVG.h"
 
 #include "DenoiserSpectrum.h"
 
@@ -34,7 +34,7 @@
 
 #define CURVE_NUM_VALUES 256
 
-DenoiserSpectrum::DenoiserSpectrum(SpectrumView *spectrumView,
+DenoiserSpectrum::DenoiserSpectrum(SpectrumViewNVG *spectrumView,
                                    float sampleRate, int bufferSize)
 {
     _spectrumView = spectrumView;
@@ -63,7 +63,7 @@ DenoiserSpectrum::~DenoiserSpectrum()
 }
 
 void
-DenoiserSpectrum::createAxes(SpectrumView *spectrumView,
+DenoiserSpectrum::createAxes(SpectrumViewNVG *spectrumView,
                              float sampleRate, int bufferSize)
 {
     _hAxis = new Axis();

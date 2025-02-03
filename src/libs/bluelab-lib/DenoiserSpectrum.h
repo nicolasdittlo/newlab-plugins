@@ -22,7 +22,7 @@
 #include <vector>
 using namespace std;
 
-class SpectrumView;
+class SpectrumViewNVG;
 class Axis;
 class AmpAxis;
 class FreqAxis;
@@ -32,7 +32,7 @@ class SmoothCurveDB;
 class DenoiserSpectrum
 {
  public:
-    DenoiserSpectrum(SpectrumView *spectrumView,
+    DenoiserSpectrum(SpectrumViewNVG *spectrumView,
                      float sampleRate, int bufferSize);
 
     virtual ~DenoiserSpectrum();
@@ -45,12 +45,12 @@ class DenoiserSpectrum
                       bool isLearning);
         
  protected:
-    void createAxes(SpectrumView *spectrumView,
+    void createAxes(SpectrumViewNVG *spectrumView,
                     float sampleRate, int bufferSize);
 
     void createCurves(float sampleRate);
 
-    SpectrumView *_spectrumView;
+    SpectrumViewNVG *_spectrumView;
     
     AmpAxis *_ampAxis;
     Axis *_hAxis;
