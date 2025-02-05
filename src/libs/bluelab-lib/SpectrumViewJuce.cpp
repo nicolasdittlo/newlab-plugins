@@ -18,58 +18,60 @@
 
 #include <string.h>
 
-#include <nanovg.h>
+#include <JuceHeader.h>
 
 #include "Axis.h"
 #include "Curve.h"
-#include "SpectrumViewNVG.h"
+#include "SpectrumViewJuce.h"
 
 #define FONT "Roboto-Bold"
 #define FONT_SIZE 12.0
 
-SpectrumViewNVG::SpectrumViewNVG()
+SpectrumViewJuce::SpectrumViewJuce()
+: _font(juce::FontOptions())
 {
     _width = 256;
     _height = 256;
-}
-
-SpectrumViewNVG::~SpectrumViewNVG() {}
-
-void
-SpectrumViewNVG::draw(NVGcontext *nvgContext)
-{
-    drawAxis(nvgContext, true);
-
-    nvgSave(nvgContext);    
-    drawCurves(nvgContext);
-    nvgRestore(nvgContext);
-
-    drawAxis(nvgContext, false);
     
-    drawCurveDescriptions(nvgContext);
+    auto typeface = juce::Typeface::createSystemTypefaceFor (BinaryData::RobotoBold_ttf, BinaryData::RobotoBold_ttfSize);
+    _font = juce::Font (juce::FontOptions(typeface));
+}
 
-    drawSeparatorY0(nvgContext);
+SpectrumViewJuce::~SpectrumViewJuce() {}
+
+void
+SpectrumViewJuce::paint(juce::Graphics &g)
+{
+    drawAxis(g, true);
+
+    g.saveState();
+    drawCurves(g);
+    g.restoreState();
+
+    drawAxis(g, false);
+    
+    drawCurveDescriptions(g);
+
+    drawSeparatorY0(g);
 }
 
 void
-SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, bool lineLabelFlag)
+SpectrumViewJuce::drawAxis(juce::Graphics &g, bool lineLabelFlag)
 {
     if (_hAxis != NULL)
-        drawAxis(nvgContext, _hAxis, true, lineLabelFlag);
+        drawAxis(g, _hAxis, true, lineLabelFlag);
     
     if (_vAxis != NULL)
-        drawAxis(nvgContext, _vAxis, false, lineLabelFlag);
+        drawAxis(g, _vAxis, false, lineLabelFlag);
 }
 
 void
-SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, bool lineLabelFlag)
+SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool lineLabelFlag)
 {
-    nvgSave(nvgContext);
-
-    nvgStrokeWidth(nvgContext, axis->_lineWidth);
+    g.saveState();
     
-    nvgStrokeColor(nvgContext, nvgRGBA(axis->_color[0], axis->_color[1],
-                                        axis->_color[2], axis->_color[3]));
+    g.setColour(juce::Colour((juce::uint8)axis->_color[0], (juce::uint8)axis->_color[1],
+                             (juce::uint8)axis->_color[2], (juce::uint8)axis->_color[3]));
     
     for (int i = 0; i < axis->_values.size(); i++)
     {
@@ -100,25 +102,18 @@ SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, b
                     y1f = _height - y1f;
 
                     // Draw a vertical line
-                    nvgBeginPath(nvgContext);
-
                     x = (int)x;
                     
-                    nvgMoveTo(nvgContext, x, y0f);
-                    nvgLineTo(nvgContext, x, y1f);
-    
-                    nvgStroke(nvgContext);
+                    g.drawLine(x, y0f, x, y1f, axis->_lineWidth);
                 }
                 else
                 {
                     float tx = xLabel;
                     float ty = textOffset + axis->_offsetY*_height;
-
-                    int halign = NVG_ALIGN_CENTER;
                     
-                    drawText(nvgContext, tx, ty,
+                    drawText(g, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM);
+                             juce::Justification::horizontallyCentred | juce::Justification::bottom);
                 }
             }
 
@@ -128,26 +123,22 @@ SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, b
                 {
                     float tx = xLabel + textOffset;
                     float ty = textOffset + axis->_offsetY*_height;
-
-                    int halign = NVG_ALIGN_LEFT;
                     
-                    // First text: aligne left
-                    drawText(nvgContext, tx, ty, FONT_SIZE,
+                    // First text: align left
+                    drawText(g, tx, ty, FONT_SIZE,
                              text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM);
+                             juce::Justification::left | juce::Justification::bottom);
                 }
         
                 if (i == axis->_values.size() - 1)
                 {
                     float tx = xLabel - textOffset;
                     float ty = textOffset + axis->_offsetY*_height;
-
-                    int halign = NVG_ALIGN_RIGHT;
                     
                     // Last text: align right
-                    drawText(nvgContext, tx, ty,
+                    drawText(g, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM);
+                             juce::Justification::right | juce::Justification::bottom);
                 }
             }
         }
@@ -177,26 +168,16 @@ SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, b
                     yf = _height - yf;
                     
                     // Draw a horizontal line
-                    nvgBeginPath(nvgContext);
-                    
-                    nvgMoveTo(nvgContext, x0, yf);
-                    nvgLineTo(nvgContext, x1, yf);
-                    
-                    nvgStroke(nvgContext);
+                    g.drawLine(x0, yf, x1, yf, axis->_lineWidth);
                 }
                 else
                 {
-                    int align = NVG_ALIGN_LEFT;
-                    
                     float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel;
-
-                    int halign = align | NVG_ALIGN_MIDDLE;
                     
-                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
+                    drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             halign,
-                             NVG_ALIGN_BOTTOM);
+                             juce::Justification::left | juce::Justification::bottom);
                 }
             }
             
@@ -207,12 +188,10 @@ SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, b
                 {
                     float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel + FONT_SIZE*0.75;
-
-                    int halign = NVG_ALIGN_LEFT;
                     
-                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
+                    drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM);
+                             juce::Justification::left | juce::Justification::bottom);
                 }
                 
                 if (i == axis->_values.size() - 1)
@@ -220,69 +199,62 @@ SpectrumViewNVG::drawAxis(NVGcontext *nvgContext, Axis *axis, bool horizontal, b
                 {
                     float tx = textOffset + axis->_offsetX*_width;
                     float ty = yLabel - FONT_SIZE*1.5;
-
-                    int halign = NVG_ALIGN_LEFT;
                     
-                    drawText(nvgContext, tx, ty, FONT_SIZE, text,
+                    drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             halign, NVG_ALIGN_BOTTOM);
+                             juce::Justification::left | juce::Justification::bottom);
                 }
             }
         }
     }
     
-    nvgRestore(nvgContext);
+    g.restoreState();
 }
 
 void
-SpectrumViewNVG::drawCurves(NVGcontext *nvgContext)
+SpectrumViewJuce::drawCurves(juce::Graphics &g)
 {
     for (int i = 0; i < _curves.size(); i++)
     {
         if (_curves[i]->_curveFill)
-            drawFillCurve(nvgContext, _curves[i]);
+            drawFillCurve(g, _curves[i]);
         else
-            drawLineCurve(nvgContext, _curves[i]);
+            drawLineCurve(g, _curves[i]);
     }
 }
 
 void
-SpectrumViewNVG::drawText(NVGcontext *nvgContext,
-                       float x, float y,
-                       float fontSize,
-                       const char *text, int color[4],
-                       int halign, int valign)
+SpectrumViewJuce::drawText(juce::Graphics &g,
+                           float x, float y,
+                           float fontSize,
+                           const char *text, int color[4],
+                           juce::Justification align)
 {
     if (strlen(text) == 0)
         return;
     
-    nvgSave(nvgContext);
-        
-    nvgFontSize(nvgContext, fontSize);
-	nvgFontFace(nvgContext, FONT);
-    nvgFontBlur(nvgContext, 0);
-	nvgTextAlign(nvgContext, halign | valign);
+    g.saveState();
+      
+    g.setFont(_font.withHeight(fontSize));
     
-    nvgFillColor(nvgContext, nvgRGBA(color[0], color[1], color[2], color[3]));
+    g.setColour(juce::Colour((juce::uint8)color[0], (juce::uint8)color[1], (juce::uint8)color[2], (juce::uint8)color[3]));
 
     float yf = y;
     yf = _height - y;
     
-	nvgText(nvgContext, x, yf, text, NULL);
+    g.drawSingleLineText(text, x, yf, align);
     
-    nvgRestore(nvgContext);
+    g.restoreState();
 }
 
 void
-SpectrumViewNVG::drawSeparatorY0(NVGcontext *nvgContext)
+SpectrumViewJuce::drawSeparatorY0(juce::Graphics &g)
 {
-    nvgSave(nvgContext);
-    nvgStrokeWidth(nvgContext, 2.0);
+    g.saveState();
     
-    nvgStrokeColor(nvgContext, nvgRGBA(147, 147, 147, 255));
+    g.setColour(juce::Colour((juce::uint8)147, (juce::uint8)147, (juce::uint8)147, (juce::uint8)255));
     
-    // Draw a vertical line ath the bottom
-    nvgBeginPath(nvgContext);
+    // Draw a vertical line at the bottom
     
     float x0 = 0;
     float x1 = _width;
@@ -292,26 +264,26 @@ SpectrumViewNVG::drawSeparatorY0(NVGcontext *nvgContext)
     float yf = y;
     yf = _height - yf;
     
-    nvgMoveTo(nvgContext, x0, yf);
-    nvgLineTo(nvgContext, x1, yf);
-                    
-    nvgStroke(nvgContext);
+    g.drawLine(x0, yf, x1, yf, 2.0);
     
-    nvgRestore(nvgContext);
+    g.restoreState();
 }
 
 void
-SpectrumViewNVG::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
+SpectrumViewJuce::drawLineCurve(juce::Graphics &g, Curve *curve)
 {
     bool curveUndefined = isCurveUndefined(curve->_xValues, curve->_yValues, 2);
     if (curveUndefined)
         return;
     
-    nvgSave(nvgContext);
+    g.saveState();
     
-    setCurveDrawStyle(nvgContext, curve);
+    g.setColour(juce::Colour((juce::uint8)(curve->_color[0]*255),
+                             (juce::uint8)(curve->_color[1]*255),
+                             (juce::uint8)(curve->_color[2]*255),
+                             (juce::uint8)(curve->_color[3]*255)));
     
-    nvgBeginPath(nvgContext);
+    juce::Path path;
             
     bool firstPoint = true;
     for (int i = 0; i < curve->_xValues.size(); i ++)
@@ -330,20 +302,21 @@ SpectrumViewNVG::drawLineCurve(NVGcontext *nvgContext, Curve *curve)
         
         if (firstPoint)
         {
-            nvgMoveTo(nvgContext, x, yf);
+            path.startNewSubPath(x, yf);
             
             firstPoint = false;
         }
         
-        nvgLineTo(nvgContext, x, yf);
+        path.lineTo(x, yf);
     }
     
-    nvgStroke(nvgContext);
-    nvgRestore(nvgContext);
+    g.strokePath(path, juce::PathStrokeType(curve->_lineWidth));
+    
+    g.restoreState();
 }
 
 void
-SpectrumViewNVG::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
+SpectrumViewJuce::drawFillCurve(juce::Graphics &g, Curve *curve)
 {
     bool curveUndefined = isCurveUndefined(curve->_xValues, curve->_yValues, 2);
     if (curveUndefined)
@@ -353,11 +326,9 @@ SpectrumViewNVG::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
     // Because we draw both stroke and fill at the same time
     float offset = curve->_lineWidth;
     
-    nvgSave(nvgContext);
-
-    setCurveDrawStyle(nvgContext, curve);
+    g.saveState();
     
-    nvgBeginPath(nvgContext);
+    juce::Path path;
     
     float x0 = 0.0;
     for (int i = 0; i < curve->_xValues.size(); i ++)
@@ -381,30 +352,41 @@ SpectrumViewNVG::drawFillCurve(NVGcontext *nvgContext, Curve *curve)
         {
             x0 = x;
             
-            nvgMoveTo(nvgContext, x0 - offset, y1f);
-            nvgLineTo(nvgContext, x - offset, yf);
+            path.startNewSubPath(x0 - offset, y1f);
+            path.lineTo(x - offset, yf);
         }
         
-        nvgLineTo(nvgContext, x, yf);
+        path.lineTo(x, yf);
         
         if (i >= curve->_xValues.size() - 1)
             // Close
         {
-            nvgLineTo(nvgContext, x + offset, yf);
-            nvgLineTo(nvgContext, x + offset, y1f);
+            path.lineTo(x + offset, yf);
+            path.lineTo(x + offset, y1f);
             
-            nvgClosePath(nvgContext);
+            path.closeSubPath();
         }
     }
     
-	nvgFill(nvgContext);
-    nvgStroke(nvgContext);
-
-    nvgRestore(nvgContext);
+    g.setColour(juce::Colour((juce::uint8)(curve->_fillColor[0]*255),
+                             (juce::uint8)(curve->_fillColor[1]*255),
+                             (juce::uint8)(curve->_fillColor[2]*255),
+                             (juce::uint8)(curve->_fillColor[3]*255)));
+    
+    g.fillPath(path);
+    
+    g.setColour(juce::Colour((juce::uint8)(curve->_color[0]*255),
+                              (juce::uint8)(curve->_color[1]*255),
+                              (juce::uint8)(curve->_color[2]*255),
+                              (juce::uint8)(curve->_color[3]*255)));
+    
+    g.strokePath(path, juce::PathStrokeType(curve->_lineWidth));
+    
+    g.restoreState();
 }
 
 void
-SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
+SpectrumViewJuce::drawCurveDescriptions(juce::Graphics &g)
 {
 #define OFFSET_Y 4.0
     
@@ -416,6 +398,8 @@ SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
 #define DESCR_SPACE 5
     
 #define TEXT_Y_OFFSET 2
+ 
+#define TEXT_Y_OFFSET2 -3
     
     int descrNum = 0;
     for (int i = 0; i < _curves.size(); i++)
@@ -427,7 +411,7 @@ SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
         
         float y = _height - (DESCR_Y0 + descrNum*DESCR_Y_STEP);
         
-        nvgSave(nvgContext);
+        g.saveState();
         
         // If line width < 0, it can be the case when we want to fill
         // a curve, but not display line over (just the fill)
@@ -441,8 +425,6 @@ SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
         curve->_color[3] = 1.0;
         float fillAlpha = curve->_fillColor[3];
         curve->_fillColor[3] = 1.0;
-        
-        setCurveDrawStyle(nvgContext, curve);
 
         // Restore alpha
         curve->_color[3] = strokeAlpha;
@@ -455,28 +437,28 @@ SpectrumViewNVG::drawCurveDescriptions(NVGcontext *nvgContext)
         float yf = y;
         yf = _height - yf;
         
-        nvgBeginPath(nvgContext);
+        g.setColour(juce::Colour((juce::uint8)(curve->_color[0]*255),
+                                 (juce::uint8)(curve->_color[1]*255),
+                                 (juce::uint8)(curve->_color[2]*255),
+                                 (juce::uint8)(curve->_color[3]*255)));
         
-        nvgMoveTo(nvgContext, DESCR_X, yf);
-        nvgLineTo(nvgContext, DESCR_X + DESCR_WIDTH, yf);
+        g.drawLine(DESCR_X, yf, DESCR_X + DESCR_WIDTH, yf, curve->_lineWidth);
         
-        nvgStroke(nvgContext);
-        
-        drawText(nvgContext,
+        drawText(g,
                  DESCR_X + DESCR_WIDTH + DESCR_SPACE,
-                 y,
+                 y + TEXT_Y_OFFSET2,
                  FONT_SIZE, descr,
                  curve->_descrColor,
-                 NVG_ALIGN_LEFT, NVG_ALIGN_MIDDLE);
+                 juce::Justification::left | juce::Justification::verticallyCentred);
         
-        nvgRestore(nvgContext);
+        g.restoreState();
         
         descrNum++;
     }
 }
 
 bool
-SpectrumViewNVG::isCurveUndefined(const vector<float> &x,
+SpectrumViewJuce::isCurveUndefined(const vector<float> &x,
                                const vector<float> &y,
                                int minNumValues)
 {
@@ -502,18 +484,4 @@ SpectrumViewNVG::isCurveUndefined(const vector<float> &x,
     }
     
     return true;
-}
-
-void
-SpectrumViewNVG::setCurveDrawStyle(NVGcontext *nvgContext, Curve *curve)
-{
-    nvgLineJoin(nvgContext, NVG_BEVEL);
-    
-    nvgStrokeWidth(nvgContext, curve->_lineWidth);
-    
-    nvgStrokeColor(nvgContext, nvgRGBA(curve->_color[0]*255, curve->_color[1]*255,
-                                       curve->_color[2]*255, curve->_color[3]*255));
-    
-    nvgFillColor(nvgContext, nvgRGBA(curve->_fillColor[0]*255, curve->_fillColor[1]*255,
-                                     curve->_fillColor[2]*255, curve->_fillColor[3]*255));
 }

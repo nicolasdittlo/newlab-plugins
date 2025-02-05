@@ -16,57 +16,35 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef AIR_SPECTRUM_H
-#define AIR_SPECTRUM_H
+#ifndef SPECTRUM_VIEW_H
+#define SPECTRUM_VIEW_H
 
 #include <vector>
 using namespace std;
 
-class SpectrumView;
 class Axis;
-class AmpAxis;
-class FreqAxis;
 class Curve;
-class SmoothCurveDB;
-
-class AirSpectrum
+class SpectrumView
 {
  public:
-    AirSpectrum(SpectrumView *spectrumView,
-                float sampleRate, int bufferSize);
+    SpectrumView();
+    virtual ~SpectrumView();
+                          
+    void setHAxis(Axis *axis);
+    void setVAxis(Axis *axis);
 
-    virtual ~AirSpectrum();
+    virtual void addCurve(Curve *curve);
 
-    void reset(int bufferSize, float sampleRate);
-
-    void updateCurves(const vector<float> &airCurve,
-                      const vector<float> &harmoCurve,
-                      const vector<float> &sumCurve);
-
-    void setMix(float mix);
-    
+    void setViewSize(int width, int height);
+    void getViewSize(int *width, int *_height);
+                          
  protected:
-    void createAxes(SpectrumView *spectrumView,
-                    float sampleRate, int bufferSize);
-
-    void createCurves(float sampleRate);
-
-    SpectrumView *_spectrumView;
-    
-    AmpAxis *_ampAxis;
+    vector<Curve *> _curves;
     Axis *_hAxis;
-    
-    FreqAxis *_freqAxis;
     Axis *_vAxis;
-
-    Curve *_airCurve;
-    SmoothCurveDB *_airCurveSmooth;
     
-    Curve *_harmoCurve;
-    SmoothCurveDB *_harmoCurveSmooth;
-    
-    Curve *_sumCurve;
-    SmoothCurveDB *_sumCurveSmooth;
+    int _width;
+    int _height;
 };
 
 #endif

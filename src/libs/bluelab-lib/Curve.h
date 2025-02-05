@@ -61,6 +61,7 @@ public:
     
  protected:
     friend class SpectrumViewNVG;
+    friend class SpectrumViewJuce;
     
     // Description
     char *_description;

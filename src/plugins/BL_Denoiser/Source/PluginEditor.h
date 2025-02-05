@@ -28,7 +28,9 @@
 #include "PlugNameComponent.h"
 #include "HelpButton.h"
 #include "SpectrumComponentGL.h"
+#include "SpectrumComponentJuce.h"
 #include "SpectrumViewNVG.h"
+#include "SpectrumViewJuce.h"
 #include "DenoiserSpectrum.h"
 
 class BLDenoiserAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
@@ -87,8 +89,13 @@ private:
 
     std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum = nullptr;
     
+#ifndef __APPLE__
     std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
     std::unique_ptr<SpectrumViewNVG> _spectrumView;
+#else
+    std::unique_ptr<SpectrumComponentJuce> _spectrumComponent;
+    std::unique_ptr<SpectrumViewJuce> _spectrumView;
+#endif
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BLDenoiserAudioProcessorEditor)
 };

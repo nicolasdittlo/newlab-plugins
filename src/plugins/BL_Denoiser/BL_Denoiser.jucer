@@ -36,6 +36,15 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="bluelab-lib">
+      <FILE id="MnW1uo" name="SpectrumView.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/SpectrumView.cpp"/>
+      <FILE id="vvtHBq" name="SpectrumView.h" compile="0" resource="0" file="../../libs/bluelab-lib/SpectrumView.h"/>
+      <FILE id="BUJC4E" name="SpectrumComponentJuce.h" compile="0" resource="0"
+            file="../../libs/bluelab-lib/SpectrumComponentJuce.h"/>
+      <FILE id="HeEkgw" name="SpectrumViewJuce.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/SpectrumViewJuce.cpp"/>
+      <FILE id="KUX53y" name="SpectrumViewJuce.h" compile="0" resource="0"
+            file="../../libs/bluelab-lib/SpectrumViewJuce.h"/>
       <FILE id="zsDH9D" name="AirProcessor.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/AirProcessor.cpp"/>
       <FILE id="zWcqdq" name="AirProcessor.h" compile="0" resource="0" file="../../libs/bluelab-lib/AirProcessor.h"/>

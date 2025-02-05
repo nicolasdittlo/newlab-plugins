@@ -59,7 +59,8 @@ protected:
               float lineWidth);
 
     friend class SpectrumViewNVG;
-        
+    friend class SpectrumViewJuce;
+    
     typedef struct
     {
         float _t;

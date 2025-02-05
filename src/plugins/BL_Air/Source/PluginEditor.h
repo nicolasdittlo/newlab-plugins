@@ -27,8 +27,10 @@
 #include "CustomComboBox.h"
 #include "PlugNameComponent.h"
 #include "HelpButton.h"
-#include "SpectrumComponent.h"
-#include "SpectrumView.h"
+#include "SpectrumComponentGL.h"
+#include "SpectrumComponentJuce.h"
+#include "SpectrumViewNVG.h"
+#include "SpectrumViewJuce.h"
 #include "AirSpectrum.h"
 
 class BLAirAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
@@ -79,10 +81,15 @@ private:
 
     std::unique_ptr<HelpButton> _helpButton;
 
-    std::unique_ptr<SpectrumComponent> _spectrumComponent;
-
+#ifndef __APPLE__
+    std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
+    std::unique_ptr<SpectrumViewNVG> _spectrumView;
+#else
+    std::unique_ptr<SpectrumComponentJuce> _spectrumComponent;
+    std::unique_ptr<SpectrumViewJuce> _spectrumView;
+#endif
+    
     std::unique_ptr<AirSpectrum> _airSpectrum = nullptr;
-    std::unique_ptr<SpectrumView> _spectrumView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BLAirAudioProcessorEditor)
 };
