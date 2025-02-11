@@ -87,6 +87,7 @@
             file="../../libs/bluelab-lib/DenoiserSpectrum.h"/>
       <FILE id="VGk7dL" name="FilterBank.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/FilterBank.cpp"/>
       <FILE id="zASwSB" name="FilterBank.h" compile="0" resource="0" file="../../libs/bluelab-lib/FilterBank.h"/>
+      <FILE id="eeaooW" name="FilterRBJ.h" compile="0" resource="0" file="../../libs/bluelab-lib/FilterRBJ.h"/>
       <FILE id="k4cUiz" name="FilterRBJ1X.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/FilterRBJ1X.cpp"/>
       <FILE id="IViW3a" name="FilterRBJ1X.h" compile="0" resource="0" file="../../libs/bluelab-lib/FilterRBJ1X.h"/>
       <FILE id="paTlnk" name="FilterRBJ2X.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/FilterRBJ2X.cpp"/>

@@ -131,7 +131,7 @@ AirSpectrum::createCurves(float sampleRate)
     int sumColor[4] = { 200, 200, 255, 255 };
         
     _sumCurve = new Curve(CURVE_NUM_VALUES);
-    _sumCurve->setDescription("noise profile", descrColor);
+    _sumCurve->setDescription("out", descrColor);
     _sumCurve->setXScale(Scale::LOG, 0.0, sampleRate*0.5);
     _sumCurve->setYScale(Scale::DB, AIR_MIN_DB, AIR_MAX_DB);
     _sumCurve->setColor(sumColor[0], sumColor[1], sumColor[2]);
