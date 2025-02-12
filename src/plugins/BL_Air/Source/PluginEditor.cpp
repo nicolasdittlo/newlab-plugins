@@ -119,14 +119,14 @@ BLAirAudioProcessorEditor::BLAirAudioProcessorEditor(BLAirAudioProcessor& p)
     _helpButton->onStateChange = [] () { ManualPdfViewer::openEmbeddedPdf(); };
     addAndMakeVisible(*_helpButton);
 
-#ifndef __arm64__
+#if RENDER_GL
     _spectrumComponent = std::make_unique<SpectrumComponentGL>();
 #else
     _spectrumComponent = std::make_unique<SpectrumComponentJuce>();
 #endif
     addAndMakeVisible(*_spectrumComponent);
 
-#ifndef __arm64__
+#if RENDER_GL
     _spectrumView = std::make_unique<SpectrumViewNVG>();
 #else
     _spectrumView = std::make_unique<SpectrumViewJuce>();

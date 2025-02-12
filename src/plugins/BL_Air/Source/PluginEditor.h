@@ -33,6 +33,8 @@
 #include "SpectrumViewJuce.h"
 #include "AirSpectrum.h"
 
+#define RENDER_GL 1
+
 class BLAirAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
@@ -81,7 +83,7 @@ private:
 
     std::unique_ptr<HelpButton> _helpButton;
 
-#ifndef __arm64__
+#if RENDER_GL
     std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
     std::unique_ptr<SpectrumViewNVG> _spectrumView;
 #else
