@@ -89,7 +89,7 @@ private:
 
     std::unique_ptr<DenoiserSpectrum> _denoiserSpectrum = nullptr;
     
-#ifndef __APPLE__
+#ifndef __arm64__
     std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
     std::unique_ptr<SpectrumViewNVG> _spectrumView;
 #else

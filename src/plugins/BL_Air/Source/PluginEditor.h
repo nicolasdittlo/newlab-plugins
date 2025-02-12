@@ -81,7 +81,7 @@ private:
 
     std::unique_ptr<HelpButton> _helpButton;
 
-#ifndef __APPLE__
+#ifndef __arm64__
     std::unique_ptr<SpectrumComponentGL> _spectrumComponent;
     std::unique_ptr<SpectrumViewNVG> _spectrumView;
 #else
