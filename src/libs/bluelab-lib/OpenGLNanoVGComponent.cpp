@@ -36,7 +36,9 @@ using namespace juce::gl;
 #define USE_MSAA 1
 
 OpenGLNanoVGComponent::OpenGLNanoVGComponent()
-{    
+{
+    _openGLVersionValid = true;
+    
     // Configure the OpenGL pixel format with a stencil buffer
     juce::OpenGLPixelFormat pixelFormat;
     pixelFormat.stencilBufferBits = 8; // Request an 8-bit stencil buffer
@@ -60,7 +62,8 @@ OpenGLNanoVGComponent::~OpenGLNanoVGComponent()
 {
     if (_nvgContext)
     {
-        nvgDeleteGL2(_nvgContext);
+        if (_openGLVersionValid)
+            nvgDeleteGL2(_nvgContext);
         _nvgContext = nullptr;
     }
     
@@ -73,6 +76,11 @@ OpenGLNanoVGComponent::newOpenGLContextCreated()
 {
     juce::gl::loadFunctions();
     juce::gl::loadExtensions();
+
+    checkOpenGLVersion();
+
+    if (!_openGLVersionValid)
+        return;
     
 #if !USE_MSAA
     _nvgContext = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
@@ -122,26 +130,32 @@ OpenGLNanoVGComponent::renderOpenGL()
     
     // Set NanoVG viewport
     glViewport(0, 0, width*scale, height*scale);
-    
-    // Don't scale here, so the font and other will have a good scale
-    nvgBeginFrame(_nvgContext, width, height, static_cast<float>(width) / height);
 
-    // Draw using NanoVG
-    drawNanoVGGraphics();
+    if (_openGLVersionValid)
+    {
+        // Don't scale here, so the font and other will have a good scale
+        nvgBeginFrame(_nvgContext, width, height, static_cast<float>(width) / height);
+
+        // Draw using NanoVG
+        drawNanoVGGraphics();
     
-    nvgEndFrame(_nvgContext);
+        nvgEndFrame(_nvgContext);
+    }
 }
 
 void
 OpenGLNanoVGComponent::openGLContextClosing()
 {
-    if (_nvgContext)
+    if (_openGLVersionValid)
     {
-        nvgDeleteGL2(_nvgContext);
-        _nvgContext = nullptr;
+        if (_nvgContext)
+        {
+            nvgDeleteGL2(_nvgContext);
+            _nvgContext = nullptr;
+        }
     }
 }
-   
+
 void
 OpenGLNanoVGComponent::drawNanoVGGraphics()
 {
@@ -156,4 +170,85 @@ OpenGLNanoVGComponent::drawNanoVGGraphics()
     nvgFillColor(_nvgContext, nvgRGBA(255, 255, 255, 255));
     nvgTextAlign(_nvgContext, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgText(_nvgContext, 150, 100, "NanoVG (GL2)", nullptr);
+}
+
+void
+OpenGLNanoVGComponent::checkOpenGLVersion()
+{
+    int major = 0;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    _openGLVersionValid = (major >= 2);
+
+    if (glStencilMask == nullptr)
+        _openGLVersionValid = false;
+    if (glStencilFunc == nullptr)
+        _openGLVersionValid = false;
+    if (glBlendFuncSeparate == nullptr)
+        _openGLVersionValid = false;
+    if (glGetShaderInfoLog == nullptr)
+        _openGLVersionValid = false;
+    if (glGetProgramInfoLog == nullptr)
+        _openGLVersionValid = false;
+    if (glCreateProgram == nullptr)
+        _openGLVersionValid = false;
+    if (glCreateShader == nullptr)
+        _openGLVersionValid = false;
+    if (glShaderSource == nullptr)
+        _openGLVersionValid = false;
+    if (glCompileShader == nullptr)
+        _openGLVersionValid = false;
+    if (glGetShaderiv == nullptr)
+        _openGLVersionValid = false;
+    if (glCompileShader == nullptr)
+        _openGLVersionValid = false;
+    if (glAttachShader == nullptr)
+        _openGLVersionValid = false;
+    if (glBindAttribLocation == nullptr)
+        _openGLVersionValid = false;
+    if (glLinkProgram == nullptr)
+        _openGLVersionValid = false;
+    if (glGetProgramiv == nullptr)
+        _openGLVersionValid = false;
+    if (glDeleteProgram == nullptr)
+        _openGLVersionValid = false;
+    if (glDeleteShader == nullptr)
+        _openGLVersionValid = false;
+    if (glGetUniformLocation == nullptr)
+        _openGLVersionValid = false;
+    if (glGetUniformBlockIndex == nullptr)
+        _openGLVersionValid = false;
+    if (glGenBuffers == nullptr)
+        _openGLVersionValid = false;
+    if (glUniform4fv == nullptr)
+        _openGLVersionValid = false;
+    if (glColorMask == nullptr)
+        _openGLVersionValid = false;
+    if (glStencilOpSeparate == nullptr)
+        _openGLVersionValid = false;
+    if (glDrawArrays == nullptr)
+        _openGLVersionValid = false;
+    if (glStencilOp == nullptr)
+        _openGLVersionValid = false;
+    if (glUseProgram == nullptr)
+        _openGLVersionValid = false;
+    if (glActiveTexture == nullptr)
+        _openGLVersionValid = false;
+    if (glBindBuffer == nullptr)
+        _openGLVersionValid = false;
+    if (glBufferData == nullptr)
+        _openGLVersionValid = false;
+    if (glEnableVertexAttribArray == nullptr)
+        _openGLVersionValid = false;
+    if (glVertexAttribPointer == nullptr)
+        _openGLVersionValid = false;
+    if (glUniform1i == nullptr)
+        _openGLVersionValid = false;
+    if (glUniform2fv == nullptr)
+        _openGLVersionValid = false;
+    if (glDisableVertexAttribArray == nullptr)
+        _openGLVersionValid = false;
+    if (glDeleteVertexArrays == nullptr)
+        _openGLVersionValid = false;
+    if (glDeleteBuffers == nullptr)
+        _openGLVersionValid = false;
 }
