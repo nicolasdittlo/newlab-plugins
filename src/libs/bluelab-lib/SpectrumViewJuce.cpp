@@ -113,7 +113,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     
                     drawText(g, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             juce::Justification::horizontallyCentred | juce::Justification::bottom);
+                             juce::Justification::horizontallyCentred /*| juce::Justification::bottom*/);
                 }
             }
 
@@ -127,7 +127,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     // First text: align left
                     drawText(g, tx, ty, FONT_SIZE,
                              text, axis->_labelColor,
-                             juce::Justification::left | juce::Justification::bottom);
+                             juce::Justification::left /*| juce::Justification::bottom*/);
                 }
         
                 if (i == axis->_values.size() - 1)
@@ -138,7 +138,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     // Last text: align right
                     drawText(g, tx, ty,
                              FONT_SIZE, text, axis->_labelColor,
-                             juce::Justification::right | juce::Justification::bottom);
+                             juce::Justification::right /*| juce::Justification::bottom*/);
                 }
             }
         }
@@ -177,7 +177,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     
                     drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             juce::Justification::left | juce::Justification::bottom);
+                             juce::Justification::left /*| juce::Justification::bottom*/);
                 }
             }
             
@@ -191,7 +191,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     
                     drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             juce::Justification::left | juce::Justification::bottom);
+                             juce::Justification::left /*| juce::Justification::bottom*/);
                 }
                 
                 if (i == axis->_values.size() - 1)
@@ -202,7 +202,7 @@ SpectrumViewJuce::drawAxis(juce::Graphics &g, Axis *axis, bool horizontal, bool 
                     
                     drawText(g, tx, ty, FONT_SIZE, text,
                              axis->_labelColor,
-                             juce::Justification::left | juce::Justification::bottom);
+                             juce::Justification::left /*| juce::Justification::bottom*/);
                 }
             }
         }
@@ -449,7 +449,7 @@ SpectrumViewJuce::drawCurveDescriptions(juce::Graphics &g)
                  y + TEXT_Y_OFFSET2,
                  FONT_SIZE, descr,
                  curve->_descrColor,
-                 juce::Justification::left | juce::Justification::verticallyCentred);
+                 juce::Justification::left /*| juce::Justification::verticallyCentred*/);
         
         g.restoreState();
         
