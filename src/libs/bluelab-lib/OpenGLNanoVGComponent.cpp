@@ -175,9 +175,20 @@ OpenGLNanoVGComponent::drawNanoVGGraphics()
 void
 OpenGLNanoVGComponent::checkOpenGLVersion()
 {
-    int major = 0;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    _openGLVersionValid = (major >= 2);
+    int majorVersion = 0;
+    
+#ifndef __APPLE__
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+#else
+    const char* versionString = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    int minorVersion = 0;
+
+    if (versionString) {
+        sscanf(versionString, "%d.%d", &majorVersion, &minorVersion);
+    }
+#endif
+    
+    _openGLVersionValid = (majorVersion >= 2);
 
     if (glStencilMask == nullptr)
         _openGLVersionValid = false;
