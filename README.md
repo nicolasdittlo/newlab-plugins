@@ -36,4 +36,5 @@ save the project to generate the Makefile
 
 cd src/plugins/BL_Denoiser/Builds/LinuxMakefile  
 export CONFIG=Release
+
 make
