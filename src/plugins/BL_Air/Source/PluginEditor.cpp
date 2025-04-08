@@ -25,7 +25,7 @@
 #include <DemoTextDrawer.h>
 #include <AirProcessor.h>
 
-#define VERSION_STR "7.0.0"
+#define VERSION_STR "7.0.1"
 
 #define PLUGIN_WIDTH 456
 #define PLUGIN_HEIGHT 520

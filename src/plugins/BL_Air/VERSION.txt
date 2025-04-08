@@ -1,3 +1,6 @@
+v7.0.1
+- enabled bypass feature in Protools
+
 v7.0.0
 - improved compatibility
 - fixed spectrum values that were not exactly correct

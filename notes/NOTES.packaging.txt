@@ -1,9 +1,9 @@
 packaging Windows:
 - build in release using Visual Studio 2019
-- codesign-plugins.bat
-- pace eden sign aax
-- cd Installer && make-installer.bat
-- codesign-installer.bat
+- codesign-plugins-win.bat
+- aax-sign-win.bat
+- cd Installer && make-installer-win.bat
+- codesign-installer-win.bat
 - pack-win.bat
 
 packaging Mac

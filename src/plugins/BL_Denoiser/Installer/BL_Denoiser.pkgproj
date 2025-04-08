@@ -616,7 +616,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>7.0.0</string>
+				<string>7.0.1</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1235,7 +1235,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>7.0.0</string>
+				<string>7.0.1</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1854,7 +1854,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>7.0.0</string>
+				<string>7.0.1</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -2503,7 +2503,7 @@
 				<key>USE_HFS+_COMPRESSION</key>
 				<false/>
 				<key>VERSION</key>
-				<string>7.0.0</string>
+				<string>7.0.1</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -2942,7 +2942,7 @@
 				</dict>
 			</array>
 			<key>NAME</key>
-			<string>BL_Denoiser-v7.0.0-installer</string>
+			<string>BL_Denoiser-v7.0.1-installer</string>
 			<key>PAYLOAD_ONLY</key>
 			<false/>
 			<key>TREAT_MISSING_PRESENTATION_DOCUMENTS_AS_WARNING</key>
