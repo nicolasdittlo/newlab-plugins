@@ -16,251 +16,113 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "Defines.h"
+#include <stdlib.h>
+
 #include "Utils.h"
-#include "PartialTracker.h"
-#include "WienerSoftMasking.h"
+#include "OverlapAdd.h"
+#include "STNProcessorStep0.h"
 #include "STNProcessor.h"
 
-// 8 gives more gating, but less musical noise remaining
-#define SOFT_MASKING_HISTO_SIZE 8
+#define OVERLAP_STEP0 8
 
-// Set bin #0 to 0 after soft masking
-#define SOFT_MASKING_FIX_BIN0 1
+#define FFT_SIZE_COEFF_STEP0 5 // fft size: 8192
 
-
-STNProcessor::STNProcessor(int bufferSize, int overlap, float sampleRate)
+STNProcessor::STNProcessor()
 {
-    _bufferSize = bufferSize;
-    _overlap = overlap;    
-    _sampleRate = sampleRate;
-    
-    _partialTracker = new PartialTracker(bufferSize, sampleRate);
-    
-    _mix = 0.5;
-
-    _useSoftMasks = false;
-    _softMasking = new WienerSoftMasking(bufferSize, overlap,
-                                         SOFT_MASKING_HISTO_SIZE);
-
-    _enableComputeSum = true;
+    _overlapAddStep0 = NULL;
+    _processorStep0 = NULL;
 }
 
 STNProcessor::~STNProcessor()
 {
-    delete _partialTracker;
+    if (_overlapAddStep0 != NULL)
+        delete _overlapAddStep0;
+
+    if (_processorStep0 != NULL)
+        delete _processorStep0;
+}
+
+void
+STNProcessor::prepareToPlay(double sampleRate)
+{
+    int fftSizeStep0 = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF_STEP0);
+
+    if (_overlapAddStep0 == NULL)
+        _overlapAddStep0 = new OverlapAdd(fftSizeStep0, OVERLAP_STEP0, true, true);
+
+    _overlapAddStep0->setFftSize(fftSizeStep0);
+    _overlapAddStep0->setOverlap(OVERLAP_STEP0);
     
-    if (_softMasking != NULL)
-        delete _softMasking;
-}
+    if (_processorStep0 == NULL)
+        _processorStep0 = new STNProcessorStep0(fftSizeStep0, OVERLAP_STEP0, sampleRate);
 
-void
-STNProcessor::reset()
-{
-    reset(_bufferSize, _overlap, _sampleRate);
-}
+    _processorStep0->reset(fftSizeStep0, OVERLAP_STEP0, sampleRate);
 
-void
-STNProcessor::reset(int bufferSize, int overlap, float sampleRate)
-{
-    _bufferSize = bufferSize;
-    _sampleRate = sampleRate;
-    
-    _partialTracker->reset(bufferSize, sampleRate);
-    
-    if (_softMasking != NULL)
-        _softMasking->reset(bufferSize, overlap);
-}
-
-void
-STNProcessor::processFFT(vector<complex<float> > *ioBuffer)
-{    
-    vector<float> &magns = _tmpBuf1;
-    vector<float> &phases = _tmpBuf2;
-    Utils::complexToMagnPhase(&magns, &phases, *ioBuffer);
-    
-    detectPartials(magns, phases);
-        
-    if (_partialTracker != NULL)
-    {
-        // "Envelopes"
-        //
-        
-        // Noise "envelope"
-        _partialTracker->getNoiseEnvelope(&_noiseBuffer);        
-        _partialTracker->denormData(&_noiseBuffer);
-        
-        // Harmonic "envelope"
-        _partialTracker->getHarmonicEnvelope(&_harmoBuffer);
-        _partialTracker->denormData(&_harmoBuffer);
-        
-        float noiseCoeff;
-        float harmoCoeff;
-        Utils::mixParamToCoeffs(_mix, &noiseCoeff, &harmoCoeff);
-
-        // Compute harmo mask
-        vector<float> &mask = _tmpBuf17;
-        
-        // Harmo mask
-        computeMask(_harmoBuffer, _noiseBuffer, &mask);
-        
-#if SOFT_MASKING_FIX_BIN0
-        mask.data()[0] = 0.0;
-#endif
-            
-        if (!_useSoftMasks)
-        {
-            // Use input data, and mask it
-            // Do not use directly denormed data
-            
-            // harmo is 0, noise is 1
-            vector<complex<float> > &maskedResult0 = _tmpBuf20;
-            vector<complex<float> > &maskedResult1 = _tmpBuf21;
-
-            // Harmo
-            maskedResult0 = *ioBuffer;
-            Utils::multBuffers(&maskedResult0, mask);
-            Utils::multValue(&maskedResult0, harmoCoeff);
-            
-            // Noise
-            vector<float> &maskOpposite = _tmpBuf22;
-            maskOpposite = mask;
-            Utils::computeOpposite(&maskOpposite);
-            
-            maskedResult1 = *ioBuffer;
-            Utils::multBuffers(&maskedResult1, maskOpposite);
-            Utils::multValue(&maskedResult1, noiseCoeff);
- 
-            for (int i = 0; i < ioBuffer->size(); i++)
-            {
-                const complex<float> &h = maskedResult0.data()[i];
-                const complex<float> &n = maskedResult1.data()[i];
-
-                ioBuffer->data()[i] = h + n;
-            }
-
-            if (_enableComputeSum)
-            {
-                // Keep the sum for later
-                Utils::complexToMagn(&_sumBuffer, *ioBuffer);
-            }
-        }
-        else // Use oft masking
-        {
-            vector<complex<float> > &softMaskedResult0 = _tmpBuf18;
-            vector<complex<float> > &softMaskedResult1 = _tmpBuf19;
-            _softMasking->processCentered(ioBuffer, mask,
-                                          &softMaskedResult0, &softMaskedResult1);
-            
-            if (_softMasking->isProcessingEnabled())
-            {
-                // Apply "mix"
-                
-                // 0 is harmo mask
-                Utils::multValue(&softMaskedResult0, harmoCoeff);
-                Utils::multValue(&softMaskedResult1, noiseCoeff);
-                
-                // Sum
-                *ioBuffer = softMaskedResult0;
-                Utils::addBuffers(ioBuffer, softMaskedResult1);
-            }
-
-            if (_enableComputeSum)
-            {
-                // Keep the sum for later
-                Utils::complexToMagn(&_sumBuffer, *ioBuffer);
-            }
-        }
-    }
-}
-
-void
-STNProcessor::setThreshold(float threshold)
-{
-    _partialTracker->setThreshold(threshold);
-}
-
-void
-STNProcessor::setMix(float mix)
-{
-    _mix = mix;
-}
-
-void
-STNProcessor::setUseSoftMasks(bool flag)
-{
-    _useSoftMasks = flag;
+    _overlapAddStep0->addProcessor(_processorStep0);
 }
 
 int
 STNProcessor::getLatency()
 {
-    if (_useSoftMasks)
-    {
-        int latency = _softMasking->getLatency();
-   
-        return latency;
-    }
-    
+    // TODO
     return 0;
 }
 
 void
-STNProcessor::getNoiseBuffer(vector<float> *magns)
+STNProcessor::setSinesMix(float mix)
 {
-    *magns = _noiseBuffer;
+    _sinesMix = mix;
 }
 
 void
-STNProcessor::getHarmoBuffer(vector<float> *magns)
+STNProcessor::setTransientsMix(float mix)
 {
-    *magns = _harmoBuffer;
+    _transientsMix = mix;
 }
 
 void
-STNProcessor::getSumBuffer(vector<float> *magns)
+STNProcessor::setNoiseMix(float mix)
 {
-    *magns = _sumBuffer;
+    _noiseMix = mix;
 }
 
 void
-STNProcessor::setEnableSum(bool flag)
+STNProcessor::setMuteSines(bool mute)
 {
-    _enableComputeSum = flag;
+    _muteSines = mute;
 }
 
 void
-STNProcessor::detectPartials(const vector<float> &magns,
-                             const vector<float> &phases)
+STNProcessor::setMuteTransients(bool mute)
 {
-    _partialTracker->setData(magns, phases);
+    _muteTransients = mute;
+}
+
+void
+STNProcessor::setMuteNoise(bool mute)
+{
+    _muteNoise = mute;
+}
     
-    _partialTracker->detectPartials();
-    
-    _partialTracker->filterPartials();
-    
-    _partialTracker->extractNoiseEnvelope();
+void
+STNProcessor::process(const vector<float> input, vector<float> output)
+{
+    _overlapAddStep0->feed(input);
+
+    int numSamplesToFlush = _overlapAddStep0->getOutSamples(&output, input.size());
+    _overlapAddStep0->flushOutSamples(numSamplesToFlush);
+
+    // TODO
 }
 
-// Need to take care of very small input values...
 void
-STNProcessor::computeMask(const vector<float> &s0Buf,
-                          const vector<float> &s1Buf,
-                          vector<float> *s0Mask)
+STNProcessor::getSinesBuffer(vector<float> *buf)
 {
-    s0Mask->resize(s0Buf.size());
-    Utils::fillZero(s0Mask);
-    
-    for (int i = 0; i < s0Buf.size(); i++)
-    {
-        float s0 = s0Buf.data()[i];
-        float s1 = s1Buf.data()[i];
+    // TODO
+}
 
-        float sum = s0 + s1;
-        if (sum > BL_EPS)
-        {
-            float m = s0/sum;
-            s0Mask->data()[i] = m;
-        }
-    }
+void
+STNProcessor::getNoiseBuffer(vector<float> *buf)
+{
+    // TODO
 }

@@ -470,11 +470,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0394345"
-     inkscape:cx="20655.826"
-     inkscape:cy="-1057.7192"
+     inkscape:zoom="1.4699824"
+     inkscape:cx="20583.732"
+     inkscape:cy="-1067.6133"
      inkscape:document-units="px"
-     inkscape:current-layer="layer161"
+     inkscape:current-layer="layer159"
      inkscape:document-rotation="0"
      showgrid="true"
      inkscape:window-width="1764"
@@ -1000,6 +1000,10 @@
        position="5512.5938,490.93958"
        orientation="1,0"
        id="guide5777" />
+    <sodipodi:guide
+       position="5477.404,610.26668"
+       orientation="0,-1"
+       id="guide6830" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -28198,11 +28202,16 @@
        style="display:inline;opacity:0.996156;fill:none;stroke:#3b3b3b;stroke-width:0.449792;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path5636-8-5-5"
        sodipodi:nodetypes="cccccccccccccccccccccc" />
-    <path
-       d="m 5405.9726,-280.45232 -0.5768,0.42905 m -1.3932,-4.80192 -0.6967,0.17622 m 0.8173,-4.93504 -0.6967,-0.17622 m 2.8401,-4.11524 -0.5768,-0.42809 m 4.3361,-2.49386 -0.306,-0.65028 m 5.0263,-0.38048 v -0.73798 m 4.6042,1.71224 0.3109,-0.64741 m 3.5033,3.56169 0.5308,-0.48364 m 1.6404,4.72243 0.6957,-0.17909 m -0.5295,4.95898 0.7076,0.12737 m -2.6197,4.24262 0.5747,0.43097"
-       style="display:inline;opacity:0.996156;fill:none;stroke:#3b3b3b;stroke-width:0.487363;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="path8250-5"
-       sodipodi:nodetypes="cccccccccccccccccccccc" />
+    <g
+       id="g6802"
+       style="display:inline"
+       transform="translate(0,-0.52916)">
+      <path
+         d="m 5405.9726,-280.45232 -0.5768,0.42905 m -1.3932,-4.80192 -0.6967,0.17622 m 0.8173,-4.93504 -0.6967,-0.17622 m 2.8401,-4.11524 -0.5768,-0.42809 m 4.3361,-2.49386 -0.306,-0.65028 m 5.0263,-0.38048 v -0.73798 m 4.6042,1.71224 0.3109,-0.64741 m 3.5033,3.56169 0.5308,-0.48364 m 1.6404,4.72243 0.6957,-0.17909 m -0.5295,4.95898 0.7076,0.12737 m -2.6197,4.24262 0.5747,0.43097"
+         style="display:inline;opacity:0.996156;fill:none;stroke:#3b3b3b;stroke-width:0.487363;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path8250-5"
+         sodipodi:nodetypes="cccccccccccccccccccccc" />
+    </g>
     <path
        d="m 5444.8132,-280.98148 -0.5768,0.42905 m -1.3932,-4.80192 -0.6967,0.17622 m 0.8173,-4.93504 -0.6967,-0.17622 m 2.8401,-4.11524 -0.5768,-0.42809 m 4.3361,-2.49386 -0.306,-0.65028 m 5.0263,-0.38048 v -0.73798 m 4.6042,1.71224 0.3109,-0.64741 m 3.5033,3.56169 0.5308,-0.48364 m 1.6404,4.72243 0.6957,-0.17909 m -0.5295,4.95898 0.7076,0.12737 m -2.6197,4.24262 0.5747,0.43097"
        style="display:inline;opacity:0.996156;fill:none;stroke:#3b3b3b;stroke-width:0.487363;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -28276,7 +28285,7 @@
     <g
        id="g8248-4"
        style="display:inline"
-       transform="translate(5436.5499,-133.08542)">
+       transform="translate(5436.5499,-133.61458)">
       <ellipse
          style="opacity:0.996156;fill:#19193b;fill-opacity:1;stroke:#6a6aff;stroke-width:0.926042;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="ellipse8244-7"
@@ -28462,7 +28471,7 @@
              id="tspan5593-6"
              x="5406.5503"
              y="-257.21378"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">S</tspan></text>
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">S</tspan></text>
       </g>
       <g
          id="g6028">
@@ -28488,7 +28497,7 @@
              id="tspan5602-6"
              x="5413.4727"
              y="-257.21204"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">M</tspan></text>
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">M</tspan></text>
       </g>
     </g>
     <g
@@ -28632,6 +28641,124 @@
            x="1128.6262"
            y="-215.65547"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ebf2fa;fill-opacity:1;stroke-width:0.264583">STN</tspan></text>
+    </g>
+    <g
+       id="g6749">
+      <rect
+         style="display:inline;fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="rect5590-1-8"
+         width="4.2333183"
+         height="4.2333331"
+         x="5406.7598"
+         y="-205.31667"
+         ry="0.16582941"
+         rx="0.14314246"
+         inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_STN/Resources/solo_unchecked.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:Poppins;-inkscape-font-specification:Poppins;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1"
+         x="5407.7388"
+         y="-201.91583"
+         id="text5595-0-3"><tspan
+           sodipodi:role="line"
+           id="tspan5593-6-1"
+           x="5407.7388"
+           y="-201.91583"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">S</tspan></text>
+    </g>
+    <g
+       id="g6028-8"
+       transform="translate(1.0583476,55.297922)"
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_STN/Resources/mute_unchecked.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <rect
+         style="display:inline;fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="rect5600-2-9"
+         width="4.2333183"
+         height="4.2333331"
+         x="5413.1104"
+         y="-260.61459"
+         ry="0.16582941"
+         rx="0.14314246"
+         inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/Elements/checkbox-off.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1"
+         x="5413.7041"
+         y="-257.21204"
+         id="text5604-0-6"><tspan
+           sodipodi:role="line"
+           id="tspan5602-6-4"
+           x="5413.7041"
+           y="-257.21204"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1">M</tspan></text>
+    </g>
+    <g
+       id="g6749-0"
+       style="display:inline"
+       transform="translate(6.5043552e-5,6.6145836)"
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_STN/Resources/solo_checked.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <rect
+         style="display:inline;fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="rect5590-1-8-4"
+         width="4.2333183"
+         height="4.2333331"
+         x="5406.7598"
+         y="-205.31667"
+         ry="0.16582941"
+         rx="0.14314246"
+         inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_STN/Resources/solo_unchecked.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:Poppins;-inkscape-font-specification:Poppins;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1"
+         x="5407.7388"
+         y="-201.91583"
+         id="text5595-0-3-8"><tspan
+           sodipodi:role="line"
+           id="tspan5593-6-1-8"
+           x="5407.7388"
+           y="-201.91583"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#d1d8df;fill-opacity:1;stroke:#d1d8df;stroke-width:0.264583;stroke-opacity:1">S</tspan></text>
+    </g>
+    <g
+       id="g6028-8-8"
+       transform="translate(1.0584126,61.912506)"
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_STN/Resources/mute_checked.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"
+       style="display:inline">
+      <rect
+         style="display:inline;fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="rect5600-2-9-9"
+         width="4.2333183"
+         height="4.2333331"
+         x="5413.1104"
+         y="-260.61459"
+         ry="0.16582941"
+         rx="0.14314246"
+         inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/Elements/checkbox-off.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Open Sans';-inkscape-font-specification:'Open Sans Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#939393;fill-opacity:1;stroke:#939393;stroke-width:0.264583;stroke-opacity:1"
+         x="5413.7041"
+         y="-257.21204"
+         id="text5604-0-6-7"><tspan
+           sodipodi:role="line"
+           id="tspan5602-6-4-7"
+           x="5413.7041"
+           y="-257.21204"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Open Sans';-inkscape-font-specification:'Open Sans';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#d1d8df;fill-opacity:1;stroke:#d1d8df;stroke-width:0.264583;stroke-opacity:1">M</tspan></text>
     </g>
   </g>
   <g

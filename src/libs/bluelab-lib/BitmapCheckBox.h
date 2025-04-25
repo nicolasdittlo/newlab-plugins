@@ -37,6 +37,21 @@ public:
         setInterceptsMouseClicks(true, true);
     }
 
+    BitmapCheckBox(const void *uncheckedRawData, size_t uncheckedNumBytesOfData,
+                   const void *checkedRawData, size_t checkedNumBytesOfData)
+    {
+        // Load the images from BinaryData
+        _uncheckedBitmap = juce::ImageFileFormat::loadFrom(uncheckedRawData, uncheckedNumBytesOfData);
+        _checkedBitmap = juce::ImageFileFormat::loadFrom(checkedRawData, checkedNumBytesOfData);
+
+        // Ensure the images loaded successfully
+        jassert(_uncheckedBitmap.isValid());
+        jassert(_checkedBitmap.isValid());
+
+        // Ensure the component is set to be clickable
+        setInterceptsMouseClicks(true, true);
+    }
+
     void paint(juce::Graphics& g) override
     {
         // Draw the appropriate bitmap depending on the state

@@ -31,10 +31,6 @@
 
 #define FFT_SIZE_COEFF 23
 
-#define DEFAULT_TRACKER_THRESHOLD -100.0
-
-#define THRESHOLD_IS_DB 1
-
 #define DEFAULT_SPLIT_FREQ 20.0
 #define DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS 280.0
 
@@ -53,17 +49,29 @@ BLSTNAudioProcessor::BLSTNAudioProcessor()
       _parameters(*this, nullptr, "PARAMETERS",
                  {
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"threshold", 700}, "Threshold", -120.0f, 0.0f, -100.0f),
+            juce::ParameterID{"sinesMix", 701}, "Sines", -12.0f, 12.0f, 0.0f),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"harmoAirMix", 700}, "Harmo Air Mix", -100.0f, 100.0f, 0.0f),
+            juce::ParameterID{"transientsMix", 701}, "Transients", -12.0f, 12.0f, 0.0f),
                      std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"outGain", 700}, "Out Gain", -12.0f, 12.0f, 0.0f),
+            juce::ParameterID{"noiseMix", 701}, "Noise", -12.0f, 12.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"outGain", 701}, "Out Gain", -12.0f, 12.0f, 0.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"wetFreq", 701}, "Wet Freq", 20.0f, 20000.0f, 20.0f),
+                     std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"wetGain", 701}, "Wet Gain", -12.0f, 12.0f, 0.0f),
                      std::make_unique<juce::AudioParameterBool>(
-            juce::ParameterID{"smartResynth", 700}, "Smart Resynth", false),
-                     std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"wetFreq", 700}, "Wet Freq", 20.0f, 20000.0f, 20.0f),
-                     std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"wetGain", 700}, "Wet Gain", -12.0f, 12.0f, 0.0f)
+            juce::ParameterID{"soloSines", 701}, "Solo Sines", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"muteSines", 701}, "Mute Sines", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"soloTransients", 701}, "Solo Transients", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"muteTransients", 701}, "Mute Transients", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"soloNoise", 701}, "Solo Noise", false),
+                     std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"muteNoise", 701}, "Mute Noise", false)
                  })
 #endif
 {
@@ -82,12 +90,6 @@ BLSTNAudioProcessor::BLSTNAudioProcessor()
 
 BLSTNAudioProcessor::~BLSTNAudioProcessor()
 {
-    for (int i = 0; i < _overlapAdds.size(); i++)
-        delete _overlapAdds[i];
-
-    for (int i = 0; i < _processors.size(); i++)
-        delete _processors[i];
-
     for (int i = 0; i < _outOverlapAdds.size(); i++)
         delete _outOverlapAdds[i];
 
@@ -200,17 +202,8 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     // Number of channels changed?
-    if (_overlapAdds.size() != numInputChannels)
+    if (_bandSplittersIn.size() != numInputChannels)
     {
-        // Air
-        for (int i = 0; i < _overlapAdds.size(); i++)
-            delete _overlapAdds[i];
-        _overlapAdds.clear();
-        
-        for (int i = 0; i < _processors.size(); i++)
-            delete _processors[i];
-        _processors.clear();
-
         for (int i = 0; i < _bandSplittersIn.size(); i++)
             delete _bandSplittersIn[i];
         _bandSplittersIn.clear();
@@ -230,21 +223,6 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _wetGainSmoothers.size(); i++)
             delete _wetGainSmoothers[i];
         _wetGainSmoothers.clear();
-    
-        for (int i = 0; i < numInputChannels; i++)
-        {
-            STNProcessor *processor = new STNProcessor(fftSize, OVERLAP, sampleRate);
-            processor->setThreshold(DEFAULT_TRACKER_THRESHOLD);
-
-            // For freq splitter
-            processor->setEnableSum(false);
-
-            _processors.push_back(processor);
-            
-            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, true);
-            overlapAdd->addProcessor(processor);
-            _overlapAdds.push_back(overlapAdd);
-        }
 
         // Out
         for (int i = 0; i < _outOverlapAdds.size(); i++)
@@ -257,6 +235,9 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         
         for (int i = 0; i < numInputChannels; i++)
         {
+            STNProcessor *stnProcessor = new STNProcessor();
+            _processors.push_back(stnProcessor);
+            
             BufProcessor *processor = new BufProcessor();
             _outProcessors.push_back(processor);
             
@@ -303,16 +284,6 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             _wetGainSmoothers.push_back(wetGainSmoother); 
         }
     }
-
-    // Air
-    for (int i = 0; i < _overlapAdds.size(); i++)
-    {
-        _overlapAdds[i]->setFftSize(fftSize);
-        _overlapAdds[i]->setOverlap(OVERLAP);
-    }
-
-    for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->reset(fftSize, OVERLAP, sampleRate);
 
     // Out
     for (int i = 0; i < _outOverlapAdds.size(); i++)
@@ -409,40 +380,41 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         buffer.clear(i, 0, buffer.getNumSamples());
 
     // Retrieve parameter values
-    auto threshold = _parameters.getRawParameterValue("threshold")->load();
-    auto harmoAirMix = _parameters.getRawParameterValue("harmoAirMix")->load();
+    auto sinesMix = _parameters.getRawParameterValue("sinesMix")->load();
+    auto transientsMix = _parameters.getRawParameterValue("transientsMix")->load();
+    auto noiseMix = _parameters.getRawParameterValue("noiseMix")->load();
     auto outGain = _parameters.getRawParameterValue("outGain")->load();
-    auto smartResynth = _parameters.getRawParameterValue("smartResynth")->load();
     auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
     auto wetGain = _parameters.getRawParameterValue("wetGain")->load();
+    auto soloSines = _parameters.getRawParameterValue("soloSines")->load();
+    auto muteSines = _parameters.getRawParameterValue("muteSines")->load();
+    auto soloTransients = _parameters.getRawParameterValue("soloTransients")->load();
+    auto muteTransients = _parameters.getRawParameterValue("muteTransients")->load();
+    auto soloNoise = _parameters.getRawParameterValue("soloNoise")->load();
+    auto muteNoise = _parameters.getRawParameterValue("muteNoise")->load();
     
-    harmoAirMix *= 0.01;
-    harmoAirMix = -harmoAirMix;
+    sinesMix = Utils::DBToAmp(sinesMix);
+    transientsMix = Utils::DBToAmp(transientsMix);
+    noiseMix = Utils::DBToAmp(noiseMix);
     outGain = Utils::DBToAmp(outGain);
-
-    bool smartResynthChanged = (smartResynth > 0.5) != _prevSmartResynthParam;
-    _prevSmartResynthParam = (smartResynth > 0.5);
-
     wetGain = Utils::DBToAmp(wetGain);
+
+    bool solos[3] = { (soloSines > 0.5), (soloTransients > 0.5), (soloNoise > 0.5) };
+    bool mutes[3] = { (muteSines > 0.5), (muteTransients > 0.5), (muteNoise > 0.5) };
+    bool resultMutes[3];
     
+    computeMutes(solos, mutes, resultMutes);
+        
     // Set parameters
     for (int i = 0; i < _processors.size(); i++)
     {
-        _processors[i]->setThreshold(threshold);
-        _processors[i]->setMix(harmoAirMix);
-        _processors[i]->setUseSoftMasks(smartResynth > 0.5);
-    }
+        _processors[i]->setSinesMix(sinesMix);
+        _processors[i]->setTransientsMix(transientsMix);
+        _processors[i]->setNoiseMix(noiseMix);
 
-    if (smartResynthChanged)
-    {            
-        // Update latency
-        int latency = getLatency(buffer.getNumSamples());
-        setLatencySamples(latency);
-        updateHostDisplay();
-
-        // Update the delays
-        for (int i = 0; i < _inputDelays.size(); i++)
-            _inputDelays[i]->setDelay(latency);
+        _processors[i]->setMuteSines(resultMutes[0]);
+        _processors[i]->setMuteTransients(resultMutes[1]);
+        _processors[i]->setMuteNoise(resultMutes[2]);
     }
 
     _splitFreqSmoother->setTargetValue(wetFreq);
@@ -467,13 +439,10 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         vector<float> inBuf;
         inBuf.resize(buffer.getNumSamples());
         memcpy(inBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
-        
-        _overlapAdds[channel]->feed(inBuf);
-        
-        vector<float> outBuf;
-        int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
-        _overlapAdds[channel]->flushOutSamples(numSamplesToFlush);
 
+        vector<float> outBuf;
+        _processors[channel]->process(inBuf, outBuf);
+        
         // Splitter
         if (wetFreq >= MIN_SPLIT_FREQ)
         {
@@ -521,8 +490,8 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
 
-        _processors[0]->getNoiseBuffer(&_airBuffer);
-        _processors[0]->getHarmoBuffer(&_harmoBuffer);
+        _processors[0]->getNoiseBuffer(&_noiseBuffer);
+        _processors[0]->getSinesBuffer(&_sinesBuffer);
 
         _outProcessors[0]->getMagnsBuffer(&_sumBuffer);
 
@@ -546,7 +515,7 @@ void BLSTNAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
     juce::ValueTree stateToSave = _parameters.state.createCopy();
 
     // Add a unified version number for parameters and noise profile
-    constexpr int version = 700; // Unified version number
+    constexpr int version = 701; // Unified version number
     stateToSave.setProperty("version", version, nullptr);
 
     // Serialize the entire state to destData
@@ -562,7 +531,7 @@ void BLSTNAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
     {
         // Check the version number
         int version = newState.getProperty("version", 0);
-        if (version == 700)
+        if (version == 701)
         {
             // Load the parameter state
             _parameters.state = newState;
@@ -582,8 +551,8 @@ BLSTNAudioProcessor::setSampleRateChangeListener(SampleRateChangeListener listen
 }
 
 bool
-BLSTNAudioProcessor::getBuffers(vector<float> *airBuffer,
-                                vector<float> *harmoBuffer,
+BLSTNAudioProcessor::getBuffers(vector<float> *noiseBuffer,
+                                vector<float> *sinesBuffer,
                                 vector<float> *sumBuffer)
 {
     if (!_newBuffersAvailable)
@@ -591,8 +560,8 @@ BLSTNAudioProcessor::getBuffers(vector<float> *airBuffer,
     
     std::lock_guard<std::mutex> lock(_curvesMutex);
 
-    *airBuffer = _airBuffer;
-    *harmoBuffer = _harmoBuffer;
+    *noiseBuffer = _noiseBuffer;
+    *sinesBuffer = _sinesBuffer;
     *sumBuffer = _sumBuffer;
 
     _newBuffersAvailable = false;
@@ -630,6 +599,27 @@ BLSTNAudioProcessor::setSplitFreq(float freq)
 
         for (int i = 0; i < _bandSplittersOut.size(); i++)
                 _bandSplittersOut[i]->setCutoffFreq(0, freq);
+    }
+}
+
+void
+BLSTNAudioProcessor::computeMutes(const bool solos[3], const bool mutes[3], bool resultMutes[3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        resultMutes[i] = mutes[i];
+
+        for (int j = 0; j < 3; j++)
+        {
+            if (j != i)
+            {
+                if (solos[j])
+                    resultMutes[i] = true;
+            }
+        }
+        
+        if (solos[i])
+            resultMutes[i] = false;
     }
 }
 

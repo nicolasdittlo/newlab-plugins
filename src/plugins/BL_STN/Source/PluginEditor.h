@@ -59,23 +59,41 @@ private:
 
     juce::Image _backgroundImage;
     
-    std::unique_ptr<RotarySliderWithValue> _thresholdSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _thresholdAttachment;
+    std::unique_ptr<RotarySliderWithValue> _mixSinesSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _mixSinesAttachment;
     
-    std::unique_ptr<RotarySliderWithValue> _harmoAirMixSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _harmoAirMixAttachment;
-    
+    std::unique_ptr<RotarySliderWithValue> _mixTransientsSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _mixTransientsAttachment;
+
+    std::unique_ptr<RotarySliderWithValue> _mixNoiseSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _mixNoiseAttachment;
+
     std::unique_ptr<RotarySliderWithValue> _outGainSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _outGainAttachment;
-
-    BitmapCheckBox _smartResynthCheckBox;
-    std::unique_ptr<BitmapCheckBoxAttachment> _smartResynthCheckBoxAttachment;
 
     std::unique_ptr<RotarySliderWithValue> _wetFreqSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _wetFreqAttachment;
 
     std::unique_ptr<RotarySliderWithValue> _wetGainSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> _wetGainAttachment;
+
+    BitmapCheckBox _soloSinesCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _soloSinesCheckBoxAttachment;
+
+    BitmapCheckBox _muteSinesCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _muteSinesCheckBoxAttachment;
+
+    BitmapCheckBox _soloTransientsCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _soloTransientsCheckBoxAttachment;
+
+    BitmapCheckBox _muteTransientsCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _muteTransientsCheckBoxAttachment;
+
+    BitmapCheckBox _soloNoiseCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _soloNoiseCheckBoxAttachment;
+
+    BitmapCheckBox _muteNoiseCheckBox;
+    std::unique_ptr<BitmapCheckBoxAttachment> _muteNoiseCheckBoxAttachment;
     
     std::unique_ptr<juce::TooltipWindow> _tooltipWindow;
 

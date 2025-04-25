@@ -67,8 +67,8 @@ public:
 
     void setSampleRateChangeListener(SampleRateChangeListener listener);
 
-    bool getBuffers(vector<float> *airBuffer,
-                    vector<float> *harmoBuffer,
+    bool getBuffers(vector<float> *noiseBuffer,
+                    vector<float> *sinesBuffer,
                     vector<float> *sumBuffer);
     
 public:
@@ -78,14 +78,13 @@ private:
     int getLatency(int blockSize);
 
     void setSplitFreq(float freq);
-        
-    vector<OverlapAdd *> _overlapAdds;
-    vector<STNProcessor *> _processors;
 
+    void computeMutes(const bool solos[3], const bool mutes[3], bool resultMutes[3]);
+
+    vector<STNProcessor *> _processors;
+    
     vector<OverlapAdd *> _outOverlapAdds;
     vector<BufProcessor *> _outProcessors;
-    
-    bool _prevSmartResynthParam = false;
 
     vector<ParamSmoother *> _outGainSmoothers;
 
@@ -101,8 +100,8 @@ private:
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;
 
-    vector<float> _airBuffer;
-    vector<float> _harmoBuffer;
+    vector<float> _noiseBuffer;
+    vector<float> _sinesBuffer;
     vector<float> _sumBuffer;
     
     std::mutex _curvesMutex;

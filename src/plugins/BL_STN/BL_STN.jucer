@@ -15,6 +15,14 @@
       <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
     </GROUP>
     <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
+      <FILE id="gsIeH2" name="mute_checked.png" compile="0" resource="1"
+            file="Resources/mute_checked.png"/>
+      <FILE id="kyhGvp" name="mute_unchecked.png" compile="0" resource="1"
+            file="Resources/mute_unchecked.png"/>
+      <FILE id="pSb4Bl" name="solo_checked.png" compile="0" resource="1"
+            file="Resources/solo_checked.png"/>
+      <FILE id="XQthVq" name="solo_unchecked.png" compile="0" resource="1"
+            file="Resources/solo_unchecked.png"/>
       <FILE id="ceVi8O" name="background.png" compile="0" resource="1" file="Resources/background.png"/>
       <FILE id="SUcf4v" name="checkbox_checked.png" compile="0" resource="1"
             file="Resources/checkbox_checked.png"/>
@@ -34,11 +42,11 @@
       <FILE id="JBwpnf" name="Roboto-Bold.ttf" compile="0" resource="1" file="Resources/Roboto-Bold.ttf"/>
     </GROUP>
     <GROUP id="{54D90265-DA81-29C5-EDA2-C268BB9FC9BD}" name="bluelab-lib">
-      <FILE id="HSNapt" name="STNProcessor.cpp" compile="1" resource="0"
-            file="../../libs/bluelab-lib/STNProcessor.cpp"/>
-      <FILE id="vckmnw" name="STNProcessor.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNProcessor.h"/>
-      <FILE id="yvwTSd" name="STNSpectrum.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNSpectrum.cpp"/>
-      <FILE id="qr6B4U" name="STNSpectrum.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNSpectrum.h"/>
+      <FILE id="XQxuJg" name="AirProcessor.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/AirProcessor.cpp"/>
+      <FILE id="FS66pO" name="AirProcessor.h" compile="0" resource="0" file="../../libs/bluelab-lib/AirProcessor.h"/>
+      <FILE id="Wh5lMj" name="AirSpectrum.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/AirSpectrum.cpp"/>
+      <FILE id="UA70Bo" name="AirSpectrum.h" compile="0" resource="0" file="../../libs/bluelab-lib/AirSpectrum.h"/>
       <FILE id="MrGHFX" name="AmpAxis.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/AmpAxis.cpp"/>
       <FILE id="cUzZWV" name="AmpAxis.h" compile="0" resource="0" file="../../libs/bluelab-lib/AmpAxis.h"/>
       <FILE id="qCBSeb" name="AWeighting.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/AWeighting.cpp"/>
@@ -172,6 +180,15 @@
             file="../../libs/bluelab-lib/SpectrumViewNVG.cpp"/>
       <FILE id="Os1u3C" name="SpectrumViewNVG.h" compile="0" resource="0"
             file="../../libs/bluelab-lib/SpectrumViewNVG.h"/>
+      <FILE id="HSNapt" name="STNProcessor.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/STNProcessor.cpp"/>
+      <FILE id="vckmnw" name="STNProcessor.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNProcessor.h"/>
+      <FILE id="k2hatK" name="STNProcessorStep0.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/STNProcessorStep0.cpp"/>
+      <FILE id="iyh1q5" name="STNProcessorStep0.h" compile="0" resource="0"
+            file="../../libs/bluelab-lib/STNProcessorStep0.h"/>
+      <FILE id="yvwTSd" name="STNSpectrum.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNSpectrum.cpp"/>
+      <FILE id="qr6B4U" name="STNSpectrum.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNSpectrum.h"/>
       <FILE id="zG8dlS" name="TransientLib.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/TransientLib.cpp"/>
       <FILE id="KqAZH5" name="TransientLib.h" compile="0" resource="0" file="../../libs/bluelab-lib/TransientLib.h"/>
