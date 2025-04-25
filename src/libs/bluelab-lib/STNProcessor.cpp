@@ -105,11 +105,11 @@ STNProcessor::setMuteNoise(bool mute)
 }
     
 void
-STNProcessor::process(const vector<float> input, vector<float> output)
+STNProcessor::process(const vector<float> input, vector<float> *output)
 {
     _overlapAddStep0->feed(input);
 
-    int numSamplesToFlush = _overlapAddStep0->getOutSamples(&output, input.size());
+    int numSamplesToFlush = _overlapAddStep0->getOutSamples(output, input.size());
     _overlapAddStep0->flushOutSamples(numSamplesToFlush);
 
     // TODO

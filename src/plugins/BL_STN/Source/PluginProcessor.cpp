@@ -76,6 +76,7 @@ BLSTNAudioProcessor::BLSTNAudioProcessor()
 #endif
 {
     float sampleRate = 44100.0;
+    _sampleRate = -1.0;
     
     float defaultSplitFreq = DEFAULT_SPLIT_FREQ;
     float splitFreqSmoothTime = DEFAULT_SPLIT_FREQ_SMOOTH_TIME_MS;
@@ -199,6 +200,9 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         // Notify listener
         if (_sampleRateChangeListener != nullptr)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
+
+        for (int i = 0; i < _processors.size(); i++)
+            _processors[i]->prepareToPlay(sampleRate);
     }
 
     // Number of channels changed?
@@ -236,6 +240,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < numInputChannels; i++)
         {
             STNProcessor *stnProcessor = new STNProcessor();
+            stnProcessor->prepareToPlay(sampleRate);
             _processors.push_back(stnProcessor);
             
             BufProcessor *processor = new BufProcessor();
@@ -441,7 +446,7 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         memcpy(inBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
 
         vector<float> outBuf;
-        _processors[channel]->process(inBuf, outBuf);
+        _processors[channel]->process(inBuf, &outBuf);
         
         // Splitter
         if (wetFreq >= MIN_SPLIT_FREQ)

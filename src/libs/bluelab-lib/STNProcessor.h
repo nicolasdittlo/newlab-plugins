@@ -49,7 +49,7 @@ class STNProcessor
     void setMuteTransients(bool mute);
     void setMuteNoise(bool mute);
     
-    void process(const vector<float> input, vector<float> output);
+    void process(const vector<float> input, vector<float> *output);
 
     void getSinesBuffer(vector<float> *buf);
     void getNoiseBuffer(vector<float> *buf);
