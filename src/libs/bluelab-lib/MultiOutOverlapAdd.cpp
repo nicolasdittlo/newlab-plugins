@@ -43,6 +43,8 @@ MultiOutOverlapAdd::MultiOutOverlapAdd(int fftSize, int overlap, int numOutputs,
     _numOutputs = numOutputs;
     
     setFftSize(fftSize);
+
+    _outSamples.resize(_numOutputs);
 }
 
 MultiOutOverlapAdd::~MultiOutOverlapAdd() {}
