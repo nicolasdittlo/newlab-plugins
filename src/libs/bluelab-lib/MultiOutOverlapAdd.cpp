@@ -40,9 +40,9 @@ MultiOutOverlapAddProcessor::processSamples(vector<vector<float> > *buffs) {}
 MultiOutOverlapAdd::MultiOutOverlapAdd(int fftSize, int overlap, int numOutputs, bool fft, bool ifft)
 : _overlap(overlap), _fftFlag(fft), _ifftFlag(ifft)
 {
-    setFftSize(fftSize);
-
     _numOutputs = numOutputs;
+    
+    setFftSize(fftSize);
 }
 
 MultiOutOverlapAdd::~MultiOutOverlapAdd() {}
