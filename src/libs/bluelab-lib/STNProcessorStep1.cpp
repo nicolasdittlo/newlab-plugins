@@ -18,35 +18,35 @@
 
 #include "Defines.h"
 #include "Utils.h"
-#include "STNProcessorStep0.h"
+#include "STNProcessorStep1.h"
 
-STNProcessorStep0::STNProcessorStep0(int bufferSize, int overlap, float sampleRate)
+STNProcessorStep1::STNProcessorStep1(int bufferSize, int overlap, float sampleRate)
 {
     _bufferSize = bufferSize;
     _overlap = overlap;    
     _sampleRate = sampleRate;
 }
 
-STNProcessorStep0::~STNProcessorStep0() {}
+STNProcessorStep1::~STNProcessorStep1() {}
 
 void
-STNProcessorStep0::reset()
+STNProcessorStep1::reset()
 {
     reset(_bufferSize, _overlap, _sampleRate);
 }
 
 void
-STNProcessorStep0::reset(int bufferSize, int overlap, float sampleRate)
+STNProcessorStep1::reset(int bufferSize, int overlap, float sampleRate)
 {
     _bufferSize = bufferSize;
     _overlap = overlap;
     _sampleRate = sampleRate;
 
-    _sinesBuffer.clear();
+    _noiseBuffer.clear();
 }
 
 void
-STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
+STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
                               vector<vector<complex<float> > > *outBuffers)
 {    
     vector<float> magns;
@@ -71,33 +71,33 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     vector<float> S;
     vector<float> T;
     vector<float> N;
-    STNUtils::decSTN(Rt, 0.7, 0.8);
+    STNUtils::decSTN(Rt, 0.75, 0.85);
 
-    // Sines
-    vector<complex<float> > xs;
-    xs.resize(S.size());
-    for (int i = 0; i < xs.size(); i++)
-        xs[i] = S[i] * _X[_X.size()/2][i];
+    // Transients
+    vector<complex<float> > xt;
+    xt.resize(T.size());
+    for (int i = 0; i < xt.size(); i++)
+        xt[i] = T[i] * _X[_X.size()/2][i];
 
-    // Rest
-    vector<complex<float> > xres;
-    xres.resize(T.size());
-    for (int i = 0; i < xres.size(); i++)
-        xres[i] = (T[i] + N[i]) * _X[_X.size()/2][i];
+    // Noise
+    vector<complex<float> > xn;
+    xn.resize(T.size());
+    for (int i = 0; i < xn.size(); i++)
+        xn[i] = (S[i] + N[i]) * _X[_X.size()/2][i];
 
-    // Set outputs
+    // Fill outputs
     outBuffers->resize(2);
-    (*outBuffers)[0] = xs;
-    (*outBuffers)[1] = xres;
+    (*outBuffers)[0] = xt;
+    (*outBuffers)[1] = xn;
 
-    // Fill sines magns buffer
-    vector<float> sinesPhases;
-    Utils::complexToMagnPhase(&_sinesBuffer, &sinesPhases, xs);
+    // Noise magns buffer
+    vector<float> noisePhases;
+    Utils::complexToMagnPhase(&_noiseBuffer, &noisePhases, xn);
 }
 
 
 int
-STNProcessorStep0::getLatency()
+STNProcessorStep1::getLatency()
 {
     int nMedianH;
     int nMedianV;
@@ -109,7 +109,7 @@ STNProcessorStep0::getLatency()
 }
 
 void
-STNProcessorStep0::getSinesBuffer(vector<float> *buf)
+STNProcessorStep1::getNoiseBuffer(vector<float> *buf)
 {
-    *buf = _sinesBuffer;
+    *buf = _noiseBuffer;
 }

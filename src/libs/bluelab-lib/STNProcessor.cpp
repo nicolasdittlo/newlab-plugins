@@ -19,18 +19,26 @@
 #include <stdlib.h>
 
 #include "Utils.h"
-#include "OverlapAdd.h"
+#include "MultiOutOverlapAdd.h"
 #include "STNProcessorStep0.h"
+#include "STNProcessorStep1.h"
 #include "STNProcessor.h"
 
 #define OVERLAP_STEP0 8
+#define OVERLAP_STEP1 8
 
-#define FFT_SIZE_COEFF_STEP0 5 // fft size: 8192
+#define FFT_SIZE_COEFF_STEP0 5 // fft size: 8192 at 44100Hz
+#define FFT_SIZE_COEFF_STEP1 86 // fft size: 8192 at 44100Hz
 
 STNProcessor::STNProcessor()
 {
     _overlapAddStep0 = NULL;
     _processorStep0 = NULL;
+
+    _overlapAddStep1 = NULL;
+    _processorStep1 = NULL;
+
+    _overlapAddStep1Delay = NULL;
 }
 
 STNProcessor::~STNProcessor()
@@ -40,32 +48,75 @@ STNProcessor::~STNProcessor()
 
     if (_processorStep0 != NULL)
         delete _processorStep0;
+
+    if (_overlapAddStep1 != NULL)
+        delete _overlapAddStep1;
+
+    if (_processorStep1 != NULL)
+        delete _processorStep1;
+
+    if (_overlapAddStep1Delay != NULL)
+        delete _overlapAddStep1Delat;
 }
 
 void
 STNProcessor::prepareToPlay(double sampleRate)
 {
+    // Step 0
     int fftSizeStep0 = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF_STEP0);
 
     if (_overlapAddStep0 == NULL)
-        _overlapAddStep0 = new OverlapAdd(fftSizeStep0, OVERLAP_STEP0, true, true);
+        _overlapAddStep0 = new MultiOutOverlapAdd(fftSizeStep0, OVERLAP_STEP0, 2, true, true);
 
     _overlapAddStep0->setFftSize(fftSizeStep0);
     _overlapAddStep0->setOverlap(OVERLAP_STEP0);
     
     if (_processorStep0 == NULL)
+    {
         _processorStep0 = new STNProcessorStep0(fftSizeStep0, OVERLAP_STEP0, sampleRate);
-
+        _overlapAddStep0->addProcessor(_processorStep0);
+    }
+    
     _processorStep0->reset(fftSizeStep0, OVERLAP_STEP0, sampleRate);
 
-    _overlapAddStep0->addProcessor(_processorStep0);
+    // Step 1
+    int fftSizeStep1 = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF_STEP1);
+
+    if (_overlapAddStep1 == NULL)
+        _overlapAddStep1 = new MultiOutOverlapAdd(fftSizeStep1, OVERLAP_STEP1, 2, true, true);
+
+    _overlapAddStep1->setFftSize(fftSizeStep1);
+    _overlapAddStep1->setOverlap(OVERLAP_STEP1);
+    
+    if (_processorStep1 == NULL)
+    {
+        _processorStep1 = new STNProcessorStep1(fftSizeStep1, OVERLAP_STEP1, sampleRate);
+        _overlapAddStep1->addProcessor(_processorStep1);
+    }
+    
+    _processorStep1->reset(fftSizeStep1, OVERLAP_STEP0, sampleRate);
+
+    // Step 1 delay
+    if (_overlapAddStep1Delay == NULL)
+        _overlapAddStep1Delay = new OverlapAdd(fftSizeStep1, OVERLAP_STEP1, false, false);
+
+    _overlapAddStep1Delay->setFftSize(fftSizeStep1);
+    _overlapAddStep1Delay->setOverlap(OVERLAP_STEP1);
+
+    _processorStep1Delay->reset(fftSizeStep1, OVERLAP_STEP0, sampleRate);
 }
 
 int
 STNProcessor::getLatency()
 {
-    // TODO
-    return 0;
+    int latency = 0;
+
+    if (_processorStep0 != NULL)
+        latency += _processorStep0;
+    if (_processorStep1 != NULL)
+        latency += _processorStep1;
+    
+    return latency;
 }
 
 void
@@ -107,22 +158,80 @@ STNProcessor::setMuteNoise(bool mute)
 void
 STNProcessor::process(const vector<float> input, vector<float> *output)
 {
+    // Step 0
     _overlapAddStep0->feed(input);
 
-    int numSamplesToFlush = _overlapAddStep0->getOutSamples(output, input.size());
-    _overlapAddStep0->flushOutSamples(numSamplesToFlush);
+    vector<vector<float> > samplesStep0;
+    samplesStep0.resize(2);
+    int numSamplesToFlush0 = _overlapAddStep0->getOutSamples(&samplesStep0, input.size());
+    _overlapAddStep0->flushOutSamples(numSamplesToFlush0);
 
-    // TODO
+    vector<float> &xs = samplesStep0[0];
+    vector<float> &res = samplesStep0[1];
+
+    // Step 1
+    _overlapAddStep1->feed(xres);
+
+    vector<vector<float> > samplesStep1;
+    samplesStep1.resize(2);
+    int numSamplesToFlush1 = _overlapAddStep1->getOutSamples(&samplesStep1, input.size());
+    _overlapAddStep1->flushOutSamples(numSamplesToFlush1);
+
+    vector<float> &xt = samplesStep1[0];
+    vector<float> &xn = samplesStep1[1];
+
+    // Step 1 delay
+    _overlapAddStep1Delay->feed(xs);
+    int numSamplesToFlush0Delay = _overlapAddStep0Delay->getOutSamples(&xs, input.size());
+    _overlapAddStep0Delay->flushOutSamples(numSamplesToFlush0Delay);
+
+    // Apply gains
+    Utils::multValue(&xs, _sineMix);
+    if (_muteSines)
+        Utils::multValue(&xs, 0.0);
+
+    Utils::multValue(&xt, _transientMix);
+    if (_muteTransient)
+        Utils::multValue(&xt, 0.0);
+
+    Utils::multValue(&xn, _noiseMix);
+    if (_muteNoise)
+        Utils::multValue(&xn, 0.0);
+
+    // Sum
+    output->resize(input.size());
+    for (int i = 0; i < output->size(); i++)
+    {
+        (*output)[i] += xs[i];
+        (*output)[i] += xt[i];
+        (*output)[i] += xn[i];
+    }
 }
 
 void
 STNProcessor::getSinesBuffer(vector<float> *buf)
 {
-    // TODO
+    buf->clear();
+    if (_processorStep0 != NULL)
+    {
+        _processorStep0->getSinesBuffer(buf);
+
+        Utils::multValue(buf, _sineMix);
+        if (_muteSines)
+            Utils::multValue(buf, 0.0);
+    }
 }
 
 void
 STNProcessor::getNoiseBuffer(vector<float> *buf)
 {
-    // TODO
+    buf->clear();
+    if (_processorStep1 != NULL)
+    {
+        _processorStep1->getNoiseBuffer(buf);
+
+        Utils::multValue(buf, _noiseMix);
+        if (_muteNoise)
+            Utils::multValue(buf, 0.0);
+    }
 }

@@ -39,11 +39,9 @@ class STNSpectrum
 
     void reset(int bufferSize, float sampleRate);
 
-    void updateCurves(const vector<float> &airCurve,
-                      const vector<float> &harmoCurve,
+    void updateCurves(const vector<float> &noiseCurve,
+                      const vector<float> &sinesCurve,
                       const vector<float> &sumCurve);
-
-    void setMix(float mix);
     
  protected:
     void createAxes(SpectrumView *spectrumView,
@@ -59,11 +57,11 @@ class STNSpectrum
     FreqAxis *_freqAxis;
     Axis *_vAxis;
 
-    Curve *_airCurve;
-    SmoothCurveDB *_airCurveSmooth;
+    Curve *_noiseCurve;
+    SmoothCurveDB *_noiseCurveSmooth;
     
-    Curve *_harmoCurve;
-    SmoothCurveDB *_harmoCurveSmooth;
+    Curve *_sinesCurve;
+    SmoothCurveDB *_sinesCurveSmooth;
     
     Curve *_sumCurve;
     SmoothCurveDB *_sumCurveSmooth;

@@ -25,12 +25,12 @@ using namespace std;
 
 #include "MultiOutOverlapAdd.h"
 
-class STNProcessorStep0 : public MultiOutOverlapAddProcessor
+class STNProcessorStep1 : public MultiOutOverlapAddProcessor
 {
 public:
-    STNProcessorStep0(int bufferSize, int overlap, float sampleRate);
+    STNProcessorStep1(int bufferSize, int overlap, float sampleRate);
     
-    virtual ~STNProcessorStep0();
+    virtual ~STNProcessorStep1();
 
     void reset();
     
@@ -41,7 +41,7 @@ public:
     
     int getLatency();
 
-    void getSinesBuffer(vector<float> *buf);
+    void getNoiseBuffer(vector<float> *buf);
         
 protected:
     int _bufferSize;
@@ -51,7 +51,7 @@ protected:
     deque<vector<complex<float> > _X;
     deque<vector<float> _XMagn;
 
-    vector<float> _sinesBuffer;
+    vector<float> _noiseBuffer;
 };
 
 #endif

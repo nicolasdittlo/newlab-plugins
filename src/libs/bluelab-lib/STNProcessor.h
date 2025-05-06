@@ -28,7 +28,9 @@
 using namespace std;
 
 class OverlapAdd;
+class MultiOutOverlapAdd;
 class STNProcessorStep0;
+class STNProcessorStep1;
 
 class STNProcessor
 {
@@ -55,9 +57,15 @@ class STNProcessor
     void getNoiseBuffer(vector<float> *buf);
     
  protected:
-    OverlapAdd *_overlapAddStep0;
+    MultiOutOverlapAdd *_overlapAddStep0;
     STNProcessorStep0 *_processorStep0;
 
+    MultiOutOverlapAdd *_overlapAddStep1;
+    STNProcessorStep1 *_processorStep1;
+
+    // Used to delay the step 0 sines signal
+    OverlapAdd *_overlapAddStep1Delay;
+    
     float _sinesMix;
     float _transientsMix;
     float _noiseMix;
