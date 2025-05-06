@@ -22,6 +22,7 @@
 using namespace std;
 
 #include "Defines.h"
+#include "Utils.h"
 #include "STNUtils.h"
 
 void
@@ -115,6 +116,17 @@ STNUtils::decSTN(const vector<float> &Rt, float G2, float G1,
 void
 STNUtils::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
 {
+    if (col >= X.size())
+    {
+        if (!X.empty())
+        {
+            result->resize(X[0].size());
+            Utils::fillZero(result);
+        }
+
+        return;
+    }
+    
     const vector<float> freqs = X[col];
 
     result->resize(freqs.size());
