@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "Utils.h"
+#include "OverlapAdd.h"
 #include "MultiOutOverlapAdd.h"
 #include "STNProcessorStep0.h"
 #include "STNProcessorStep1.h"
@@ -56,7 +57,7 @@ STNProcessor::~STNProcessor()
         delete _processorStep1;
 
     if (_overlapAddStep1Delay != NULL)
-        delete _overlapAddStep1Delat;
+        delete _overlapAddStep1Delay;
 }
 
 void
@@ -102,8 +103,6 @@ STNProcessor::prepareToPlay(double sampleRate)
 
     _overlapAddStep1Delay->setFftSize(fftSizeStep1);
     _overlapAddStep1Delay->setOverlap(OVERLAP_STEP1);
-
-    _processorStep1Delay->reset(fftSizeStep1, OVERLAP_STEP0, sampleRate);
 }
 
 int
@@ -112,9 +111,9 @@ STNProcessor::getLatency()
     int latency = 0;
 
     if (_processorStep0 != NULL)
-        latency += _processorStep0;
+        latency += _processorStep0->getLatency();
     if (_processorStep1 != NULL)
-        latency += _processorStep1;
+        latency += _processorStep1->getLatency();
     
     return latency;
 }
@@ -167,7 +166,7 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     _overlapAddStep0->flushOutSamples(numSamplesToFlush0);
 
     vector<float> &xs = samplesStep0[0];
-    vector<float> &res = samplesStep0[1];
+    vector<float> &xres = samplesStep0[1];
 
     // Step 1
     _overlapAddStep1->feed(xres);
@@ -182,16 +181,16 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
 
     // Step 1 delay
     _overlapAddStep1Delay->feed(xs);
-    int numSamplesToFlush0Delay = _overlapAddStep0Delay->getOutSamples(&xs, input.size());
-    _overlapAddStep0Delay->flushOutSamples(numSamplesToFlush0Delay);
+    int numSamplesToFlush1Delay = _overlapAddStep1Delay->getOutSamples(&xs, input.size());
+    _overlapAddStep1Delay->flushOutSamples(numSamplesToFlush1Delay);
 
     // Apply gains
-    Utils::multValue(&xs, _sineMix);
+    Utils::multValue(&xs, _sinesMix);
     if (_muteSines)
         Utils::multValue(&xs, 0.0);
 
-    Utils::multValue(&xt, _transientMix);
-    if (_muteTransient)
+    Utils::multValue(&xt, _transientsMix);
+    if (_muteTransients)
         Utils::multValue(&xt, 0.0);
 
     Utils::multValue(&xn, _noiseMix);
@@ -216,7 +215,7 @@ STNProcessor::getSinesBuffer(vector<float> *buf)
     {
         _processorStep0->getSinesBuffer(buf);
 
-        Utils::multValue(buf, _sineMix);
+        Utils::multValue(buf, _sinesMix);
         if (_muteSines)
             Utils::multValue(buf, 0.0);
     }

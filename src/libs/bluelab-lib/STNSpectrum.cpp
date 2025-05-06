@@ -77,7 +77,7 @@ STNSpectrum::createAxes(SpectrumView *spectrumView,
     _freqAxis->init(_hAxis, bufferSize, sampleRate);
     _freqAxis->reset(bufferSize, sampleRate);
     
-    _ampAxis->init(_vAxis, AIR_MIN_DB, AIR_MAX_DB);
+    _ampAxis->init(_vAxis, STN_MIN_DB, STN_MAX_DB);
 }
 
 void

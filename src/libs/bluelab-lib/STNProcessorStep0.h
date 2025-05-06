@@ -48,8 +48,8 @@ protected:
     int _overlap;
     float _sampleRate;
 
-    deque<vector<complex<float> > _X;
-    deque<vector<float> _XMagn;
+    deque<vector<complex<float> > > _X;
+    deque<vector<float> > _XMagn;
 
     vector<float> _sinesBuffer;
 };

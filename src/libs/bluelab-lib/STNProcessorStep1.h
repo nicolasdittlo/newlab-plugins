@@ -16,8 +16,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef STN_PROCESSOR_STEP0_H
-#define STN_PROCESSOR_STEP0_H
+#ifndef STN_PROCESSOR_STEP1_H
+#define STN_PROCESSOR_STEP1_H
 
 #include <vector>
 #include <queue>
@@ -48,8 +48,8 @@ protected:
     int _overlap;
     float _sampleRate;
 
-    deque<vector<complex<float> > _X;
-    deque<vector<float> _XMagn;
+    deque<vector<complex<float> > > _X;
+    deque<vector<float> > _XMagn;
 
     vector<float> _noiseBuffer;
 };

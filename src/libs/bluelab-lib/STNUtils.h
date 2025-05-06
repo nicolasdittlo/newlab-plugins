@@ -21,7 +21,6 @@
 
 #include <vector>
 #include <deque>
-
 using namespace std;
 
 class STNUtils
@@ -34,7 +33,7 @@ class STNUtils
     // For the time axis (nMedianH),
     // process only one horizontal median filter window centered on the middle column of X,
     // and return this processing as one result column.
-    static void transientness(const deque<vector<float> &X,
+    static void transientness(const deque<vector<float> > &X,
                               int nMedianH, int nMedianV,
                               vector<float> *result);
 
@@ -43,10 +42,10 @@ class STNUtils
         
 protected:
     // Freq axis
-    static void medfilt1_v(const deque<vector<float> &X, int nMedianV, int col, vector<float> *result);
+    static void medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result);
 
     // Time axis
-    static void medfilt1_h(const deque<vector<float> &X, int nMedianH, int col, vector<float> *result);
+    static void medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result);
 };
 
 #endif

@@ -18,6 +18,7 @@
 
 #include "Defines.h"
 #include "Utils.h"
+#include "STNUtils.h"
 #include "STNProcessorStep1.h"
 
 STNProcessorStep1::STNProcessorStep1(int bufferSize, int overlap, float sampleRate)
@@ -71,7 +72,7 @@ STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
     vector<float> S;
     vector<float> T;
     vector<float> N;
-    STNUtils::decSTN(Rt, 0.75, 0.85);
+    STNUtils::decSTN(Rt, 0.75, 0.85, &S, &T, &N);
 
     // Transients
     vector<complex<float> > xt;

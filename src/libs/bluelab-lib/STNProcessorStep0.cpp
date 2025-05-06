@@ -18,6 +18,7 @@
 
 #include "Defines.h"
 #include "Utils.h"
+#include "STNUtils.h"
 #include "STNProcessorStep0.h"
 
 STNProcessorStep0::STNProcessorStep0(int bufferSize, int overlap, float sampleRate)
@@ -71,7 +72,7 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     vector<float> S;
     vector<float> T;
     vector<float> N;
-    STNUtils::decSTN(Rt, 0.7, 0.8);
+    STNUtils::decSTN(Rt, 0.7, 0.8, &S, &T, &N);
 
     // Sines
     vector<complex<float> > xs;

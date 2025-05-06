@@ -115,6 +115,10 @@
             file="../../libs/bluelab-lib/ManualPdfViewer.h"/>
       <FILE id="dFjkKg" name="MelScale.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/MelScale.cpp"/>
       <FILE id="ey6J05" name="MelScale.h" compile="0" resource="0" file="../../libs/bluelab-lib/MelScale.h"/>
+      <FILE id="KpYqQV" name="MultiOutOverlapAdd.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/MultiOutOverlapAdd.cpp"/>
+      <FILE id="tONg9e" name="MultiOutOverlapAdd.h" compile="0" resource="0"
+            file="../../libs/bluelab-lib/MultiOutOverlapAdd.h"/>
       <FILE id="Dzx2B7" name="OpenGLNanoVGComponent.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/OpenGLNanoVGComponent.cpp"/>
       <FILE id="Ga68lf" name="OpenGLNanoVGComponent.h" compile="0" resource="0"
@@ -187,8 +191,14 @@
             file="../../libs/bluelab-lib/STNProcessorStep0.cpp"/>
       <FILE id="iyh1q5" name="STNProcessorStep0.h" compile="0" resource="0"
             file="../../libs/bluelab-lib/STNProcessorStep0.h"/>
+      <FILE id="tLm9gj" name="STNProcessorStep1.cpp" compile="1" resource="0"
+            file="../../libs/bluelab-lib/STNProcessorStep1.cpp"/>
+      <FILE id="XcSzGP" name="STNProcessorStep1.h" compile="0" resource="0"
+            file="../../libs/bluelab-lib/STNProcessorStep1.h"/>
       <FILE id="yvwTSd" name="STNSpectrum.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNSpectrum.cpp"/>
       <FILE id="qr6B4U" name="STNSpectrum.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNSpectrum.h"/>
+      <FILE id="i4EKJl" name="STNUtils.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNUtils.cpp"/>
+      <FILE id="m41T4q" name="STNUtils.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNUtils.h"/>
       <FILE id="zG8dlS" name="TransientLib.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/TransientLib.cpp"/>
       <FILE id="KqAZH5" name="TransientLib.h" compile="0" resource="0" file="../../libs/bluelab-lib/TransientLib.h"/>

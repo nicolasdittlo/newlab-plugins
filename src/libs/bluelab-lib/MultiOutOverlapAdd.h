@@ -77,6 +77,7 @@ protected:
     vector<float> _tmpSampBufIn;
     vector<vector<float> > _tmpSampBufIn2;
     vector<float> _tmpSampBufOut;
+    vector<complex<float> > _tmpCompBufIn;
     vector<vector<complex<float> > > _tmpCompBufOut;
 
     vector<float> _tmpSynthZeroBuf;

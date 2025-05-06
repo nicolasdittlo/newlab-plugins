@@ -36,7 +36,7 @@ STNUtils::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedia
 }
 
 void
-STNUtils::transientness(const deque<vector<float> &X,
+STNUtils::transientness(const deque<vector<float> > &X,
                         int nMedianH, int nMedianV,
                         vector<float> *result)
 {
@@ -58,7 +58,7 @@ STNUtils::transientness(const deque<vector<float> &X,
         if (fabs(X_v_median[i] + X_h_median[i]) > BL_EPS)
             Y = X_v_median[i] / (X_v_median[i] + X_h_median[i]);
 
-        result[i] = Y;
+        (*result)[i] = Y;
     }
 }
 
@@ -72,7 +72,7 @@ STNUtils::decSTN(const vector<float> &Rt, float G2, float G1,
     //end
 
     // Rs = 1-Rt
-    vectorfloat> Rs;
+    vector<float> Rs;
     Rs.resize(Rt.size());
     for (int i = 0; i < Rs.size(); i++)
         Rs[i] = 1.0 - Rt[i];  
@@ -113,7 +113,7 @@ STNUtils::decSTN(const vector<float> &Rt, float G2, float G1,
 
 // Freq axis
 void
-STNUtils::medfilt1_v(const deque<vector<float> &X, int nMedianV, int col, vector<float> *result)
+STNUtils::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
 {
     const vector<float> freqs = X[col];
 
@@ -124,12 +124,12 @@ STNUtils::medfilt1_v(const deque<vector<float> &X, int nMedianV, int col, vector
     
     for (int i = 0; i < freqs.size(); i++)
     {
-        for (int j = i - medianV/2; j < i + medianV/2; j++)
+        for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
         {
             if ((j >= 0) || (j < freqs.size()))
-                win[j - i + medianV/2] = freqs[j];
+                win[j - i + nMedianV/2] = freqs[j];
             else
-                win[j - i + medianV/2] = 0.0;                              
+                win[j - i + nMedianV/2] = 0.0;                              
         }
 
         sort(win.begin(), win.end());
@@ -140,7 +140,7 @@ STNUtils::medfilt1_v(const deque<vector<float> &X, int nMedianV, int col, vector
 
 // Time axis
 void
-STNUtils::medfilt1_h(const deque<vector<float> &X, int nMedianH, int col, vector<float> *result)
+STNUtils::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
 {
     if (X.empty())
         return;

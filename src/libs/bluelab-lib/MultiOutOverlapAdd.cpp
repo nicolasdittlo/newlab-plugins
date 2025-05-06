@@ -37,10 +37,12 @@ void
 MultiOutOverlapAddProcessor::processSamples(vector<vector<float> > *buffs) {}
 
 // MultiOutOverlapAdd
-MultiOutOverlapAdd::MultiOutOverlapAdd(int fftSize, int overlap, bool fft, bool ifft)
+MultiOutOverlapAdd::MultiOutOverlapAdd(int fftSize, int overlap, int numOutputs, bool fft, bool ifft)
 : _overlap(overlap), _fftFlag(fft), _ifftFlag(ifft)
 {
     setFftSize(fftSize);
+
+    _numOutputs = numOutputs;
 }
 
 MultiOutOverlapAdd::~MultiOutOverlapAdd() {}
@@ -70,9 +72,11 @@ MultiOutOverlapAdd::setFftSize(int fftSize)
     _tmpSampBufIn2.resize(_numOutputs);
     for (int i = 0; i < _numOutputs; i++)
         _tmpSampBufIn2[i].resize(_fftSize);
+
     _tmpSampBufOut.resize(_fftSize);
     _tmpCompBufIn.resize(_fftSize / 2 + 1);
     _tmpCompBufOut.resize(_numOutputs);
+
     for (int i = 0; i < _numOutputs; i++)
         _tmpCompBufOut[i].resize(_fftSize / 2 + 1);
     
@@ -161,7 +165,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
                 _backwardFFT->performRealOnlyInverseTransform(ifftInput.get());
             
                 // Convert back to real samples
-                for (int k = 0; k < _tmpSampBufIn[i].size(); k++)
+                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
                     _tmpSampBufIn2[i][k] = ifftInput[k];
             
                 // Apply resynth coeff
@@ -181,7 +185,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
             {
                 // Apply synthesis window
                 for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
-                    _tmpSampBufIn[i][k] *= _synthWin[k];
+                    _tmpSampBufIn2[i][k] *= _synthWin[k];
             
                 // Output
                 _circSampBufsOut[i].peek(_tmpSampBufOut.data(),
@@ -216,7 +220,7 @@ MultiOutOverlapAdd::getOutSamples(vector<vector<float> > *samples, int numSample
 
     for (int i = 0; i < _numOutputs; i++)
     {
-        samples[i]->resize(numSamples);
+        (*samples)[i].resize(numSamples);
         
         numZeros = numSamples - _outSamples[i].size();
         if (numZeros < 0)
