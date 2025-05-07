@@ -30,7 +30,7 @@ STNUtils::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedia
 {
     float filter_length_t = 200e-3; // in ms
     float filter_length_f = 500.0; // in Hz
-
+    
     int nHop = fftSize/overlap;
     *nMedianH = round(filter_length_t * sampleRate / nHop);
     *nMedianV = round(filter_length_f * fftSize / sampleRate);

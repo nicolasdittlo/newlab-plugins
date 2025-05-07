@@ -149,6 +149,10 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
             _tmpCompBufIn[k] *= anaCoeff;
         
         // Apply callback
+        _tmpCompBufOut.resize(_numOutputs);
+        for (int i = 0; i < _numOutputs; i++)
+            _tmpCompBufOut[i] = _tmpCompBufIn;
+        
         processFFT(_tmpCompBufIn, &_tmpCompBufOut);
         
         if (_ifftFlag)
