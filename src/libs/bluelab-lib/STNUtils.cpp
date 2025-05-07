@@ -144,7 +144,10 @@ STNUtils::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vect
                 win[j - i + nMedianV/2] = 0.0;                              
         }
 
-        sort(win.begin(), win.end());
+        //sort(win.begin(), win.end());
+        
+        auto m = win.begin() + win.size() / 2;
+        std::nth_element(win.begin(), m, win.end());
 
         (*result)[i] = win[win.size()/2];
     }
@@ -172,8 +175,11 @@ STNUtils::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vect
                 win[j - col + nMedianH/2] = 0.0;
         }
 
-        sort(win.begin(), win.end());
+        //sort(win.begin(), win.end());
 
+        auto m = win.begin() + win.size() / 2;
+        std::nth_element(win.begin(), m, win.end());
+        
         (*result)[i] = win[win.size()/2];
     }
 }

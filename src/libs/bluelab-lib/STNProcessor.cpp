@@ -25,11 +25,11 @@
 #include "STNProcessorStep1.h"
 #include "STNProcessor.h"
 
-#define OVERLAP_STEP0 8
-#define OVERLAP_STEP1 8
+#define OVERLAP_STEP0 8 // 4
+#define OVERLAP_STEP1 8 // 4
 
-#define FFT_SIZE_COEFF_STEP0 5 // fft size: 8192 at 44100Hz
-#define FFT_SIZE_COEFF_STEP1 86 // fft size: 8192 at 44100Hz
+#define FFT_SIZE_COEFF_STEP0 5 //6 // fft size: 8192 at 44100Hz
+#define FFT_SIZE_COEFF_STEP1 86 //43 // fft size: 512 at 44100Hz
 
 STNProcessor::STNProcessor()
 {
