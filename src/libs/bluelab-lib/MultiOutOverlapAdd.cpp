@@ -77,8 +77,8 @@ MultiOutOverlapAdd::setFftSize(int fftSize)
 
     _tmpSampBufOut.resize(_fftSize);
     _tmpCompBufIn.resize(_fftSize / 2 + 1);
-    _tmpCompBufOut.resize(_numOutputs);
 
+    _tmpCompBufOut.resize(_numOutputs);
     for (int i = 0; i < _numOutputs; i++)
         _tmpCompBufOut[i].resize(_fftSize / 2 + 1);
     
@@ -145,7 +145,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
         // Apply analysis coeff
         // Because fftw3 seems to scale the data when doint forward fft
         float anaCoeff = 2.0 / (_fftSize / _overlap);
-        for (int k = 0; k < _tmpCompBufOut.size(); k++)
+        for (int k = 0; k < _tmpCompBufIn.size(); k++)
             _tmpCompBufIn[k] *= anaCoeff;
         
         // Apply callback
@@ -197,7 +197,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
                 _circSampBufsOut[i].peek(_tmpSampBufOut.data(),
                                          _synthWin.size());
 
-                for (int k = 0; k < _tmpSampBufIn.size(); k++)
+                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
                     _tmpSampBufIn2[i][k] += _tmpSampBufOut[k];
 
                 _circSampBufsOut[i].poke(_tmpSampBufIn2[i].data(),
