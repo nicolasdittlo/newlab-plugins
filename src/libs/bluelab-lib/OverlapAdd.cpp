@@ -119,17 +119,17 @@ OverlapAdd::feed(const vector<float> &samples)
             // Store output in temporary buffer
             for (int k = 0; k < _tmpCompBufOut.size(); k++)
                 _tmpCompBufOut[k] = complex(fftInput[k*2], fftInput[k*2 + 1]);
-        }
 
-        // Apply analysis coeff
-        // Because fftw3 seems to scale the data when doint forward fft
-        float anaCoeff = 2.0 / (_fftSize / _overlap);
-        for (int k = 0; k < _tmpCompBufOut.size(); k++)
-            _tmpCompBufOut[k] *= anaCoeff;
-        
-        // Apply callback
-        processFFT(&_tmpCompBufOut);
-        
+            // Apply analysis coeff
+            // Because fftw3 seems to scale the data when doint forward fft
+            float anaCoeff = 2.0 / (_fftSize / _overlap);
+            for (int k = 0; k < _tmpCompBufOut.size(); k++)
+                _tmpCompBufOut[k] *= anaCoeff;
+            
+            // Apply callback
+            processFFT(&_tmpCompBufOut);
+        }
+    
         if (_ifftFlag)
         {
             // Convert to JUCE real format for inverse FFT
@@ -156,35 +156,35 @@ OverlapAdd::feed(const vector<float> &samples)
             float resynthCoeff = 0.66*_fftSize / 2.0;
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= resynthCoeff;
-
-            processSamples(&_tmpSampBufIn);
-            
-            // Apply synthesis window
-            for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                _tmpSampBufIn[k] *= _synthWin[k];
-            
-            // Output
-            _circSampBufsOut.peek(_tmpSampBufOut.data(),
-                                  _synthWin.size());
-
-            for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                _tmpSampBufIn[k] += _tmpSampBufOut[k];
-
-            _circSampBufsOut.poke(_tmpSampBufIn.data(),
-                                  _synthWin.size());
-            
-            _circSampBufsOut.pop(_fftSize / _overlap);
-
-            _tmpSynthZeroBuf.resize(_fftSize / _overlap);
-            memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
-            
-            _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
-                                  _tmpSynthZeroBuf.size());
-            
-            int size = _outSamples.size();
-            _outSamples.resize(size + _fftSize / _overlap);
-            memcpy(&_outSamples.data()[size], _tmpSampBufIn.data(), _fftSize / _overlap * sizeof(float));
         }
+        
+        processSamples(&_tmpSampBufIn);
+            
+        // Apply synthesis window
+        for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            _tmpSampBufIn[k] *= _synthWin[k];
+            
+        // Output
+        _circSampBufsOut.peek(_tmpSampBufOut.data(),
+                              _synthWin.size());
+
+        for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            _tmpSampBufIn[k] += _tmpSampBufOut[k];
+        
+        _circSampBufsOut.poke(_tmpSampBufIn.data(),
+                              _synthWin.size());
+        
+        _circSampBufsOut.pop(_fftSize / _overlap);
+        
+        _tmpSynthZeroBuf.resize(_fftSize / _overlap);
+        memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
+        
+        _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
+                              _tmpSynthZeroBuf.size());
+        
+        int size = _outSamples.size();
+        _outSamples.resize(size + _fftSize / _overlap);
+        memcpy(&_outSamples.data()[size], _tmpSampBufIn.data(), _fftSize / _overlap * sizeof(float));
     }
 }
 
