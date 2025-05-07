@@ -71,6 +71,7 @@ MultiOutOverlapAdd::setFftSize(int fftSize)
     }
     
     _tmpSampBufIn.resize(_fftSize);
+
     _tmpSampBufIn2.resize(_numOutputs);
     for (int i = 0; i < _numOutputs; i++)
         _tmpSampBufIn2[i].resize(_fftSize);
@@ -138,7 +139,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
             _forwardFFT->performRealOnlyForwardTransform(fftInput.get(), true);
             
             // Store output in temporary buffer
-            for (int k = 0; k < _tmpCompBufOut.size(); k++)
+            for (int k = 0; k < _tmpCompBufIn.size(); k++)
                 _tmpCompBufIn[k] = complex(fftInput[k*2], fftInput[k*2 + 1]);
         }
 
@@ -222,8 +223,9 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
 int
 MultiOutOverlapAdd::getOutSamples(vector<vector<float> > *samples, int numSamples)
 {
+    samples->resize(_numOutputs);
+    
     int numZeros = 0;
-
     for (int i = 0; i < _numOutputs; i++)
     {
         (*samples)[i].resize(numSamples);

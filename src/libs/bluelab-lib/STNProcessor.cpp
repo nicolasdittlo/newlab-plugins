@@ -199,6 +199,7 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
 
     // Sum
     output->resize(input.size());
+    Utils::fillZero(output);
     for (int i = 0; i < output->size(); i++)
     {
         (*output)[i] += xs[i];
