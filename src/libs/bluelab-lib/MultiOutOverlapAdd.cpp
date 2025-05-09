@@ -86,6 +86,12 @@ MultiOutOverlapAdd::setFftSize(int fftSize)
     makeWindows();
 }
 
+int
+MultiOutOverlapAdd::getFftSize()
+{
+    return _fftSize;
+}
+
 void
 MultiOutOverlapAdd::setOverlap(int overlap)
 {
@@ -105,6 +111,12 @@ MultiOutOverlapAdd::setOverlap(int overlap)
     }
 
     makeWindows();
+}
+
+int
+MultiOutOverlapAdd::getOverlap()
+{
+    return _overlap;
 }
 
 void

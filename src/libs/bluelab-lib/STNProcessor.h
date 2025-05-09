@@ -42,7 +42,7 @@ class STNProcessor
 
     void prepareToPlay(double sampleRate);
 
-    int getLatency();
+    int getLatency(int blockSize);
         
     void setSinesMix(float mix);
     void setTransientsMix(float mix);

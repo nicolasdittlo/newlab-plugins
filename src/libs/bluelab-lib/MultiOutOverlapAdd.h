@@ -43,7 +43,10 @@ public:
     virtual ~MultiOutOverlapAdd();
 
     void setFftSize(int fftSize);
+    int getFftSize();
+    
     void setOverlap(int overlap);
+    int getOverlap();
     
     void addProcessor(MultiOutOverlapAddProcessor *processor);
     
