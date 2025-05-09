@@ -104,7 +104,7 @@ STNProcessorStep1::getLatency()
     int nMedianV;
     STNUtils::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
     
-    int latency = (nMedianH / 2)*_bufferSize;
+    int latency = (nMedianH / 2)*(_bufferSize/_overlap);
 
     return latency;
 }

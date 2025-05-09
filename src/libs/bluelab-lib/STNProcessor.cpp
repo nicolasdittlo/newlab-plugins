@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "Utils.h"
+#include "Delay.h"
 #include "OverlapAdd.h"
 #include "MultiOutOverlapAdd.h"
 #include "STNProcessorStep0.h"
@@ -39,7 +40,7 @@ STNProcessor::STNProcessor()
     _overlapAddStep1 = NULL;
     _processorStep1 = NULL;
 
-    _overlapAddStep1Delay = NULL;
+    _step1Delay = NULL;
 }
 
 STNProcessor::~STNProcessor()
@@ -56,8 +57,8 @@ STNProcessor::~STNProcessor()
     if (_processorStep1 != NULL)
         delete _processorStep1;
 
-    if (_overlapAddStep1Delay != NULL)
-        delete _overlapAddStep1Delay;
+    if (_step1Delay != NULL)
+        delete _step1Delay;
 }
 
 void
@@ -77,7 +78,7 @@ STNProcessor::prepareToPlay(double sampleRate)
         _processorStep0 = new STNProcessorStep0(fftSizeStep0, OVERLAP_STEP0, sampleRate);
         _overlapAddStep0->addProcessor(_processorStep0);
     }
-    
+
     _processorStep0->reset(fftSizeStep0, OVERLAP_STEP0, sampleRate);
 
     // Step 1
@@ -97,12 +98,11 @@ STNProcessor::prepareToPlay(double sampleRate)
     
     _processorStep1->reset(fftSizeStep1, OVERLAP_STEP0, sampleRate);
 
-    // Step 1 delay
-    if (_overlapAddStep1Delay == NULL)
-        _overlapAddStep1Delay = new OverlapAdd(fftSizeStep1, OVERLAP_STEP1, false, false);
-
-    _overlapAddStep1Delay->setFftSize(fftSizeStep1);
-    _overlapAddStep1Delay->setOverlap(OVERLAP_STEP1);
+    int step1Latency = fftSizeStep1 + _processorStep1->getLatency();
+    if (_step1Delay == NULL)
+        _step1Delay = new Delay(step1Latency);
+    _step1Delay->reset();
+    _step1Delay->setDelay(step1Latency);
 }
 
 int
@@ -180,9 +180,8 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     vector<float> &xn = samplesStep1[1];
 
     // Step 1 delay
-    _overlapAddStep1Delay->feed(xs);
-    int numSamplesToFlush1Delay = _overlapAddStep1Delay->getOutSamples(&xs, input.size());
-    _overlapAddStep1Delay->flushOutSamples(numSamplesToFlush1Delay);
+    if (_step1Delay != NULL)
+        _step1Delay->processSamples(&xs);
 
     // Apply gains
     Utils::multValue(&xs, _sinesMix);

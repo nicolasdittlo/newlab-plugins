@@ -31,6 +31,7 @@ class OverlapAdd;
 class MultiOutOverlapAdd;
 class STNProcessorStep0;
 class STNProcessorStep1;
+class Delay;
 
 class STNProcessor
 {
@@ -64,7 +65,7 @@ class STNProcessor
     STNProcessorStep1 *_processorStep1;
 
     // Used to delay the step 0 sines signal
-    OverlapAdd *_overlapAddStep1Delay;
+    Delay * _step1Delay;
     
     float _sinesMix;
     float _transientsMix;
