@@ -28,6 +28,23 @@ using namespace std;
 #define MEDFILT_V_OPTIM 1
 #define MEDFILT_H_OPTIM 1
 
+template<typename T>
+typename std::vector<T>::iterator 
+insert_sorted(std::vector<T> &vec, T const &item)
+{
+    return vec.insert(std::upper_bound(vec.begin(), vec.end(), item), item);
+}
+
+template<typename T>
+typename std::vector<T>::iterator 
+remove_sorted(std::vector<T> &vec, T const &item)
+{
+    auto lb = std::lower_bound(vec.begin(), vec.end(), item);
+    if (lb != vec.end() && *lb == item)
+        vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
+    return lb;
+}
+
 STNAlgo::STNAlgo() {}
 
 STNAlgo::~STNAlgo() {}
@@ -44,7 +61,7 @@ STNAlgo::transientness(const deque<vector<float> > &X,
                        int nMedianH, int nMedianV,
                        vector<float> *result)
 {
-    int col = nMedianH/2 + 1;
+    int col = nMedianH/2/* + 1*/;
     
     vector<float> X_v_median;
     medfilt1_v(X, nMedianV, col, &X_v_median);
@@ -76,7 +93,7 @@ STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedian
     *nMedianH = round(filter_length_t * sampleRate / nHop);
     *nMedianV = round(filter_length_f * fftSize / sampleRate);
 
-#if 1 //0
+#if 0
     // TEST
     if (*nMedianH > 17)
         *nMedianH = 17;
@@ -177,23 +194,6 @@ STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vecto
 }
 
 #else //MEDFILT_V_OPTIM
-
-template<typename T>
-typename std::vector<T>::iterator 
-insert_sorted(std::vector<T> &vec, T const &item)
-{
-    return vec.insert(std::upper_bound(vec.begin(), vec.end(), item), item);
-}
-
-template<typename T>
-typename std::vector<T>::iterator 
-remove_sorted(std::vector<T> &vec, T const &item)
-{
-    auto lb = std::lower_bound(vec.begin(), vec.end(), item);
-    if (lb != vec.end() && *lb == item)
-        vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
-    return lb;
-}
 
 // Freq axis
 void
@@ -332,8 +332,8 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
         for (int i = 0; i < result->size(); i++)
         {
             float newValue = 0.0;
-            if (col + nMedianH/2 - 2/*1*/ < X.size())
-                newValue = X[col + nMedianH/2 - 2/*1*/][i];
+            if (col + nMedianH/2 - 1 /*- 2*/ < X.size())
+                newValue = X[col + nMedianH/2 - 1 /*- 2*/][i];
 
             insert_sorted(_hWins[i], newValue);
 
