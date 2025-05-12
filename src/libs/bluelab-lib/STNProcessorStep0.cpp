@@ -18,7 +18,7 @@
 
 #include "Defines.h"
 #include "Utils.h"
-#include "STNUtils.h"
+#include "STNAlgo.h"
 #include "STNProcessorStep0.h"
 
 STNProcessorStep0::STNProcessorStep0(int bufferSize, int overlap, float sampleRate)
@@ -26,9 +26,14 @@ STNProcessorStep0::STNProcessorStep0(int bufferSize, int overlap, float sampleRa
     _bufferSize = bufferSize;
     _overlap = overlap;    
     _sampleRate = sampleRate;
+
+    _stnAlgo = new STNAlgo();
 }
 
-STNProcessorStep0::~STNProcessorStep0() {}
+STNProcessorStep0::~STNProcessorStep0()
+{
+    delete _stnAlgo;
+}
 
 void
 STNProcessorStep0::reset()
@@ -44,6 +49,8 @@ STNProcessorStep0::reset(int bufferSize, int overlap, float sampleRate)
     _sampleRate = sampleRate;
 
     _sinesBuffer.clear();
+
+    _stnAlgo->reset();
 }
 
 void
@@ -51,13 +58,14 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
                               vector<vector<complex<float> > > *outBuffers)
 {    
     vector<float> magns;
-    vector<float> phases;
-    Utils::complexToMagnPhase(&magns, &phases, inBuffer);
+    Utils::complexToMagn(&magns, inBuffer);
 
     int nMedianH;
     int nMedianV;
-    STNUtils::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
+    STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
 
+    //fprintf(stderr, "Step0: (%d %d)\n", nMedianH, nMedianV);
+    
     _X.push_front(inBuffer);
     if (_X.size() > nMedianH)
         _X.pop_back();
@@ -67,12 +75,12 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
         _XMagn.pop_back();
     
     vector<float> Rt;
-    STNUtils::transientness(_XMagn, nMedianH, nMedianV, &Rt);
+    _stnAlgo->transientness(_XMagn, nMedianH, nMedianV, &Rt);
 
     vector<float> S;
     vector<float> T;
     vector<float> N;
-    STNUtils::decSTN(Rt, 0.7, 0.8, &S, &T, &N);
+    STNAlgo::decSTN(Rt, 0.7, 0.8, &S, &T, &N);
 
     // Sines
     vector<complex<float> > xs;
@@ -102,7 +110,7 @@ STNProcessorStep0::getLatency()
 {
     int nMedianH;
     int nMedianV;
-    STNUtils::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
+    STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
     
     int latency = (nMedianH / 2)*(_bufferSize/_overlap);
 

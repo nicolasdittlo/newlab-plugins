@@ -25,6 +25,7 @@ using namespace std;
 
 #include "MultiOutOverlapAdd.h"
 
+class STNAlgo;
 class STNProcessorStep1 : public MultiOutOverlapAddProcessor
 {
 public:
@@ -52,6 +53,8 @@ protected:
     deque<vector<float> > _XMagn;
 
     vector<float> _noiseBuffer;
+
+    SNTAlgo *_stnAlgo;
 };
 
 #endif

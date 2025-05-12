@@ -184,6 +184,8 @@
             file="../../libs/bluelab-lib/SpectrumViewNVG.cpp"/>
       <FILE id="Os1u3C" name="SpectrumViewNVG.h" compile="0" resource="0"
             file="../../libs/bluelab-lib/SpectrumViewNVG.h"/>
+      <FILE id="WhDwyO" name="STNAlgo.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNAlgo.cpp"/>
+      <FILE id="bficnI" name="STNAlgo.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNAlgo.h"/>
       <FILE id="HSNapt" name="STNProcessor.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/STNProcessor.cpp"/>
       <FILE id="vckmnw" name="STNProcessor.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNProcessor.h"/>

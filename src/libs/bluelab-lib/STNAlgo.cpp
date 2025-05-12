@@ -23,23 +23,21 @@ using namespace std;
 
 #include "Defines.h"
 #include "Utils.h"
-#include "STNUtils.h"
+#include "STNAlgo.h"
+
+STNAlgo::STNAlgo() {}
+
+STNAlgo::~STNAlgo() {}
 
 void
-STNUtils::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedianH, int *nMedianV)
+STNAlgo::reset()
 {
-    float filter_length_t = 200e-3; // in ms
-    float filter_length_f = 500.0; // in Hz
-    
-    int nHop = fftSize/overlap;
-    *nMedianH = round(filter_length_t * sampleRate / nHop);
-    *nMedianV = round(filter_length_f * fftSize / sampleRate);
 }
 
 void
-STNUtils::transientness(const deque<vector<float> > &X,
-                        int nMedianH, int nMedianV,
-                        vector<float> *result)
+STNAlgo::transientness(const deque<vector<float> > &X,
+                       int nMedianH, int nMedianV,
+                       vector<float> *result)
 {
     int col = nMedianH/2 + 1;
     
@@ -64,8 +62,25 @@ STNUtils::transientness(const deque<vector<float> > &X,
 }
 
 void
-STNUtils::decSTN(const vector<float> &Rt, float G2, float G1,
-                 vector<float> *S, vector<float> *T, vector<float> *N)
+STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedianH, int *nMedianV)
+{
+    float filter_length_t = 200e-3; // in ms
+    float filter_length_f = 500.0; // in Hz
+    
+    int nHop = fftSize/overlap;
+    *nMedianH = round(filter_length_t * sampleRate / nHop);
+    *nMedianV = round(filter_length_f * fftSize / sampleRate);
+
+    // TEST
+    if (*nMedianH > 17)
+        *nMedianH = 17;
+    if (*nMedianV > 17)
+        *nMedianV = 17;
+}
+
+void
+STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
+                vector<float> *S, vector<float> *T, vector<float> *N)
 {
     //if nargin < 2
     //G1 = 0.9;    % Upper threshold    
@@ -114,7 +129,7 @@ STNUtils::decSTN(const vector<float> &Rt, float G2, float G1,
 
 // Freq axis
 void
-STNUtils::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
+STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
 {
     if (col >= X.size())
     {
@@ -155,18 +170,18 @@ STNUtils::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vect
 
 // Time axis
 void
-STNUtils::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
+STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
 {
     if (X.empty())
         return;
 
     result->resize(X[0].size());
 
+    vector<float> win;
+    win.resize(nMedianH);
+        
     for (int i = 0; i < result->size(); i++)
     {
-        vector<float> win;
-        win.resize(nMedianH);
-        
         for (int j = col - nMedianH/2; j < col + nMedianH/2; j++)
         {
             if ((j >= 0) && (j < X.size()))

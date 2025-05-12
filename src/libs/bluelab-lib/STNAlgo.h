@@ -16,26 +16,31 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef SNT_UTILS_H
-#define SNT_UTILS_H
+#ifndef SNT_ALGO_H
+#define SNT_ALGO_H
 
 #include <vector>
 #include <deque>
 using namespace std;
 
-class STNUtils
+class STNAlgo
 {
  public:
-    static void computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedianH, int *nMedianV);
+    STNAlgo();
+    virtual ~STNAlgo();
 
+    void reset();
+    
     // TODO: optimize with bl_queue
 
     // For the time axis (nMedianH),
     // process only one horizontal median filter window centered on the middle column of X,
     // and return this processing as one result column.
-    static void transientness(const deque<vector<float> > &X,
-                              int nMedianH, int nMedianV,
-                              vector<float> *result);
+    void transientness(const deque<vector<float> > &X,
+                       int nMedianH, int nMedianV,
+                       vector<float> *result);
+    
+    static void computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedianH, int *nMedianV);
 
     static void decSTN(const vector<float> &Rt, float G2, float G1,
                        vector<float> *S, vector<float> *T, vector<float> *N);
@@ -45,7 +50,7 @@ protected:
     static void medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result);
 
     // Time axis
-    static void medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result);
+    void medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result);
 };
 
 #endif
