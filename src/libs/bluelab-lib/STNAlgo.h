@@ -51,6 +51,9 @@ protected:
 
     // Time axis
     void medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result);
+
+    vector<vector<float> > _hWins;
+    vector<deque<float> > _hValuesHistories;
 };
 
 #endif

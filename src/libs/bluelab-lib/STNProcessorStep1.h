@@ -54,7 +54,7 @@ protected:
 
     vector<float> _noiseBuffer;
 
-    SNTAlgo *_stnAlgo;
+    STNAlgo *_stnAlgo;
 };
 
 #endif

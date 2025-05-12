@@ -199,8 +199,6 @@
             file="../../libs/bluelab-lib/STNProcessorStep1.h"/>
       <FILE id="yvwTSd" name="STNSpectrum.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNSpectrum.cpp"/>
       <FILE id="qr6B4U" name="STNSpectrum.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNSpectrum.h"/>
-      <FILE id="i4EKJl" name="STNUtils.cpp" compile="1" resource="0" file="../../libs/bluelab-lib/STNUtils.cpp"/>
-      <FILE id="m41T4q" name="STNUtils.h" compile="0" resource="0" file="../../libs/bluelab-lib/STNUtils.h"/>
       <FILE id="zG8dlS" name="TransientLib.cpp" compile="1" resource="0"
             file="../../libs/bluelab-lib/TransientLib.cpp"/>
       <FILE id="KqAZH5" name="TransientLib.h" compile="0" resource="0" file="../../libs/bluelab-lib/TransientLib.h"/>

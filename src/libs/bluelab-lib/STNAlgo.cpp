@@ -25,6 +25,9 @@ using namespace std;
 #include "Utils.h"
 #include "STNAlgo.h"
 
+#define MEDFILT_V_OPTIM 1
+#define MEDFILT_H_OPTIM 1
+
 STNAlgo::STNAlgo() {}
 
 STNAlgo::~STNAlgo() {}
@@ -32,6 +35,8 @@ STNAlgo::~STNAlgo() {}
 void
 STNAlgo::reset()
 {
+    _hWins.clear();
+    _hValuesHistories.clear();
 }
 
 void
@@ -71,11 +76,13 @@ STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedian
     *nMedianH = round(filter_length_t * sampleRate / nHop);
     *nMedianV = round(filter_length_f * fftSize / sampleRate);
 
+#if 1 //0
     // TEST
     if (*nMedianH > 17)
         *nMedianH = 17;
     if (*nMedianV > 17)
         *nMedianV = 17;
+#endif
 }
 
 void
@@ -127,6 +134,7 @@ STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
         (*N)[i] = 1.0 - (*S)[i] - (*T)[i];
 }
 
+#if !MEDFILT_V_OPTIM
 // Freq axis
 void
 STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
@@ -168,6 +176,88 @@ STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vecto
     }
 }
 
+#else //MEDFILT_V_OPTIM
+
+template<typename T>
+typename std::vector<T>::iterator 
+insert_sorted(std::vector<T> &vec, T const &item)
+{
+    return vec.insert(std::upper_bound(vec.begin(), vec.end(), item), item);
+}
+
+template<typename T>
+typename std::vector<T>::iterator 
+remove_sorted(std::vector<T> &vec, T const &item)
+{
+    auto lb = std::lower_bound(vec.begin(), vec.end(), item);
+    if (lb != vec.end() && *lb == item)
+        vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
+    return lb;
+}
+
+// Freq axis
+void
+STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
+{
+    if (col >= X.size())
+    {
+        if (!X.empty())
+        {
+            result->resize(X[0].size());
+            Utils::fillZero(result);
+        }
+
+        return;
+    }
+    
+    const vector<float> freqs = X[col];
+
+    result->resize(freqs.size());
+                       
+    vector<float> win;
+    deque<float> valuesHistory;
+    
+    for (int i = 0; i < freqs.size(); i++)
+    {
+        if (i == 0)
+            // First time, fill the whole window
+        {
+            for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
+            {
+                if ((j >= 0) || (j < freqs.size()))
+                {
+                    insert_sorted(win, freqs[j]);
+                    valuesHistory.push_back(freqs[j]);
+                }
+                else
+                {
+                    insert_sorted(win, 0.0f);
+                    valuesHistory.push_back(0.0);
+                }
+            }
+        }
+        else
+        {
+            float newValue = 0.0;
+            if (i + nMedianV/2 - 1 < freqs.size())
+                newValue = freqs[i + nMedianV/2 - 1];
+
+            insert_sorted(win, newValue);
+
+            valuesHistory.push_back(newValue);
+            
+            float oldestValue = valuesHistory[0];
+            valuesHistory.pop_front();
+
+            remove_sorted(win, oldestValue);
+        }
+
+        (*result)[i] = win[win.size()/2];
+    }
+}
+#endif
+
+#if !MEDFILT_H_OPTIM
 // Time axis
 void
 STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
@@ -198,3 +288,64 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
         (*result)[i] = win[win.size()/2];
     }
 }
+
+#else // MEDFILT_H_OPTIM
+
+// Time axis
+void
+STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
+{
+    if (X.empty())
+        return;
+
+    result->resize(X[0].size());
+    Utils::fillZero(result);
+    
+    if (_hWins.empty())
+        // init, fill the windows
+    {
+        _hWins.resize(result->size());
+        _hValuesHistories.resize(result->size());
+        
+        for (int i = 0; i < result->size(); i++)
+        {    
+            for (int j = col - nMedianH/2; j < col + nMedianH/2; j++)
+            {
+                if ((j >= 0) && (j < X.size()))
+                {
+                    float newValue = X[j][i];
+                    insert_sorted(_hWins[i], newValue);
+                    _hValuesHistories[i].push_back(newValue);
+                }
+                else
+                {
+                    insert_sorted(_hWins[i], 0.0f);
+                    _hValuesHistories[i].push_back(0.0f);
+                }
+            }
+
+            (*result)[i] = _hWins[i][_hWins[i].size()/2];
+        }
+    }
+    else
+    {
+        for (int i = 0; i < result->size(); i++)
+        {
+            float newValue = 0.0;
+            if (col + nMedianH/2 - 2/*1*/ < X.size())
+                newValue = X[col + nMedianH/2 - 2/*1*/][i];
+
+            insert_sorted(_hWins[i], newValue);
+
+            _hValuesHistories[i].push_back(newValue);
+
+            float oldestValue = _hValuesHistories[i][0];
+            _hValuesHistories[i].pop_front();
+
+            remove_sorted(_hWins[i], oldestValue);
+            
+            (*result)[i] = _hWins[i][_hWins[i].size()/2];
+        }
+    }
+}
+#endif
