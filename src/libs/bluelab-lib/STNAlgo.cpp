@@ -332,9 +332,10 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
         for (int i = 0; i < result->size(); i++)
         {
             float newValue = 0.0;
-            if (col + nMedianH/2 - 1 /*- 2*/ < X.size())
-                newValue = X[col + nMedianH/2 - 1 /*- 2*/][i];
-
+            // The newest value if X[0]
+            if (!X.empty())
+                newValue = X[0][i];
+                
             insert_sorted(_hWins[i], newValue);
 
             _hValuesHistories[i].push_back(newValue);
