@@ -44,6 +44,12 @@ remove_sorted(std::vector<T> &vec, T const &item)
         vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
     return lb;
 }
+/*template<typename T>
+  void remove_sorted(std::vector<T> &vec, T item)
+  {
+  auto pr = std::equal_range(std::begin(vec), std::end(vec), item);
+  vec.erase(pr.first, pr.second);
+  }*/
 
 STNAlgo::STNAlgo() {}
 
@@ -92,14 +98,6 @@ STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedian
     int nHop = fftSize/overlap;
     *nMedianH = round(filter_length_t * sampleRate / nHop);
     *nMedianV = round(filter_length_f * fftSize / sampleRate);
-
-#if 0
-    // TEST
-    if (*nMedianH > 17)
-        *nMedianH = 17;
-    if (*nMedianV > 17)
-        *nMedianV = 17;
-#endif
 }
 
 void
