@@ -100,6 +100,15 @@ STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedian
     *nMedianV = round(filter_length_f * fftSize / sampleRate);
 }
 
+static float
+fast_sin (float x)
+{
+    auto x2 = x * x;
+    auto numerator = -x * (-11511339840 + x2 * (1640635920 + x2 * (-52785432 + x2 * 479249)));
+    auto denominator = 11511339840 + x2 * (277920720 + x2 * (3177720 + x2 * 18361));
+    return numerator / denominator;
+}
+
 void
 STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
                 vector<float> *S, vector<float> *T, vector<float> *N)
@@ -115,12 +124,14 @@ STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
     for (int i = 0; i < Rs.size(); i++)
         Rs[i] = 1.0 - Rt[i];  
 
+    float PiG1G2Inv = M_PI/(2.0*(G1 - G2));
+                      
     // S = sin(pi*(Rs-G2)/(2*(G1-G2))).^2;
     // S(Rs>=G1) = 1; S(Rs<G2) = 0;
     S->resize(Rs.size());
     for (int i = 0; i < S->size(); i++)
     {
-        (*S)[i] = sin(M_PI*(Rs[i] - G2)/(2.0*(G1 - G2)));
+        (*S)[i] = fast_sin((Rs[i] - G2)*PiG1G2Inv);
         (*S)[i] = (*S)[i]*(*S)[i];
 
         if (Rs[i] >= G1)
@@ -134,7 +145,7 @@ STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
     T->resize(Rt.size());
     for (int i = 0; i < T->size(); i++)
     {
-        (*T)[i] = sin(M_PI*(Rt[i] - G2)/(2.0*(G1 - G2)));
+        (*T)[i] = fast_sin((Rt[i] - G2)*PiG1G2Inv);
         (*T)[i] = (*T)[i]*(*T)[i];
 
         if (Rt[i] >= G1)
