@@ -100,8 +100,7 @@ STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
     (*outBuffers)[1] = xn;
 
     // Noise magns buffer
-    vector<float> noisePhases;
-    Utils::complexToMagnPhase(&_noiseBuffer, &noisePhases, xn);
+    Utils::complexToMagn(&_noiseBuffer, xn);
 }
 
 

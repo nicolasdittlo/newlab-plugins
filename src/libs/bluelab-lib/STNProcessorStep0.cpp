@@ -100,8 +100,7 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     (*outBuffers)[1] = xres;
 
     // Fill sines magns buffer
-    vector<float> sinesPhases;
-    Utils::complexToMagnPhase(&_sinesBuffer, &sinesPhases, xs);
+    Utils::complexToMagn(&_sinesBuffer, xs);
 }
 
 
