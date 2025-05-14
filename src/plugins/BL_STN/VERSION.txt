@@ -1,2 +1,6 @@
 v7.0.1
 - initial version
+
+- takes too much CPU
+- does not handle vibrato well
+- plugin latency is buggy
