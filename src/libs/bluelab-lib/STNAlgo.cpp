@@ -44,6 +44,7 @@ remove_sorted(std::vector<T> &vec, T const &item)
         vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
     return lb;
 }
+
 /*template<typename T>
   void remove_sorted(std::vector<T> &vec, T item)
   {
@@ -192,8 +193,6 @@ STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vecto
             else
                 win[j - i + nMedianV/2] = 0.0;                              
         }
-
-        //sort(win.begin(), win.end());
         
         auto m = win.begin() + win.size() / 2;
         std::nth_element(win.begin(), m, win.end());
@@ -288,8 +287,6 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
             else
                 win[j - col + nMedianH/2] = 0.0;
         }
-
-        //sort(win.begin(), win.end());
 
         auto m = win.begin() + win.size() / 2;
         std::nth_element(win.begin(), m, win.end());
