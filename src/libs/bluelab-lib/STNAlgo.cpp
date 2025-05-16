@@ -36,21 +36,12 @@ insert_sorted(std::vector<T> &vec, T const &item)
 }
 
 template<typename T>
-typename std::vector<T>::iterator 
+void
 remove_sorted(std::vector<T> &vec, T const &item)
 {
     auto lb = std::lower_bound(vec.begin(), vec.end(), item);
-    if (lb != vec.end() && *lb == item)
-        vec.erase(lb, std::upper_bound(std::next(lb), vec.end(), item));
-    return lb;
+    vec.erase(lb);
 }
-
-/*template<typename T>
-  void remove_sorted(std::vector<T> &vec, T item)
-  {
-  auto pr = std::equal_range(std::begin(vec), std::end(vec), item);
-  vec.erase(pr.first, pr.second);
-  }*/
 
 STNAlgo::STNAlgo() {}
 
