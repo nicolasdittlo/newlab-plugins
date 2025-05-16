@@ -20,9 +20,9 @@
 #define STN_PROCESSOR_STEP1_H
 
 #include <vector>
-#include <queue>
 using namespace std;
 
+#include "bl_queue.h"
 #include "MultiOutOverlapAdd.h"
 
 class STNAlgo;
@@ -49,8 +49,8 @@ protected:
     int _overlap;
     float _sampleRate;
 
-    deque<vector<complex<float> > > _X;
-    deque<vector<float> > _XMagn;
+    bl_queue<vector<complex<float> > > _X;
+    bl_queue<vector<float> > _XMagn;
 
     vector<float> _noiseBuffer;
 

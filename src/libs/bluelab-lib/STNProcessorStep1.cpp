@@ -28,6 +28,24 @@ STNProcessorStep1::STNProcessorStep1(int bufferSize, int overlap, float sampleRa
     _sampleRate = sampleRate;
 
     _stnAlgo = new STNAlgo();
+
+    int nMedianH;
+    int nMedianV;
+    STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
+
+    vector<complex<float> > complexZeros;
+    complexZeros.resize(bufferSize);
+    Utils::fillZero(&complexZeros);
+    
+    _X.resize(nMedianH);
+    _X.clear(complexZeros);
+
+    vector<float> zeros;
+    zeros.resize(bufferSize);
+    Utils::fillZero(&zeros);
+
+    _XMagn.resize(nMedianH);
+    _XMagn.clear(zeros);
 }
 
 STNProcessorStep1::~STNProcessorStep1()
@@ -51,6 +69,24 @@ STNProcessorStep1::reset(int bufferSize, int overlap, float sampleRate)
     _noiseBuffer.clear();
 
     _stnAlgo->reset();
+
+    int nMedianH;
+    int nMedianV;
+    STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
+
+    vector<complex<float> > complexZeros;
+    complexZeros.resize(bufferSize);
+    Utils::fillZero(&complexZeros);
+    
+    _X.resize(nMedianH);
+    _X.clear(complexZeros);
+
+    vector<float> zeros;
+    zeros.resize(bufferSize);
+    Utils::fillZero(&zeros);
+
+    _XMagn.resize(nMedianH);
+    _XMagn.clear(zeros);
 }
 
 void
@@ -66,13 +102,8 @@ STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
 
     //fprintf(stderr, "Step1: (%d %d)\n", nMedianH, nMedianV);
     
-    _X.push_front(inBuffer);
-    if (_X.size() > nMedianH)
-        _X.pop_back();
-    
-    _XMagn.push_front(magns);
-    if (_XMagn.size() > nMedianH)
-        _XMagn.pop_back();
+    _X.push_pop(inBuffer);
+    _XMagn.push_pop(magns);
     
     vector<float> Rt;
     _stnAlgo->transientness(_XMagn, nMedianH, nMedianV, &Rt);

@@ -23,6 +23,8 @@
 #include <deque>
 using namespace std;
 
+#include "bl_queue.h"
+
 class STNAlgo
 {
  public:
@@ -36,7 +38,7 @@ class STNAlgo
     // For the time axis (nMedianH),
     // process only one horizontal median filter window centered on the middle column of X,
     // and return this processing as one result column.
-    void transientness(const deque<vector<float> > &X,
+    void transientness(const bl_queue<vector<float> > &X,
                        int nMedianH, int nMedianV,
                        vector<float> *result);
     
@@ -47,13 +49,13 @@ class STNAlgo
         
 protected:
     // Freq axis
-    static void medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result);
+    static void medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result);
 
     // Time axis
-    void medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result);
+    void medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result);
 
     vector<vector<float> > _hWins;
-    vector<deque<float> > _hValuesHistories;
+    vector<bl_queue<float> > _hValuesHistories;
 };
 
 #endif

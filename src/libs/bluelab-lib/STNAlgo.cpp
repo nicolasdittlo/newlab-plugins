@@ -55,7 +55,7 @@ STNAlgo::reset()
 }
 
 void
-STNAlgo::transientness(const deque<vector<float> > &X,
+STNAlgo::transientness(const bl_queue<vector<float> > &X,
                        int nMedianH, int nMedianV,
                        vector<float> *result)
 {
@@ -155,7 +155,7 @@ STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
 #if !MEDFILT_V_OPTIM
 // Freq axis
 void
-STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
+STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result)
 {
     if (col >= X.size())
     {
@@ -196,7 +196,7 @@ STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vecto
 
 // Freq axis
 void
-STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vector<float> *result)
+STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result)
 {
     if (col >= X.size())
     {
@@ -259,7 +259,7 @@ STNAlgo::medfilt1_v(const deque<vector<float> > &X, int nMedianV, int col, vecto
 #if !MEDFILT_H_OPTIM
 // Time axis
 void
-STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
+STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result)
 {
     if (X.empty())
         return;
@@ -290,7 +290,7 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
 
 // Time axis
 void
-STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vector<float> *result)
+STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result)
 {
     if (X.empty())
         return;
@@ -322,6 +322,8 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
             }
 
             (*result)[i] = _hWins[i][_hWins[i].size()/2];
+
+            _hValuesHistories[i].freeze();
         }
     }
     else
@@ -329,16 +331,19 @@ STNAlgo::medfilt1_h(const deque<vector<float> > &X, int nMedianH, int col, vecto
         for (int i = 0; i < result->size(); i++)
         {
             float newValue = 0.0;
-            // The newest value if X[0]
+            // The newest value is X[0]
+            //if (!X.empty())
+            //    newValue = X[0][i];
+
+            // The newest value is on the right
             if (!X.empty())
-                newValue = X[0][i];
+                newValue = X[X.size() - 1][i];
                 
             insert_sorted(_hWins[i], newValue);
 
-            _hValuesHistories[i].push_back(newValue);
-
             float oldestValue = _hValuesHistories[i][0];
-            _hValuesHistories[i].pop_front();
+            
+            _hValuesHistories[i].push_pop(newValue);
 
             remove_sorted(_hWins[i], oldestValue);
             
