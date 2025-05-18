@@ -179,7 +179,7 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
     {
         for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
         {
-            if ((j >= 0) || (j < freqs.size()))
+            if ((j >= 0) && (j < freqs.size()))
                 win[j - i + nMedianV/2] = freqs[j];
             else
                 win[j - i + nMedianV/2] = 0.0;                              
