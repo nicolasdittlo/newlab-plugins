@@ -32,6 +32,9 @@
 #define FFT_SIZE_COEFF_STEP0 5 //6 // fft size for 5: 8192 at 44100Hz
 #define FFT_SIZE_COEFF_STEP1 86 //43 // fft size for 86: 512 at 44100Hz
 
+// Enable or disable transients extraction
+#define EXTRACT_TRANSIENTS 1 //0
+
 STNProcessor::STNProcessor()
 {
     _overlapAddStep0 = NULL;
@@ -190,6 +193,7 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     vector<float> &xs = samplesStep0[0];
     vector<float> &xres = samplesStep0[1];
 
+#if EXTRACT_TRANSIENTS
     // Step 1
     _overlapAddStep1->feed(xres);
 
@@ -204,18 +208,23 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     // Step 1 delay
     if (_step1Delay != NULL)
         _step1Delay->processSamples(&xs);
-
+#else
+    vector<float> &xn = xres;
+#endif
+    
     // Apply gains
     if (_muteSines)
         Utils::multValue(&xs, 0.0);
     else
         Utils::multValue(&xs, _sinesMix);
 
+#if EXTRACT_TRANSIENTS
     if (_muteTransients)
         Utils::multValue(&xt, 0.0);
     else
         Utils::multValue(&xt, _transientsMix);
-
+#endif
+    
     if (_muteNoise)
         Utils::multValue(&xn, 0.0);
     else
@@ -227,7 +236,11 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     for (int i = 0; i < output->size(); i++)
     {
         (*output)[i] += xs[i];
+
+#if EXTRACT_TRANSIENTS
         (*output)[i] += xt[i];
+#endif
+        
         (*output)[i] += xn[i];
     }
 }
