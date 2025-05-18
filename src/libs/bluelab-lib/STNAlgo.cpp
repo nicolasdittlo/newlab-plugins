@@ -214,14 +214,16 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
     result->resize(freqs.size());
                        
     vector<float> win;
-    deque<float> valuesHistory;
+    bl_queue<float> valuesHistory;
+
+    int halfMedianV = nMedianV/2;
     
     for (int i = 0; i < freqs.size(); i++)
     {
         if (i == 0)
             // First time, fill the whole window
         {
-            for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
+            for (int j = i - halfMedianV; j < i + halfMedianV; j++)
             {
                 if ((j >= 0) && (j < freqs.size()))
                 {
@@ -234,19 +236,19 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
                     valuesHistory.push_back(0.0);
                 }
             }
+
+            valuesHistory.freeze();
         }
         else
         {
             float newValue = 0.0;
-            if (i + nMedianV/2 - 1 < freqs.size())
-                newValue = freqs[i + nMedianV/2 - 1];
+            if (i + halfMedianV - 1 < freqs.size())
+                newValue = freqs[i + halfMedianV - 1];
 
             insert_sorted(win, newValue);
-
-            valuesHistory.push_back(newValue);
-            
             float oldestValue = valuesHistory[0];
-            valuesHistory.pop_front();
+                        
+            valuesHistory.push_pop(newValue);
 
             remove_sorted(win, oldestValue);
         }
