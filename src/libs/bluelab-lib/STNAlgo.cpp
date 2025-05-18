@@ -223,7 +223,7 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
         {
             for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
             {
-                if ((j >= 0) || (j < freqs.size()))
+                if ((j >= 0) && (j < freqs.size()))
                 {
                     insert_sorted(win, freqs[j]);
                     valuesHistory.push_back(freqs[j]);
