@@ -25,6 +25,11 @@ using namespace std;
 #include "Utils.h"
 #include "STNAlgo.h"
 
+// No optimization
+#define MEDFILT_V_NO_OPTIM 0
+#define MEDFILT_H_NO_OPTIM 0
+
+// Custom optimization
 #define MEDFILT_V_OPTIM 1
 #define MEDFILT_H_OPTIM 1
 
@@ -152,7 +157,7 @@ STNAlgo::decSTN(const vector<float> &Rt, float G2, float G1,
         (*N)[i] = 1.0 - (*S)[i] - (*T)[i];
 }
 
-#if !MEDFILT_V_OPTIM
+#if MEDFILT_V_NO_OPTIM
 // Freq axis
 void
 STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result)
@@ -191,9 +196,9 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
         (*result)[i] = win[win.size()/2];
     }
 }
+#endif
 
-#else //MEDFILT_V_OPTIM
-
+#if MEDFILT_V_OPTIM
 // Freq axis
 void
 STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result)
@@ -258,7 +263,7 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
 }
 #endif
 
-#if !MEDFILT_H_OPTIM
+#if MEDFILT_H_NO_OPTIM
 // Time axis
 void
 STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result)
@@ -270,7 +275,7 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
 
     vector<float> win;
     win.resize(nMedianH);
-        
+
     for (int i = 0; i < result->size(); i++)
     {
         for (int j = col - nMedianH/2; j < col + nMedianH/2; j++)
@@ -287,9 +292,9 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
         (*result)[i] = win[win.size()/2];
     }
 }
+#endif
 
-#else // MEDFILT_H_OPTIM
-
+#if MEDFILT_H_OPTIM
 // Time axis
 void
 STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result)
@@ -299,6 +304,8 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
 
     result->resize(X[0].size());
     Utils::fillZero(result);
+
+    int halfMedianH = nMedianH/2;
     
     if (_hWins.empty())
         // init, fill the windows
@@ -308,7 +315,7 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
         
         for (int i = 0; i < result->size(); i++)
         {    
-            for (int j = col - nMedianH/2; j < col + nMedianH/2; j++)
+            for (int j = col - halfMedianH; j < col + halfMedianH; j++)
             {
                 if ((j >= 0) && (j < X.size()))
                 {
