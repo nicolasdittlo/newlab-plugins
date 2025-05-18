@@ -206,17 +206,20 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
         _step1Delay->processSamples(&xs);
 
     // Apply gains
-    Utils::multValue(&xs, _sinesMix);
     if (_muteSines)
         Utils::multValue(&xs, 0.0);
+    else
+        Utils::multValue(&xs, _sinesMix);
 
-    Utils::multValue(&xt, _transientsMix);
     if (_muteTransients)
         Utils::multValue(&xt, 0.0);
+    else
+        Utils::multValue(&xt, _transientsMix);
 
-    Utils::multValue(&xn, _noiseMix);
     if (_muteNoise)
         Utils::multValue(&xn, 0.0);
+    else
+        Utils::multValue(&xn, _noiseMix);
 
     // Sum
     output->resize(input.size());
