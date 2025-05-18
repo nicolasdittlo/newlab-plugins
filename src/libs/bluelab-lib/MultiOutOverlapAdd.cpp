@@ -172,20 +172,24 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
         {
             for (int i = 0; i < _numOutputs; i++)
             {
+                vector<complex<float> > &tmpCompBufOutI = _tmpCompBufOut[i];
+                
                 // Convert to JUCE real format for inverse FFT
                 juce::HeapBlock<float> ifftInput(_fftSize * 2);
-                for (int k = 0; k < _tmpCompBufOut[i].size(); k++)
+                for (int k = 0; k < tmpCompBufOutI.size(); k++)
                 {
-                    ifftInput[k*2] = _tmpCompBufOut[i][k].real();
-                    ifftInput[k*2 + 1] = _tmpCompBufOut[i][k].imag();
+                    ifftInput[k*2] = tmpCompBufOutI[k].real();
+                    ifftInput[k*2 + 1] = tmpCompBufOutI[k].imag();
                 }
 
                 // Apply inverse FFT
                 _backwardFFT->performRealOnlyInverseTransform(ifftInput.get());
-            
+
+                vector<float> &tmpSampBufIn2I = _tmpSampBufIn2[i];
+                                
                 // Convert back to real samples
-                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
-                    _tmpSampBufIn2[i][k] = ifftInput[k];
+                for (int k = 0; k < tmpSampBufIn2I.size(); k++)
+                    tmpSampBufIn2I[k] = ifftInput[k];
             
                 // Apply resynth coeff
                 //float resynthCoeff = 1.0 / _fftSize;
@@ -194,26 +198,28 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
 
                 // Apply resynth coeff
                 float resynthCoeff = 0.66*_fftSize / 2.0;
-                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
-                    _tmpSampBufIn2[i][k] *= resynthCoeff;
+                for (int k = 0; k < tmpSampBufIn2I.size(); k++)
+                    tmpSampBufIn2I[k] *= resynthCoeff;
             }
             
             processSamples(&_tmpSampBufIn2);
 
             for (int i = 0; i < _numOutputs; i++)
             {
+                vector<float> &tmpSampBufIn2I = _tmpSampBufIn2[i];
+                
                 // Apply synthesis window
-                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
-                    _tmpSampBufIn2[i][k] *= _synthWin[k];
+                for (int k = 0; k < tmpSampBufIn2I.size(); k++)
+                    tmpSampBufIn2I[k] *= _synthWin[k];
             
                 // Output
                 _circSampBufsOut[i].peek(_tmpSampBufOut.data(),
                                          _synthWin.size());
 
-                for (int k = 0; k < _tmpSampBufIn2[i].size(); k++)
-                    _tmpSampBufIn2[i][k] += _tmpSampBufOut[k];
+                for (int k = 0; k < tmpSampBufIn2I.size(); k++)
+                    tmpSampBufIn2I[k] += _tmpSampBufOut[k];
 
-                _circSampBufsOut[i].poke(_tmpSampBufIn2[i].data(),
+                _circSampBufsOut[i].poke(tmpSampBufIn2I.data(),
                                          _synthWin.size());
             
                 _circSampBufsOut[i].pop(_fftSize / _overlap);
@@ -226,7 +232,7 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
             
                 int size = _outSamples[i].size();
                 _outSamples[i].resize(size + _fftSize / _overlap);
-                memcpy(&_outSamples[i].data()[size], _tmpSampBufIn2[i].data(), _fftSize / _overlap * sizeof(float));
+                memcpy(&_outSamples[i].data()[size], tmpSampBufIn2I.data(), _fftSize / _overlap * sizeof(float));
             }
         }
     }
