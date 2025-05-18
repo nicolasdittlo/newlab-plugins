@@ -44,8 +44,7 @@ template<typename T>
 void
 remove_sorted(std::vector<T> &vec, T const &item)
 {
-    auto lb = std::lower_bound(vec.begin(), vec.end(), item);
-    vec.erase(lb);
+    vec.erase(std::lower_bound(vec.begin(), vec.end(), item));
 }
 
 STNAlgo::STNAlgo() {}
