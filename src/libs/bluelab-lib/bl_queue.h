@@ -19,6 +19,8 @@
 #ifndef NL_QUEUE_H
 #define NL_QUEUE_H
 
+#include <assert.h>
+
 #include <vector>
 #include <deque>
 using namespace std;
@@ -142,6 +144,34 @@ public:
             return mData[(mCursor + index) % mData.size()];
         else
             return mNonFixedSizeData[index];
+    }
+
+    vector<T> &vec()
+    {
+        assert(mFixedSize);
+        
+        return mData;
+    }
+    
+    const vector<T> &vec() const
+    {
+        assert(mFixedSize);
+        
+        return mData;
+    }
+
+    T *data()
+    {
+        assert(mFixedSize);
+        
+        return mData.data();
+    }
+
+    const T *data() const
+    {
+        assert(mFixedSize);
+        
+        return mData.data();
     }
     
  protected:

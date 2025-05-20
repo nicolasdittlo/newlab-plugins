@@ -25,6 +25,7 @@ using namespace std;
 
 #include "bl_queue.h"
 
+class HistogramMedianFilter;
 class STNAlgo
 {
  public:
@@ -49,13 +50,17 @@ class STNAlgo
         
 protected:
     // Freq axis
-    static void medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result);
+    /*static*/ void medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, vector<float> *result);
 
     // Time axis
     void medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result);
 
+    // For OPTIM
     vector<vector<float> > _hWins;
     vector<bl_queue<float> > _hValuesHistories;
+
+    // For OPTIM2
+    vector<HistogramMedianFilter *> _hFilters;
 };
 
 #endif
