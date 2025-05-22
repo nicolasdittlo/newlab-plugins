@@ -30,12 +30,12 @@ using namespace std;
 #define MEDFILT_H_NO_OPTIM 0
 
 // Optimization for /rolling/ median
-#define MEDFILT_V_OPTIM 0 //1
-#define MEDFILT_H_OPTIM 0 //1
+#define MEDFILT_V_OPTIM 0
+#define MEDFILT_H_OPTIM 0
 
 // Histogram optimization
-#define MEDFILT_V_OPTIM2 1 // 0
-#define MEDFILT_H_OPTIM2 1 // 0
+#define MEDFILT_V_OPTIM2 1
+#define MEDFILT_H_OPTIM2 1
 
 #if (defined MEDFILT_V_OPTIM) || (defined MEDFILT_H_OPTIM)
 template<typename T>
@@ -235,6 +235,7 @@ public:
     HistogramMedianFilter(size_t windowSize, float minValue, float maxValue, size_t numBins = 8192)
         : _windowSize(windowSize), _numBins(numBins),
           _minValue(minValue), _maxValue(maxValue),
+          _rangeInv(1.0 / (_maxValue - _minValue)),
           _histogram(numBins), _data(), _halfWindow((windowSize + 1) / 2),
           _currentSize(0) {}
 
@@ -267,6 +268,7 @@ private:
     size_t _windowSize;
     size_t _numBins;
     float _minValue, _maxValue;
+    float _rangeInv;
     size_t _halfWindow;
     size_t _currentSize;
 
@@ -275,10 +277,11 @@ private:
 
     size_t valueToBin(float value) const
     {
-        float norm = (value - _minValue) / (_maxValue - _minValue);
-        norm = std::clamp(norm, 0.0f, 1.0f);
+        float norm = (value - _minValue) * _rangeInv;
+        //norm = std::clamp(norm, 0.0f, 1.0f);
         size_t bin = static_cast<size_t>(norm * (_numBins - 1));
-        return std::min(bin, _numBins - 1);
+        //return std::min(bin, _numBins - 1);
+        return bin;
     }
 
     float computeExactMedian() const
