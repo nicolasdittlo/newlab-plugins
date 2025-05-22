@@ -30,12 +30,11 @@ using namespace std;
 #define MEDFILT_H_NO_OPTIM 0
 
 // Custom optimization
-#define MEDFILT_V_OPTIM 1 //0
-#define MEDFILT_H_OPTIM 1 //0
+#define MEDFILT_V_OPTIM 0 //1
+#define MEDFILT_H_OPTIM 0 //1
 
-#define MEDFILT_V_OPTIM2 0 //1
-#define MEDFILT_H_OPTIM2 0 //1
-
+#define MEDFILT_V_OPTIM2 1 // 0
+#define MEDFILT_H_OPTIM2 1 // 0
 
 #if (defined MEDFILT_V_OPTIM) || (defined MEDFILT_H_OPTIM)
 template<typename T>
@@ -56,9 +55,13 @@ remove_sorted(std::vector<T> &vec, T const &item)
 
 #if (defined MEDFILT_V_OPTIM2) || (defined MEDFILT_H_OPTIM2)
 
+#define USE_HISTOGRAM_V1 0
+#define USE_HISTOGRAM_V2 0
+#define USE_HISTOGRAM_V3 1
+
 #define HISTO_SIZE 8192 //131072 //8192
 
-#if 1 //0 // orig
+#if USE_HISTOGRAM_V1
 // This method cuts sines high frequencies, but preserve transients high frequencies
 //
 // (think to modify the instantiation)
@@ -146,7 +149,7 @@ private:
 // This method gives more high frequencies for sines (which is good), but cuts the transients high frequencies.
 //
 // (think to modify the instantiation)
-#if 0 //1 //0 //
+#if USE_HISTOGRAM_V2
 class HistogramMedianFilter
 {
 public:
@@ -215,6 +218,69 @@ private:
         return static_cast<uint16_t>(numBins - 1); // Fallback
     }
 };
+#endif
+
+#if USE_HISTOGRAM_V3
+class HistogramMedianFilter {
+public:
+    HistogramMedianFilter(size_t windowSize, float minValue, float maxValue, size_t numBins = 8192)
+        : windowSize(windowSize), numBins(numBins),
+          minValue(minValue), maxValue(maxValue),
+          histogram(numBins), data(), halfWindow((windowSize + 1) / 2),
+          currentSize(0) {}
+
+    // TODO
+    void reset() {}
+    
+    float process(float sample) {
+        size_t binIndex = valueToBin(sample);
+        data.push_back({ sample, binIndex });
+        insert_sorted(histogram[binIndex], sample);
+        currentSize++;
+
+        if (currentSize > windowSize) {
+            auto [oldValue, oldBin] = data.front();
+            data.pop_front();
+            remove_sorted(histogram[oldBin], oldValue);
+            currentSize--;
+        }
+
+        return computeExactMedian();
+    }
+
+private:
+    size_t windowSize;
+    size_t numBins;
+    float minValue, maxValue;
+    size_t halfWindow;
+    size_t currentSize;
+
+    std::vector<std::vector<float>> histogram;
+    std::deque<std::pair<float, size_t>> data;
+
+    size_t valueToBin(float value) const {
+        float norm = (value - minValue) / (maxValue - minValue);
+        norm = std::clamp(norm, 0.0f, 1.0f);
+        size_t bin = static_cast<size_t>(norm * (numBins - 1));
+        return std::min(bin, numBins - 1);
+    }
+
+    float computeExactMedian() const {
+        size_t total = currentSize;
+        size_t targetIndex = total / 2;
+        size_t count = 0;
+
+        for (const auto& bin : histogram) {
+            if (count + bin.size() > targetIndex) {
+                return bin[targetIndex - count];  // exact median from sorted bin
+            }
+            count += bin.size();
+        }
+
+        return 0.0f; // Fallback (should never happen)
+    }
+};
+
 #endif
 
 #endif
@@ -462,9 +528,16 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
 
     result->resize(freqs.size());
 
+#if USE_HISTOGRAM_V1
     HistogramMedianFilter filter(HISTO_SIZE, nMedianV, 0.0, 1.0);
-    //HistogramMedianFilter filter(nMedianV);
-        
+#endif
+#if USE_HISTOGRAM_V2
+    HistogramMedianFilter filter(nMedianV);
+#endif
+#if USE_HISTOGRAM_V3
+    HistogramMedianFilter filter(nMedianV, 0.0, 1.0, HISTO_SIZE);
+#endif
+    
     for (int i = 0; i < freqs.size(); i++)
         (*result)[i] = filter.process(freqs[i]);
 }
@@ -583,8 +656,15 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
     if (_hFilters.empty())
     {
         for (int i = 0; i < result->size(); i++)
+#if USE_HISTOGRAM_V1
             _hFilters.push_back(new HistogramMedianFilter(HISTO_SIZE, nMedianH, 0.0, 1.0));
-        //_hFilters.push_back(new HistogramMedianFilter(nMedianH));
+#endif
+#if USE_HISTOGRAM_V2
+        _hFilters.push_back(new HistogramMedianFilter(nMedianH));
+#endif
+#if USE_HISTOGRAM_V3
+        _hFilters.push_back(new HistogramMedianFilter(nMedianH, 0.0, 1.0, HISTO_SIZE));
+#endif
     }
 
     for (int i = 0; i < result->size(); i++)
