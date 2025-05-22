@@ -232,16 +232,13 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
 
     // Sum
     output->resize(input.size());
-    Utils::fillZero(output);
     for (int i = 0; i < output->size(); i++)
     {
-        (*output)[i] += xs[i];
-
 #if EXTRACT_TRANSIENTS
-        (*output)[i] += xt[i];
+        (*output)[i] = xs[i] + xt[i] + xn[i];
+#else
+        (*output)[i] = xs[i] + xn[i];
 #endif
-        
-        (*output)[i] += xn[i];
     }
 }
 

@@ -80,7 +80,7 @@ public:
     }
 
     float process(float sample)
-    {   
+    {
         // Remove oldest sample from histogram
         if (_count >= _windowSize)
         {
