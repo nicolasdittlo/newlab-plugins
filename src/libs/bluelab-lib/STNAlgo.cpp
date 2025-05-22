@@ -56,8 +56,8 @@ remove_sorted(std::vector<T> &vec, T const &item)
 
 #if (defined MEDFILT_V_OPTIM2) || (defined MEDFILT_H_OPTIM2)
 
-#define USE_HISTOGRAM_V1 1
-#define USE_HISTOGRAM_V2 0
+#define USE_HISTOGRAM_V1 0 //1
+#define USE_HISTOGRAM_V2 1
 #define USE_HISTOGRAM_V3 0
 
 #define HISTO_SIZE 8192 //131072
@@ -208,8 +208,10 @@ private:
 
     uint16_t quantize(float value) const
     {
-        value = std::clamp(value, 0.0f, 1.0f);
-        return static_cast<uint16_t>(value * (_numBins - 1) + 0.5f);
+        //value = std::clamp(value, 0.0f, 1.0f);
+        //return static_cast<uint16_t>(value * (_numBins - 1) + 0.5f);
+        uint16_t bin = value * (_numBins - 1) + 0.5f;
+        return std::clamp(bin, (uint16_t)0, (uint16_t)(_numBins - 1));
     }
 
     float dequantize(uint16_t bin) const
@@ -280,10 +282,11 @@ private:
     size_t valueToBin(float value) const
     {
         float norm = (value - _minValue) * _rangeInv;
-        norm = std::clamp(norm, 0.0f, 1.0f);
+        //norm = std::clamp(norm, 0.0f, 1.0f);
         size_t bin = static_cast<size_t>(norm * (_numBins - 1));
         //return std::min(bin, _numBins - 1);
-        return bin;
+        return std::clamp(bin, 0, _numBins - 1);
+        //return bin;
     }
 
     float computeExactMedian() const
@@ -732,6 +735,5 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
                 (*result)[i] = _hFilters[i]->process(0.0);
         }
     }
-    
 }
 #endif
