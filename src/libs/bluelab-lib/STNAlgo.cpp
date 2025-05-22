@@ -555,8 +555,8 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
         }
         else
         {
-            if (i + nMedianV/2 - 1 < freqs.size())
-                (*result)[i] = filter.process(freqs[i + nMedianV/2 - 1]);
+            if (i + nMedianV/2 /*- 1*/ < freqs.size())
+                (*result)[i] = filter.process(freqs[i + nMedianV/2 /*- 1*/]);
             else
                 (*result)[i] = filter.process(0.0);
         }
