@@ -30,14 +30,12 @@ using namespace std;
 #define MEDFILT_H_NO_OPTIM 0
 
 // Custom optimization
-#define MEDFILT_V_OPTIM 0 // 1
-#define MEDFILT_H_OPTIM 0 //1
+#define MEDFILT_V_OPTIM 1 //0
+#define MEDFILT_H_OPTIM 1 //0
 
-#define MEDFILT_V_OPTIM2 1 // 0
-#define MEDFILT_H_OPTIM2 1 // 0
+#define MEDFILT_V_OPTIM2 0 //1
+#define MEDFILT_H_OPTIM2 0 //1
 
-// For optim 2
-#define HISTO_SIZE 8192 //131072 //8192
 
 #if (defined MEDFILT_V_OPTIM) || (defined MEDFILT_H_OPTIM)
 template<typename T>
@@ -55,84 +53,172 @@ remove_sorted(std::vector<T> &vec, T const &item)
 }
 #endif
 
+
 #if (defined MEDFILT_V_OPTIM2) || (defined MEDFILT_H_OPTIM2)
+
+#define HISTO_SIZE 8192 //131072 //8192
+
+#if 1 //0 // orig
+// This method cuts sines high frequencies, but preserve transients high frequencies
+//
+// (think to modify the instantiation)
+
 class HistogramMedianFilter
 {
 public:
     HistogramMedianFilter(int numBins = 129, int windowSize = 51,
                           float minValue = -1.0f, float maxValue = 1.0f)
-    : binCount(numBins), windowSize(windowSize),
-      minValue(minValue), maxValue(maxValue),
-      histogram(numBins, 0), buffer(windowSize, 0.0f), bufferIndex(0), count(0)
+    : _binCount(numBins), _windowSize(windowSize),
+      _minValue(minValue), _maxValue(maxValue),
+      _histogram(numBins, 0), _buffer(windowSize, 0.0f), _bufferIndex(0), _count(0)
     {
-        binWidth = (maxValue - minValue) / binCount;
+        _binWidth = (_maxValue - _minValue) / _binCount;
     }
 
     float process(float sample)
-    {
+    {   
         // Remove oldest sample from histogram
-        if (count >= windowSize)
+        if (_count >= _windowSize)
         {
-            int oldBin = sampleToBin(buffer[bufferIndex]);
-            histogram[oldBin]--;
+            int oldBin = sampleToBin(_buffer[_bufferIndex]);
+            _histogram[oldBin]--;
         }
         else
         {
-            count++;
+            _count++;
         }
 
         // Add new sample to buffer and histogram
-        buffer[bufferIndex] = sample;
+        _buffer[_bufferIndex] = sample;
         int newBin = sampleToBin(sample);
-        histogram[newBin]++;
-        bufferIndex = (bufferIndex + 1) % windowSize;
+        _histogram[newBin]++;
+        _bufferIndex = (_bufferIndex + 1) % _windowSize;
 
-        return getMedianFromHistogram();
+        float result = getMedianFromHistogram();
+        
+        return result;
     }
 
     void reset(float value = 0.0f)
     {
-        std::fill(histogram.begin(), histogram.end(), 0);
-        std::fill(buffer.begin(), buffer.end(), value);
-        count = 0;
-        bufferIndex = 0;
+        std::fill(_histogram.begin(), _histogram.end(), 0);
+        std::fill(_buffer.begin(), _buffer.end(), value);
+        _count = 0;
+        _bufferIndex = 0;
     }
 
 private:
-    int binCount;
-    int windowSize;
-    int bufferIndex;
-    int count;
-    float minValue;
-    float maxValue;
-    float binWidth;
+    int _binCount;
+    int _windowSize;
+    int _bufferIndex;
+    int _count;
+    float _minValue;
+    float _maxValue;
+    float _binWidth;
 
-    std::vector<int> histogram;
-    std::vector<float> buffer;
+    std::vector<int> _histogram;
+    std::vector<float> _buffer;
 
     int sampleToBin(float sample) const
     {
-        int bin = static_cast<int>((sample - minValue) / binWidth);
-        return std::clamp(bin, 0, binCount - 1);
+        int bin = static_cast<int>((sample - _minValue) / _binWidth);
+        return std::clamp(bin, 0, _binCount - 1);
     }
 
     float getMedianFromHistogram() const
     {
-        int target = count / 2;
+        int target = _count / 2;
         int cumulative = 0;
-        for (int i = 0; i < binCount; ++i)
+        for (int i = 0; i < _binCount; ++i)
         {
-            cumulative += histogram[i];
+            cumulative += _histogram[i];
             if (cumulative > target)
             {
                 // Return center of bin
-                return minValue + (i + 0.5f) * binWidth;
+                return _minValue + (i + 0.5f) * _binWidth;
             }
         }
-        return maxValue; // Fallback (should never hit)
+        return _maxValue; // Fallback (should never hit)
     }
 };
 #endif
+
+// This method gives more high frequencies for sines (which is good), but cuts the transients high frequencies.
+//
+// (think to modify the instantiation)
+#if 0 //1 //0 //
+class HistogramMedianFilter
+{
+public:
+    HistogramMedianFilter(size_t windowSize, size_t numBins = 8192)
+        : windowSize(windowSize),
+          numBins(numBins),
+          histogram(numBins, 0),
+          buffer(windowSize, 0),
+          insertIndex(0),
+          count(0)
+    {}
+
+    // TODO
+    void reset() {}
+    
+    float process(float input)
+    {
+        // Quantize input to bin index
+        uint16_t newBin = quantize(input);
+
+        // Remove oldest value
+        if (count == windowSize) {
+            uint16_t oldBin = buffer[insertIndex];
+            histogram[oldBin]--;
+        } else {
+            count++;
+        }
+
+        // Insert new value
+        buffer[insertIndex] = newBin;
+        histogram[newBin]++;
+        insertIndex = (insertIndex + 1) % windowSize;
+
+        // Return dequantized median
+        return dequantize(findMedianBin());
+    }
+
+private:
+    size_t windowSize;
+    size_t numBins;
+    std::vector<uint16_t> buffer;
+    std::vector<uint32_t> histogram;
+    size_t insertIndex;
+    size_t count;
+
+    uint16_t quantize(float value) const
+    {
+        value = std::clamp(value, 0.0f, 1.0f);
+        return static_cast<uint16_t>(value * (numBins - 1) + 0.5f);
+    }
+
+    float dequantize(uint16_t bin) const
+    {
+        return static_cast<float>(bin) / static_cast<float>(numBins - 1);
+    }
+
+    uint16_t findMedianBin() const
+    {
+        size_t target = count / 2;
+        size_t cumulative = 0;
+        for (size_t i = 0; i < numBins; ++i) {
+            cumulative += histogram[i];
+            if (cumulative > target)
+                return static_cast<uint16_t>(i);
+        }
+        return static_cast<uint16_t>(numBins - 1); // Fallback
+    }
+};
+#endif
+
+#endif
+
 
 STNAlgo::STNAlgo() {}
 
@@ -158,13 +244,13 @@ STNAlgo::transientness(const bl_queue<vector<float> > &X,
                        vector<float> *result)
 {
     int col = nMedianH/2/* + 1*/;
-    
+
     vector<float> X_v_median;
     medfilt1_v(X, nMedianV, col, &X_v_median);
 
     vector<float> X_h_median;
     medfilt1_h(X, nMedianH, col, &X_h_median);
-
+        
     // X_v_median and X_h_median should have the same size
 
     result->resize(X_v_median.size());
@@ -377,7 +463,8 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
     result->resize(freqs.size());
 
     HistogramMedianFilter filter(HISTO_SIZE, nMedianV, 0.0, 1.0);
-    
+    //HistogramMedianFilter filter(nMedianV);
+        
     for (int i = 0; i < freqs.size(); i++)
         (*result)[i] = filter.process(freqs[i]);
 }
@@ -497,6 +584,7 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
     {
         for (int i = 0; i < result->size(); i++)
             _hFilters.push_back(new HistogramMedianFilter(HISTO_SIZE, nMedianH, 0.0, 1.0));
+        //_hFilters.push_back(new HistogramMedianFilter(nMedianH));
     }
 
     for (int i = 0; i < result->size(); i++)
