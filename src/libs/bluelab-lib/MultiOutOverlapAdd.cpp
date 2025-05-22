@@ -144,8 +144,10 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
             
             // Convert real input to JUCE format
             juce::HeapBlock<float> fftInput(2*_fftSize);
-            for (int k = 0; k < _tmpSampBufIn.size(); k++)
-                fftInput[k] = _tmpSampBufIn[k];
+
+            //for (int k = 0; k < _tmpSampBufIn.size(); k++)
+            //    fftInput[k] = _tmpSampBufIn[k];
+            memcpy(fftInput.get(), _tmpSampBufIn.data(), _tmpSampBufIn.size()*sizeof(float));
             
             // Apply FFT
             _forwardFFT->performRealOnlyForwardTransform(fftInput.get(), true);
@@ -188,9 +190,11 @@ MultiOutOverlapAdd::feed(const vector<float> &samples)
                 vector<float> &tmpSampBufIn2I = _tmpSampBufIn2[i];
                                 
                 // Convert back to real samples
-                for (int k = 0; k < tmpSampBufIn2I.size(); k++)
-                    tmpSampBufIn2I[k] = ifftInput[k];
-            
+
+                //for (int k = 0; k < tmpSampBufIn2I.size(); k++)
+                //    tmpSampBufIn2I[k] = ifftInput[k];
+                memcpy(tmpSampBufIn2I.data(), ifftInput.get(), tmpSampBufIn2I.size()*sizeof(float));
+                
                 // Apply resynth coeff
                 //float resynthCoeff = 1.0 / _fftSize;
                 //for (int k = 0; k < _tmpSampBufIn.size(); k++)
