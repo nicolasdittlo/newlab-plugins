@@ -56,9 +56,9 @@ remove_sorted(std::vector<T> &vec, T const &item)
 
 #if (defined MEDFILT_V_OPTIM2) || (defined MEDFILT_H_OPTIM2)
 
-#define USE_HISTOGRAM_V1 0
+#define USE_HISTOGRAM_V1 1
 #define USE_HISTOGRAM_V2 0
-#define USE_HISTOGRAM_V3 1
+#define USE_HISTOGRAM_V3 0
 
 #define HISTO_SIZE 8192 //131072
 
@@ -75,9 +75,10 @@ public:
                           int numBins = 129)
     : _binCount(numBins), _windowSize(windowSize),
       _minValue(minValue), _maxValue(maxValue),
-      _histogram(numBins, 0), _buffer(windowSize, 0.0f), _bufferIndex(0), _count(0)
+      _histogram(numBins, 0), _buffer(windowSize, 0), _bufferIndex(0), _count(0)
     {
         _binWidth = (_maxValue - _minValue) / _binCount;
+        _binWidthInv = 1.0/_binWidth;
     }
 
     float process(float sample)
@@ -85,7 +86,7 @@ public:
         // Remove oldest sample from histogram
         if (_count >= _windowSize)
         {
-            int oldBin = sampleToBin(_buffer[_bufferIndex]);
+            int oldBin = _buffer[_bufferIndex];
             _histogram[oldBin]--;
         }
         else
@@ -94,8 +95,8 @@ public:
         }
 
         // Add new sample to buffer and histogram
-        _buffer[_bufferIndex] = sample;
         int newBin = sampleToBin(sample);
+        _buffer[_bufferIndex] = newBin;
         _histogram[newBin]++;
         _bufferIndex = (_bufferIndex + 1) % _windowSize;
 
@@ -107,7 +108,7 @@ public:
     void reset()
     {
         std::fill(_histogram.begin(), _histogram.end(), 0);
-        std::fill(_buffer.begin(), _buffer.end(), 0.0);
+        std::fill(_buffer.begin(), _buffer.end(), 0);
         _count = 0;
         _bufferIndex = 0;
     }
@@ -120,13 +121,14 @@ private:
     float _minValue;
     float _maxValue;
     float _binWidth;
-
+    float _binWidthInv;
+    
     std::vector<int> _histogram;
-    std::vector<float> _buffer;
+    std::vector<int> _buffer;
 
     int sampleToBin(float sample) const
     {
-        int bin = static_cast<int>((sample - _minValue) / _binWidth);
+        int bin = (sample - _minValue) * _binWidthInv;
         return std::clamp(bin, 0, _binCount - 1);
     }
 
@@ -278,7 +280,7 @@ private:
     size_t valueToBin(float value) const
     {
         float norm = (value - _minValue) * _rangeInv;
-        //norm = std::clamp(norm, 0.0f, 1.0f);
+        norm = std::clamp(norm, 0.0f, 1.0f);
         size_t bin = static_cast<size_t>(norm * (_numBins - 1));
         //return std::min(bin, _numBins - 1);
         return bin;
