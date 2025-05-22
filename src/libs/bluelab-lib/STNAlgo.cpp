@@ -56,16 +56,14 @@ remove_sorted(std::vector<T> &vec, T const &item)
 
 #if (defined MEDFILT_V_OPTIM2) || (defined MEDFILT_H_OPTIM2)
 
-#define USE_HISTOGRAM_V1 0 //1
-#define USE_HISTOGRAM_V2 1
+#define USE_HISTOGRAM_V1 1
+#define USE_HISTOGRAM_V2 0 //1
 #define USE_HISTOGRAM_V3 0
 
 #define HISTO_SIZE 8192 //131072
 
 #if USE_HISTOGRAM_V1
 // This method cuts sines high frequencies, but preserve transients high frequencies
-//
-// (think to modify the instantiation)
 
 class HistogramMedianFilter
 {
@@ -151,8 +149,6 @@ private:
 #endif
 
 // This method gives more high frequencies for sines (which is good), but cuts the transients high frequencies.
-//
-// (think to modify the instantiation)
 #if USE_HISTOGRAM_V2
 class HistogramMedianFilter
 {
@@ -208,8 +204,6 @@ private:
 
     uint16_t quantize(float value) const
     {
-        //value = std::clamp(value, 0.0f, 1.0f);
-        //return static_cast<uint16_t>(value * (_numBins - 1) + 0.5f);
         uint16_t bin = value * (_numBins - 1) + 0.5f;
         return std::clamp(bin, (uint16_t)0, (uint16_t)(_numBins - 1));
     }
@@ -233,6 +227,7 @@ private:
 };
 #endif
 
+// This method gives real median values, and is closer to the brute force one. But with more cost.
 #if USE_HISTOGRAM_V3
 class HistogramMedianFilter {
 public:
@@ -282,11 +277,8 @@ private:
     size_t valueToBin(float value) const
     {
         float norm = (value - _minValue) * _rangeInv;
-        //norm = std::clamp(norm, 0.0f, 1.0f);
         size_t bin = static_cast<size_t>(norm * (_numBins - 1));
-        //return std::min(bin, _numBins - 1);
-        return std::clamp(bin, 0, _numBins - 1);
-        //return bin;
+        return std::clamp(bin, (size_t)0, _numBins - (size_t)1);
     }
 
     float computeExactMedian() const
@@ -561,9 +553,6 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
     HistogramMedianFilter filter(nMedianV, HISTO_SIZE);
 #endif
     
-    //for (int i = 0; i < freqs.size(); i++)
-    //    (*result)[i] = filter.process(freqs[i]);
-    
     for (int i = 0; i < freqs.size(); i++)
     {
         if (i == 0)
@@ -664,6 +653,7 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
         for (int i = 0; i < result->size(); i++)
         {
             float newValue = 0.0;
+
             // The newest value is X[0]
             //if (!X.empty())
             //    newValue = X[0][i];
@@ -711,9 +701,6 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
         _hFilters.push_back(new HistogramMedianFilter(nMedianH, HISTO_SIZE));
 #endif
     }
-
-    //for (int i = 0; i < result->size(); i++)
-    //    (*result)[i] = _hFilters[i]->process(/*X[0][i]*/X[X.size()-1][i]);
 
     for (int i = 0; i < result->size(); i++)
     {
