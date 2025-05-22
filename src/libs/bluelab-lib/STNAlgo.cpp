@@ -538,8 +538,29 @@ STNAlgo::medfilt1_v(const bl_queue<vector<float> > &X, int nMedianV, int col, ve
     HistogramMedianFilter filter(nMedianV, 0.0, 1.0, HISTO_SIZE);
 #endif
     
+    //for (int i = 0; i < freqs.size(); i++)
+    //    (*result)[i] = filter.process(freqs[i]);
+    
     for (int i = 0; i < freqs.size(); i++)
-        (*result)[i] = filter.process(freqs[i]);
+    {
+        if (i == 0)
+        {
+            for (int j = i - nMedianV/2; j < i + nMedianV/2; j++)
+            {
+                if ((j >= 0) && (j < freqs.size()))
+                    (*result)[i] = filter.process(freqs[i]);
+                else
+                    (*result)[i] = filter.process(0.0);
+            }
+        }
+        else
+        {
+            if (i + nMedianV/2 - 1 < freqs.size())
+                (*result)[i] = filter.process(freqs[i + nMedianV/2 - 1]);
+            else
+                (*result)[i] = filter.process(0.0);
+        }
+    }
 }
 #endif
 
@@ -652,9 +673,13 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
 
     result->resize(X[0].size());
 
+    bool firstTime = false;
+    
     // TODO: make adaptive to nMedianH
     if (_hFilters.empty())
     {
+        firstTime = true;
+        
         for (int i = 0; i < result->size(); i++)
 #if USE_HISTOGRAM_V1
             _hFilters.push_back(new HistogramMedianFilter(HISTO_SIZE, nMedianH, 0.0, 1.0));
@@ -667,7 +692,29 @@ STNAlgo::medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, ve
 #endif
     }
 
+    //for (int i = 0; i < result->size(); i++)
+    //    (*result)[i] = _hFilters[i]->process(/*X[0][i]*/X[X.size()-1][i]);
+
     for (int i = 0; i < result->size(); i++)
-        (*result)[i] = _hFilters[i]->process(/*X[0][i]*/X[X.size()-1][i]);
+    {
+        if (firstTime)
+        {
+            for (int j = col - nMedianH/2; j < col + nMedianH/2; j++)
+            {
+                if ((j >= 0) && (j < X.size()))
+                    (*result)[i] = _hFilters[i]->process(X[j][i]);
+                else
+                    (*result)[i] = _hFilters[i]->process(0.0);
+            }
+        }
+        else
+        {
+            if (col + nMedianH/2 - 1 < X.size())
+                (*result)[i] = _hFilters[i]->process(X[col + nMedianH/2 - 1][i]);
+            else
+                (*result)[i] = _hFilters[i]->process(0.0);
+        }
+    }
+    
 }
 #endif
