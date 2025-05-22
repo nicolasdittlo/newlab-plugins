@@ -1,6 +1,6 @@
 v7.0.1
 - initial version
 
-- takes too much CPU
+- optimized median %CPU using histograms (prev: 17%, new: 12%)
 - does not handle vibrato well
 - plugin latency is buggy
