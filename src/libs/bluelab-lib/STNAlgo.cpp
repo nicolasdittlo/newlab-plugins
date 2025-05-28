@@ -304,7 +304,6 @@ private:
 
 #endif
 
-
 STNAlgo::STNAlgo() {}
 
 STNAlgo::~STNAlgo()

@@ -42,7 +42,7 @@ class STNAlgo
     void transientness(const bl_queue<vector<float> > &X,
                        int nMedianH, int nMedianV,
                        vector<float> *result);
-    
+
     static void computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedianH, int *nMedianV);
 
     static void decSTN(const vector<float> &Rt, float G2, float G1,
@@ -54,7 +54,7 @@ protected:
 
     // Time axis
     void medfilt1_h(const bl_queue<vector<float> > &X, int nMedianH, int col, vector<float> *result);
-
+        
     // For OPTIM
     vector<vector<float> > _hWins;
     vector<bl_queue<float> > _hValuesHistories;
