@@ -122,8 +122,8 @@ STNProcessor::getLatency(int blockSize)
         
         latency += fftSize - hopSize;
 
-        if (blockSize < hopSize)
-            latency += hopSize - blockSize;
+        //if (blockSize < hopSize)
+        //    latency += hopSize - blockSize;
     }
     
     if (_processorStep0 != NULL)
