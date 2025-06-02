@@ -24,6 +24,9 @@
 #include "Utils.h"
 #include "MultiOutOverlapAdd.h"
 
+// Must be greater or equal to _fftSize*2
+#define MAX_BLOCK_SIZE 16384
+
 // MultiOutOverlapAddProcessor
 MultiOutOverlapAddProcessor::MultiOutOverlapAddProcessor() {}
 
@@ -58,15 +61,15 @@ MultiOutOverlapAdd::setFftSize(int fftSize)
     _backwardFFT = std::make_unique<juce::dsp::FFT>(log2(fftSize));
 
     vector<float> zeros;
-    zeros.resize(_fftSize * 2);
+    zeros.resize(MAX_BLOCK_SIZE);
     memset(zeros.data(), 0, zeros.size() * sizeof(float));
 
-    _circSampBufsIn.setCapacity(_fftSize * 2);
+    _circSampBufsIn.setCapacity(MAX_BLOCK_SIZE);
 
     _circSampBufsOut.resize(_numOutputs);
     for (int i = 0; i < _numOutputs; i++)
     {
-        _circSampBufsOut[i].setCapacity(_fftSize * 2);
+        _circSampBufsOut[i].setCapacity(MAX_BLOCK_SIZE);
         _circSampBufsOut[i].push(zeros.data(), zeros.size());
     }
     
@@ -98,15 +101,15 @@ MultiOutOverlapAdd::setOverlap(int overlap)
     _overlap = overlap;
 
     vector<float> zeros;
-    zeros.resize(_fftSize * 2);
+    zeros.resize(MAX_BLOCK_SIZE);
     memset(zeros.data(), 0, zeros.size() * sizeof(float));
 
-    _circSampBufsIn.setCapacity(_fftSize * 2);
+    _circSampBufsIn.setCapacity(MAX_BLOCK_SIZE);
 
     _circSampBufsOut.resize(_numOutputs);
     for (int i = 0; i < _numOutputs; i++)
     {
-        _circSampBufsOut[i].setCapacity(_fftSize * 2);
+        _circSampBufsOut[i].setCapacity(MAX_BLOCK_SIZE);
         _circSampBufsOut[i].push(zeros.data(), zeros.size());
     }
 
