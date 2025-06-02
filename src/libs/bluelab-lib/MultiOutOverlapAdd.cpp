@@ -25,7 +25,7 @@
 #include "MultiOutOverlapAdd.h"
 
 // Must be greater or equal to _fftSize*2
-#define MAX_BLOCK_SIZE 16384
+#define MAX_BLOCK_SIZE 16384*16
 
 // MultiOutOverlapAddProcessor
 MultiOutOverlapAddProcessor::MultiOutOverlapAddProcessor() {}
