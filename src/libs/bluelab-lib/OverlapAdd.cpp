@@ -24,6 +24,9 @@
 #include "Utils.h"
 #include "OverlapAdd.h"
 
+// Must be greater or equal to _fftSize*2
+#define MAX_BLOCK_SIZE 16384
+
 // OverlapAddProcessor
 OverlapAddProcessor::OverlapAddProcessor() {}
 
@@ -53,11 +56,11 @@ OverlapAdd::setFftSize(int fftSize)
     _backwardFFT = std::make_unique<juce::dsp::FFT>(log2(fftSize));
 
     vector<float> zeros;
-    zeros.resize(_fftSize * 2);
+    zeros.resize(MAX_BLOCK_SIZE);
     memset(zeros.data(), 0, zeros.size() * sizeof(float));
 
-    _circSampBufsIn.setCapacity(_fftSize * 2);
-    _circSampBufsOut.setCapacity(_fftSize * 2);
+    _circSampBufsIn.setCapacity(MAX_BLOCK_SIZE);
+    _circSampBufsOut.setCapacity(MAX_BLOCK_SIZE);
 
     _circSampBufsOut.push(zeros.data(), zeros.size());
 
@@ -74,11 +77,11 @@ OverlapAdd::setOverlap(int overlap)
     _overlap = overlap;
 
     vector<float> zeros;
-    zeros.resize(_fftSize * 2);
+    zeros.resize(MAX_BLOCK_SIZE);
     memset(zeros.data(), 0, zeros.size() * sizeof(float));
 
-    _circSampBufsIn.setCapacity(_fftSize * 2);
-    _circSampBufsOut.setCapacity(_fftSize * 2);
+    _circSampBufsIn.setCapacity(MAX_BLOCK_SIZE);
+    _circSampBufsOut.setCapacity(MAX_BLOCK_SIZE);
 
     _circSampBufsOut.push(zeros.data(), zeros.size());
 
