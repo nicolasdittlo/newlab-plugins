@@ -100,11 +100,11 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     int nMedianV;
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
 
-    //fprintf(stderr, "Step0: (%d %d)\n", nMedianH, nMedianV);
+    //fprintf(stderr, "Step0: (%d %d)\n", nMedianH, nMedianV); // (4, 93)
     
     _X.push_pop(inBuffer);
     _XMagn.push_pop(magns);
-    
+
     vector<float> Rt;
     _stnAlgo->transientness(_XMagn, nMedianH, nMedianV, &Rt);
 
@@ -112,7 +112,7 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     vector<float> T;
     vector<float> N;
     STNAlgo::decSTN(Rt, 0.7, 0.8, &S, &T, &N);
-
+    
     // Sines
     vector<complex<float> > xs;
     xs.resize(S.size());

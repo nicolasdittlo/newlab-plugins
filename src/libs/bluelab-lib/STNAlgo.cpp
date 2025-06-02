@@ -343,7 +343,7 @@ STNAlgo::transientness(const bl_queue<vector<float> > &X,
         
         if (fabs(X_v_median[i] + X_h_median[i]) > BL_EPS)
             Y = X_v_median[i] / (X_v_median[i] + X_h_median[i]);
-
+        
         (*result)[i] = Y;
     }
 }

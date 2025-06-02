@@ -51,7 +51,7 @@ protected:
 
     bl_queue<vector<complex<float> > > _X;
     bl_queue<vector<float> > _XMagn;
-
+    
     vector<float> _sinesBuffer;
 
     STNAlgo *_stnAlgo;
