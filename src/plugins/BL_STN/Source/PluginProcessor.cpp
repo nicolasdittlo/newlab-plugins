@@ -447,7 +447,7 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
         vector<float> outBuf;
         _processors[channel]->process(inBuf, &outBuf);
-        
+
         // Splitter
         if (wetFreq >= MIN_SPLIT_FREQ)
         {
@@ -480,7 +480,7 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
             // Sum
             Utils::addBuffers(&outBuf, inLo, outHi);
         }
-
+        
         // Generate the output magnitudes
         _outOverlapAdds[channel]->feed(outBuf);
 
