@@ -139,7 +139,7 @@ STNProcessor::getLatency(int blockSize)
     
     if (_processorStep1 != NULL)
         latency += _processorStep1->getLatency();
-
+    
     return latency;
 }
 
