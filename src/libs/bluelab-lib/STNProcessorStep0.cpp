@@ -92,7 +92,7 @@ STNProcessorStep0::reset(int bufferSize, int overlap, float sampleRate)
 void
 STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
                               vector<vector<complex<float> > > *outBuffers)
-{    
+{
     vector<float> magns;
     Utils::complexToMagn(&magns, inBuffer);
 
@@ -137,12 +137,12 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
 
 int
 STNProcessorStep0::getLatency()
-{
+{    
     int nMedianH;
     int nMedianV;
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
     
-    int latency = (nMedianH / 2)*(_bufferSize/_overlap);
+    int latency = (nMedianH / 2 - 1)*(_bufferSize/_overlap);
 
     return latency;
 }
