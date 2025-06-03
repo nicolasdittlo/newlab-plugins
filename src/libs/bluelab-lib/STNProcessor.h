@@ -40,7 +40,7 @@ class STNProcessor
 
     virtual ~STNProcessor();
 
-    void prepareToPlay(double sampleRate);
+    void prepareToPlay(double sampleRate, int blockSize);
 
     int getLatency(int blockSize);
         

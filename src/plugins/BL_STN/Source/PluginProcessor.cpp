@@ -200,11 +200,11 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         // Notify listener
         if (_sampleRateChangeListener != nullptr)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
-
-        for (int i = 0; i < _processors.size(); i++)
-            _processors[i]->prepareToPlay(sampleRate);
     }
 
+    for (int i = 0; i < _processors.size(); i++)
+        _processors[i]->prepareToPlay(sampleRate, samplesPerBlock);
+    
     // Number of channels changed?
     if (_bandSplittersIn.size() != numInputChannels)
     {
@@ -240,7 +240,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < numInputChannels; i++)
         {
             STNProcessor *stnProcessor = new STNProcessor();
-            stnProcessor->prepareToPlay(sampleRate);
+            stnProcessor->prepareToPlay(sampleRate, samplesPerBlock);
             _processors.push_back(stnProcessor);
             
             BufProcessor *processor = new BufProcessor();

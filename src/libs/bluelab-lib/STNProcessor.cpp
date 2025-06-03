@@ -65,7 +65,7 @@ STNProcessor::~STNProcessor()
 }
 
 void
-STNProcessor::prepareToPlay(double sampleRate)
+STNProcessor::prepareToPlay(double sampleRate, int blockSize)
 {
     // Step 0
     int fftSizeStep0 = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF_STEP0);
@@ -104,6 +104,10 @@ STNProcessor::prepareToPlay(double sampleRate)
     // Delay
     int hopSizeStep1 = fftSizeStep1/OVERLAP_STEP1;        
     int step1Latency = (fftSizeStep1 - hopSizeStep1) + _processorStep1->getLatency();
+
+    if (blockSize < hopSizeStep1)
+        step1Latency += hopSizeStep1 - blockSize;
+    
     if (_step1Delay == NULL)
         _step1Delay = new Delay(step1Latency);
     _step1Delay->reset();
@@ -122,8 +126,8 @@ STNProcessor::getLatency(int blockSize)
         
         latency += fftSize - hopSize;
 
-        //if (blockSize < hopSize)
-        //    latency += hopSize - blockSize;
+        if (blockSize < hopSize)
+            latency += hopSize - blockSize;
     }
     
     if (_processorStep0 != NULL)
@@ -135,6 +139,9 @@ STNProcessor::getLatency(int blockSize)
         int hopSize = fftSize/_overlapAddStep1->getOverlap();
         
         latency += fftSize - hopSize;
+
+        if (blockSize < hopSize)
+            latency += hopSize - blockSize;
     }
     
     if (_processorStep1 != NULL)
