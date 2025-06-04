@@ -110,7 +110,7 @@ BLSTNAudioProcessor::~BLSTNAudioProcessor()
 
     for (int i = 0; i < _bandSplittersOut.size(); i++)
         delete _bandSplittersOut[i];
-
+        
     for (int i = 0; i < _inputDelays.size(); i++)
         delete _inputDelays[i];
 }
@@ -215,7 +215,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _bandSplittersOut.size(); i++)
             delete _bandSplittersOut[i];
         _bandSplittersOut.clear();
-        
+            
         for (int i = 0; i < _inputDelays.size(); i++)
             delete _inputDelays[i];
         _inputDelays.clear();
@@ -265,7 +265,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             _bandSplittersOut.push_back(splitter);
                 
         }
-
+    
         auto wetFreq = _parameters.getRawParameterValue("wetFreq")->load();
         setSplitFreq(wetFreq);
         
@@ -460,7 +460,7 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
             inLo = resultBufIn[0];
             inHi = resultBufIn[1];
-
+            
             // Split out
             vector<float> outLo;
             vector<float> outHi;
@@ -470,7 +470,7 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
 
             outLo = resultBufOut[0];
             outHi = resultBufOut[1];
-
+                
             // Delay input
             _inputDelays[channel]->processSamples(&inLo);
         
@@ -594,7 +594,7 @@ BLSTNAudioProcessor::setSplitFreq(float freq)
             _bandSplittersIn[i]->setCutoffFreq(0, freq);
 
         for (int i = 0; i < _bandSplittersOut.size(); i++)
-                _bandSplittersOut[i]->setCutoffFreq(0, freq);
+            _bandSplittersOut[i]->setCutoffFreq(0, freq);
     }
 }
 
