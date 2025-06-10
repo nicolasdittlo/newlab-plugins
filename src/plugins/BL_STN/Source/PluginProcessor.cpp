@@ -519,8 +519,8 @@ void BLSTNAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
     // Create a copy of the parameters state
     juce::ValueTree stateToSave = _parameters.state.createCopy();
 
-    // Add a unified version number for parameters and noise profile
-    constexpr int version = 701; // Unified version number
+    // Add a unified version number for parameters
+    constexpr int version = 702; // Unified version number
     stateToSave.setProperty("version", version, nullptr);
 
     // Serialize the entire state to destData
@@ -536,7 +536,7 @@ void BLSTNAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
     {
         // Check the version number
         int version = newState.getProperty("version", 0);
-        if (version == 701)
+        if ((version == 701) || (version == 702))
         {
             // Load the parameter state
             _parameters.state = newState;
