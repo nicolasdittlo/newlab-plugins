@@ -1,6 +1,7 @@
 v7.0.2
 - fix overlap add for high frequencies (just in case)
 - fixed potential latency problems when host looped
+- fixed wet signal delay (especially when wet freq was near 20KHz)
 
 v7.0.1 (released)
 - enabled bypass feature in Protools
