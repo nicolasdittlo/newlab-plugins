@@ -137,7 +137,7 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
 
 int
 STNProcessorStep0::getLatency()
-{    
+{
     int nMedianH;
     int nMedianV;
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);

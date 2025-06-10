@@ -92,7 +92,7 @@ STNProcessorStep1::reset(int bufferSize, int overlap, float sampleRate)
 void
 STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
                               vector<vector<complex<float> > > *outBuffers)
-{    
+{
     vector<float> magns;
     Utils::complexToMagn(&magns, inBuffer);
 
