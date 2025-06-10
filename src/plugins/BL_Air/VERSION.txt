@@ -1,7 +1,10 @@
-v7.0.1
+v7.0.2
+- fix overlap add for high frequencies (just in case)
+
+v7.0.1 (released)
 - enabled bypass feature in Protools
 
-v7.0.0
+v7.0.0 (released)
 - improved compatibility
 - fixed spectrum values that were not exactly correct
 - optimized performances
