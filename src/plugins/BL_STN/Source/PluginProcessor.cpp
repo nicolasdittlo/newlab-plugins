@@ -188,7 +188,7 @@ BLSTNAudioProcessor::changeProgramName(int index, const juce::String& newName)
 
 void
 BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
-{
+{    
     int numInputChannels = getTotalNumInputChannels();
     
     int fftSize = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF);
@@ -203,7 +203,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
 
     for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->prepareToPlay(sampleRate, samplesPerBlock);
+        _processors[i]->prepareToPlay(sampleRate);
     
     // Number of channels changed?
     if (_bandSplittersIn.size() != numInputChannels)
@@ -240,7 +240,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < numInputChannels; i++)
         {
             STNProcessor *stnProcessor = new STNProcessor();
-            stnProcessor->prepareToPlay(sampleRate, samplesPerBlock);
+            stnProcessor->prepareToPlay(sampleRate);
             _processors.push_back(stnProcessor);
             
             BufProcessor *processor = new BufProcessor();
@@ -319,7 +319,7 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     _splitFreqSmoother->reset(sampleRate);
     
     // Update latency
-    int latency = getLatency(samplesPerBlock);
+    int latency = getLatency();
     setLatencySamples(latency);
     updateHostDisplay();
 
@@ -575,13 +575,13 @@ BLSTNAudioProcessor::getBuffers(vector<float> *noiseBuffer,
 }
 
 int
-BLSTNAudioProcessor::getLatency(int blockSize)
+BLSTNAudioProcessor::getLatency()
 {
     if (_processors.empty())
         return 0;
     
-    int latency = _processors[0]->getLatency(blockSize);
-
+    int latency = _processors[0]->getLatency();
+    
     return latency;
 }
 

@@ -75,7 +75,7 @@ public:
     juce::AudioProcessorValueTreeState _parameters;
     
 private:
-    int getLatency(int blockSize);
+    int getLatency();
 
     void setSplitFreq(float freq);
 

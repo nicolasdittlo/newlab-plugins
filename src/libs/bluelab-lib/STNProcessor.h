@@ -40,9 +40,9 @@ class STNProcessor
 
     virtual ~STNProcessor();
 
-    void prepareToPlay(double sampleRate, int blockSize);
+    void prepareToPlay(double sampleRate);
 
-    int getLatency(int blockSize);
+    int getLatency();
         
     void setSinesMix(float mix);
     void setTransientsMix(float mix);
