@@ -225,7 +225,7 @@ BLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         _transientProcessors[i]->reset(sampleRate);
     
     // Update latency
-    int latency = getLatency(samplesPerBlock);
+    int latency = getLatency();
     setLatencySamples(latency);
     updateHostDisplay();
 }
@@ -330,7 +330,7 @@ BLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     if (qualityChanged || softDenoiseChanged)
     {            
         // Update latency
-        int latency = getLatency(buffer.getNumSamples());
+        int latency = getLatency();
         setLatencySamples(latency);
         updateHostDisplay();
     }
@@ -536,7 +536,7 @@ BLDenoiserAudioProcessor::getOverlap(int quality)
 }
 
 int
-BLDenoiserAudioProcessor::getLatency(int blockSize)
+BLDenoiserAudioProcessor::getLatency()
 {
     if (_processors.empty())
         return 0;
@@ -544,12 +544,8 @@ BLDenoiserAudioProcessor::getLatency(int blockSize)
     int fftSize = Utils::nearestPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
     auto quality = _parameters.getRawParameterValue("quality")->load();
     int overlap = getOverlap(quality);
-    int hopSize = fftSize/overlap;
     
-    int latency = fftSize - hopSize;
-
-    if (blockSize < hopSize)
-        latency += hopSize - blockSize;
+    int latency = fftSize;
 
     int processorLatency = _processors[0]->getLatency();
     latency += processorLatency;

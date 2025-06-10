@@ -1,5 +1,6 @@
 v7.0.2
 - fix overlap add for high frequencies (just in case)
+- fixed potential latency problems when host looped
 
 v7.0.1 (released)
 - enabled bypass feature in Protools
