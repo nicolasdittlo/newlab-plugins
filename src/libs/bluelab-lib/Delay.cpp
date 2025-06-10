@@ -25,7 +25,7 @@ Delay::Delay(float delay)
     _readPos = 0;
     
     int delayI = ceil(delay);
-    _delayLine.resize(delayI);
+    _delayLine.resize(delayI + 1);
     Utils::fillZero(&_delayLine);
    
     _writePos = _delayLine.size() - 1;
@@ -42,7 +42,7 @@ Delay::Delay(const Delay &other)
     _readPos = 0;
     
     int delayI = ceil(delay);
-    _delayLine.resize(delayI);
+    _delayLine.resize(delayI + 1);
     Utils::fillZero(&_delayLine);
     
     _writePos = _delayLine.size() - 1;
@@ -89,10 +89,10 @@ Delay::setDelay(float delay)
     }
     
     int delayLinePrevSize = _delayLine.size();
-    if (delayI > delayLinePrevSize)
+    if (delayI + 1 > delayLinePrevSize)
     {
         // Insert values
-        int numToInsert = delayI - delayLinePrevSize;
+        int numToInsert = delayI + 1 - delayLinePrevSize;
         Utils::insertValues(&_delayLine, _writePos,
                             numToInsert, lastValue);
         
@@ -106,7 +106,7 @@ Delay::setDelay(float delay)
     if (delayI < delayLinePrevSize)
     {
         // Remove values
-        int numToRemove = delayLinePrevSize - delayI;
+        int numToRemove = delayLinePrevSize - (delayI + 1);
         Utils::removeValuesCyclic(&_delayLine, _writePos, numToRemove);
         
         // Adjust the read an write positions
