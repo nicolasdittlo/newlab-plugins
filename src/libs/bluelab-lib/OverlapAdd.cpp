@@ -99,7 +99,7 @@ OverlapAdd::feed(const vector<float> &samples)
 {
     _circSampBufsIn.push(samples.data(), samples.size());
 
-    while (_circSampBufsIn.getSize() >= _fftSize)
+    while (_circSampBufsIn.getSize() > _fftSize)
     {
         // Get current buffer
         _circSampBufsIn.peek(_tmpSampBufIn.data(), _fftSize);

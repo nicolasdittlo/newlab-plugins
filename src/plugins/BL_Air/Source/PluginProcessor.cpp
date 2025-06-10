@@ -343,7 +343,7 @@ BLAirAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     _splitFreqSmoother->reset(sampleRate);
     
     // Update latency
-    int latency = getLatency(samplesPerBlock);
+    int latency = getLatency();
     setLatencySamples(latency);
     updateHostDisplay();
 
@@ -436,7 +436,7 @@ BLAirAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     if (smartResynthChanged)
     {            
         // Update latency
-        int latency = getLatency(buffer.getNumSamples());
+        int latency = getLatency();
         setLatencySamples(latency);
         updateHostDisplay();
 
@@ -601,18 +601,14 @@ BLAirAudioProcessor::getBuffers(vector<float> *airBuffer,
 }
 
 int
-BLAirAudioProcessor::getLatency(int blockSize)
+BLAirAudioProcessor::getLatency()
 {
     if (_processors.empty())
         return 0;
     
     int fftSize = Utils::nearestPowerOfTwo(_sampleRate/FFT_SIZE_COEFF);
-    int hopSize = fftSize/OVERLAP;
     
-    int latency = fftSize - hopSize;
-
-    if (blockSize < hopSize)
-        latency += hopSize - blockSize;
+    int latency = fftSize;
 
     int processorLatency = _processors[0]->getLatency();
     latency += processorLatency;
