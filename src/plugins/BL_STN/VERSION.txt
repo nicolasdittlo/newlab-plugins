@@ -2,5 +2,4 @@ v7.0.1
 - initial version
 
 - optimized median %CPU using histograms (prev: 17%, new: 12%)
-- does not handle vibrato well
-- plugin latency is buggy
+- does not handle strong vibrato well
