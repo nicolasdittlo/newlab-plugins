@@ -41,8 +41,6 @@ public:
                     vector<vector<complex<float> > > *outBuffers) override;
     
     int getLatency();
-
-    void getNoiseBuffer(vector<float> *buf);
         
 protected:
     int _bufferSize;
@@ -51,8 +49,6 @@ protected:
 
     bl_queue<vector<complex<float> > > _X;
     bl_queue<vector<float> > _XMagn;
-
-    vector<float> _noiseBuffer;
 
     STNAlgo *_stnAlgo;
 };

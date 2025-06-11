@@ -54,6 +54,7 @@ class STNProcessor
     
     void process(const vector<float> input, vector<float> *output);
 
+    // time/amplitude
     void getSinesBuffer(vector<float> *buf);
     void getNoiseBuffer(vector<float> *buf);
     
@@ -74,6 +75,9 @@ class STNProcessor
     bool _muteSines;
     bool _muteTransients;
     bool _muteNoise;
+
+    vector<float> _sinesBuffer;
+    vector<float> _noiseBuffer;
 };
 
 #endif

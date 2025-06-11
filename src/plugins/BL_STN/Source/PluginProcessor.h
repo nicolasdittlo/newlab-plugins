@@ -82,9 +82,15 @@ private:
     void computeMutes(const bool solos[3], const bool mutes[3], bool resultMutes[3]);
 
     vector<STNProcessor *> _processors;
+
+    vector<OverlapAdd *> _displaySinesOverlapAdds;
+    vector<BufProcessor *> _displaySinesProcessors;
+
+    vector<OverlapAdd *> _displayNoiseOverlapAdds;
+    vector<BufProcessor *> _displayNoiseProcessors;
     
-    vector<OverlapAdd *> _outOverlapAdds;
-    vector<BufProcessor *> _outProcessors;
+    vector<OverlapAdd *> _displayOutOverlapAdds;
+    vector<BufProcessor *> _displayOutProcessors;
 
     vector<ParamSmoother *> _outGainSmoothers;
 

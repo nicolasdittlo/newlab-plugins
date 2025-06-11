@@ -235,32 +235,28 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
         (*output)[i] = xs[i] + xn[i];
 #endif
     }
+
+    // buffers
+    _sinesBuffer = xs;
+    _noiseBuffer = xn;
 }
 
 void
 STNProcessor::getSinesBuffer(vector<float> *buf)
 {
-    buf->clear();
-    if (_processorStep0 != NULL)
-    {
-        _processorStep0->getSinesBuffer(buf);
-
-        Utils::multValue(buf, _sinesMix);
-        if (_muteSines)
-            Utils::multValue(buf, 0.0);
-    }
+    *buf = _sinesBuffer;
+        
+    Utils::multValue(buf, _sinesMix);
+    if (_muteSines)
+        Utils::multValue(buf, 0.0);
 }
 
 void
 STNProcessor::getNoiseBuffer(vector<float> *buf)
 {
-    buf->clear();
-    if (_processorStep1 != NULL)
-    {
-        _processorStep1->getNoiseBuffer(buf);
-
-        Utils::multValue(buf, _noiseMix);
-        if (_muteNoise)
-            Utils::multValue(buf, 0.0);
-    }
+    *buf = _noiseBuffer;
+    
+    Utils::multValue(buf, _noiseMix);
+    if (_muteNoise)
+        Utils::multValue(buf, 0.0);
 }

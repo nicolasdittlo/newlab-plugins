@@ -91,11 +91,23 @@ BLSTNAudioProcessor::BLSTNAudioProcessor()
 
 BLSTNAudioProcessor::~BLSTNAudioProcessor()
 {
-    for (int i = 0; i < _outOverlapAdds.size(); i++)
-        delete _outOverlapAdds[i];
+    for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
+        delete _displaySinesOverlapAdds[i];
 
-    for (int i = 0; i < _outProcessors.size(); i++)
-        delete _outProcessors[i];
+    for (int i = 0; i < _displaySinesProcessors.size(); i++)
+        delete _displaySinesProcessors[i];
+
+    for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
+        delete _displayNoiseOverlapAdds[i];
+
+    for (int i = 0; i < _displaySinesProcessors.size(); i++)
+        delete _displaySinesProcessors[i];
+    
+    for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
+        delete _displayOutOverlapAdds[i];
+
+    for (int i = 0; i < _displayOutProcessors.size(); i++)
+        delete _displayOutProcessors[i];
 
     for (int i = 0; i < _outGainSmoothers.size(); i++)
         delete _outGainSmoothers[i];
@@ -228,27 +240,62 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             delete _wetGainSmoothers[i];
         _wetGainSmoothers.clear();
 
-        // Out
-        for (int i = 0; i < _outOverlapAdds.size(); i++)
-            delete _outOverlapAdds[i];
-        _outOverlapAdds.clear();
+        // Sines
+        for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
+            delete _displaySinesOverlapAdds[i];
+        _displaySinesOverlapAdds.clear();
         
-        for (int i = 0; i < _outProcessors.size(); i++)
-            delete _outProcessors[i];
-        _outProcessors.clear();
+        for (int i = 0; i < _displaySinesProcessors.size(); i++)
+            delete _displaySinesProcessors[i];
+        _displaySinesProcessors.clear();
+
+        // Noise
+        for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
+            delete _displayNoiseOverlapAdds[i];
+        _displayNoiseOverlapAdds.clear();
+        
+        for (int i = 0; i < _displayNoiseProcessors.size(); i++)
+            delete _displayNoiseProcessors[i];
+        _displayNoiseProcessors.clear();
+        
+        // Out
+        for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
+            delete _displayOutOverlapAdds[i];
+        _displayOutOverlapAdds.clear();
+        
+        for (int i = 0; i < _displayOutProcessors.size(); i++)
+            delete _displayOutProcessors[i];
+        _displayOutProcessors.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
             STNProcessor *stnProcessor = new STNProcessor();
             stnProcessor->prepareToPlay(sampleRate);
             _processors.push_back(stnProcessor);
+
+            // Sines
+            BufProcessor *displaySinesProcessor = new BufProcessor();
+            _displaySinesProcessors.push_back(displaySinesProcessor);
             
-            BufProcessor *processor = new BufProcessor();
-            _outProcessors.push_back(processor);
+            OverlapAdd *displaySinesOverlapAdd = new OverlapAdd(fftSize, OVERLAP, true, false);
+            displaySinesOverlapAdd->addProcessor(displaySinesProcessor);
+            _displaySinesOverlapAdds.push_back(displaySinesOverlapAdd);
+
+            // Noise
+            BufProcessor *displayNoiseProcessor = new BufProcessor();
+            _displayNoiseProcessors.push_back(displayNoiseProcessor);
             
-            OverlapAdd *overlapAdd = new OverlapAdd(fftSize, OVERLAP, true, false);
-            overlapAdd->addProcessor(processor);
-            _outOverlapAdds.push_back(overlapAdd);
+            OverlapAdd *displayNoiseOverlapAdd = new OverlapAdd(fftSize, OVERLAP, true, false);
+            displayNoiseOverlapAdd->addProcessor(displayNoiseProcessor);
+            _displayNoiseOverlapAdds.push_back(displayNoiseOverlapAdd);
+            
+            // Out
+            BufProcessor *displayOutProcessor = new BufProcessor();
+            _displayOutProcessors.push_back(displayOutProcessor);
+            
+            OverlapAdd *displayOutOverlapAdd = new OverlapAdd(fftSize, OVERLAP, true, false);
+            displayOutOverlapAdd->addProcessor(displayOutProcessor);
+            _displayOutOverlapAdds.push_back(displayOutOverlapAdd);
         }
 
         float splitFreqs[1] = { DEFAULT_SPLIT_FREQ };
@@ -256,7 +303,6 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         {
             CrossoverSplitterNBands *splitter = new CrossoverSplitterNBands(2, splitFreqs, sampleRate);
             _bandSplittersIn.push_back(splitter);
-                
         }
         
         for (int i = 0; i < numInputChannels; i++)
@@ -290,11 +336,25 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         }
     }
 
-    // Out
-    for (int i = 0; i < _outOverlapAdds.size(); i++)
+    // Sines
+    for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
     {
-        _outOverlapAdds[i]->setFftSize(fftSize);
-        _outOverlapAdds[i]->setOverlap(OVERLAP);
+        _displaySinesOverlapAdds[i]->setFftSize(fftSize);
+        _displaySinesOverlapAdds[i]->setOverlap(OVERLAP);
+    }
+    
+    // Noise
+    for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
+    {
+        _displayNoiseOverlapAdds[i]->setFftSize(fftSize);
+        _displayNoiseOverlapAdds[i]->setOverlap(OVERLAP);
+    }
+    
+    // Out
+    for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
+    {
+        _displayOutOverlapAdds[i]->setFftSize(fftSize);
+        _displayOutOverlapAdds[i]->setOverlap(OVERLAP);
     }
 
     auto outGain = _parameters.getRawParameterValue("outGain")->load();
@@ -482,7 +542,20 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         }
         
         // Generate the output magnitudes
-        _outOverlapAdds[channel]->feed(outBuf);
+        if (channel == 0)
+        {
+            // sines
+            vector<float> xs;
+            _processors[channel]->getSinesBuffer(&xs);
+            _displaySinesOverlapAdds[channel]->feed(xs);
+
+            // noise
+            vector<float> xn;
+            _processors[channel]->getNoiseBuffer(&xn);
+            _displayNoiseOverlapAdds[channel]->feed(xn);
+            
+            _displayOutOverlapAdds[channel]->feed(outBuf);
+        }
 
         // Apply out gain
         Utils::applyGain(outBuf, &outBuf, _outGainSmoothers[channel]);
@@ -494,11 +567,10 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     // Get curves
     {
         std::lock_guard<std::mutex> lock(_curvesMutex);
-
-        _processors[0]->getNoiseBuffer(&_noiseBuffer);
-        _processors[0]->getSinesBuffer(&_sinesBuffer);
-
-        _outProcessors[0]->getMagnsBuffer(&_sumBuffer);
+        
+        _displaySinesProcessors[0]->getMagnsBuffer(&_sinesBuffer);
+        _displayNoiseProcessors[0]->getMagnsBuffer(&_noiseBuffer);
+        _displayOutProcessors[0]->getMagnsBuffer(&_sumBuffer);
 
         _newBuffersAvailable = true;
     }

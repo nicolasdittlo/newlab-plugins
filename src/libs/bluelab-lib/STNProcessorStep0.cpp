@@ -66,8 +66,6 @@ STNProcessorStep0::reset(int bufferSize, int overlap, float sampleRate)
     _overlap = overlap;
     _sampleRate = sampleRate;
 
-    _sinesBuffer.clear();
-
     _stnAlgo->reset();
 
     int nMedianH;
@@ -129,9 +127,6 @@ STNProcessorStep0::processFFT(const vector<complex<float> > &inBuffer,
     outBuffers->resize(2);
     (*outBuffers)[0] = xs;
     (*outBuffers)[1] = xres;
-
-    // Fill sines magns buffer
-    Utils::complexToMagn(&_sinesBuffer, xs);
 }
 
 
@@ -145,10 +140,4 @@ STNProcessorStep0::getLatency()
     int latency = (nMedianH / 2 - 1)*(_bufferSize/_overlap);
 
     return latency;
-}
-
-void
-STNProcessorStep0::getSinesBuffer(vector<float> *buf)
-{
-    *buf = _sinesBuffer;
 }

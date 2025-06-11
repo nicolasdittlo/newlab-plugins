@@ -66,8 +66,6 @@ STNProcessorStep1::reset(int bufferSize, int overlap, float sampleRate)
     _overlap = overlap;
     _sampleRate = sampleRate;
 
-    _noiseBuffer.clear();
-
     _stnAlgo->reset();
 
     int nMedianH;
@@ -129,9 +127,6 @@ STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
     outBuffers->resize(2);
     (*outBuffers)[0] = xt;
     (*outBuffers)[1] = xn;
-
-    // Noise magns buffer
-    Utils::complexToMagn(&_noiseBuffer, xn);
 }
 
 
@@ -145,10 +140,4 @@ STNProcessorStep1::getLatency()
     int latency = (nMedianH / 2)*(_bufferSize/_overlap);
 
     return latency;
-}
-
-void
-STNProcessorStep1::getNoiseBuffer(vector<float> *buf)
-{
-    *buf = _noiseBuffer;
 }
