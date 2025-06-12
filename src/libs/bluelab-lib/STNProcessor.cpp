@@ -245,18 +245,10 @@ void
 STNProcessor::getSinesBuffer(vector<float> *buf)
 {
     *buf = _sinesBuffer;
-        
-    Utils::multValue(buf, _sinesMix);
-    if (_muteSines)
-        Utils::multValue(buf, 0.0);
 }
 
 void
 STNProcessor::getNoiseBuffer(vector<float> *buf)
 {
     *buf = _noiseBuffer;
-    
-    Utils::multValue(buf, _noiseMix);
-    if (_muteNoise)
-        Utils::multValue(buf, 0.0);
 }
