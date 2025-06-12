@@ -100,8 +100,8 @@ BLSTNAudioProcessor::~BLSTNAudioProcessor()
     for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
         delete _displayNoiseOverlapAdds[i];
 
-    for (int i = 0; i < _displaySinesProcessors.size(); i++)
-        delete _displaySinesProcessors[i];
+    for (int i = 0; i < _displayNoiseProcessors.size(); i++)
+        delete _displayNoiseProcessors[i];
     
     for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
         delete _displayOutOverlapAdds[i];
