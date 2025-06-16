@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cp -R ./Builds/MacOSX/build/Release/BL_Air.vst ../../../pack/Mac/BL_Air/vst2
-cp -R ./Builds/MacOSX/build/Release/BL_Air.vst3 ../../../pack/Mac/BL_Air/vst3
-cp -R ./Builds/MacOSX/build/Release/BL_Air.component ../../../pack/Mac/BL_Air/au
-cp -R ./Builds/MacOSX/build/Release/BL_Air.aaxplugin ../../../pack/Mac/BL_Air/aax
-cp ../../../doc/air/BL_Air_manual.pdf ../../../pack/Mac/BL_Air
-cp ./Installer/BL_Air-v7.0.1-installer.pkg ../../../pack/Mac/BL_Air
+cp -R ./Builds/MacOSX/build/Release/BL_STN.vst ../../../pack/Mac/BL_STN/vst2
+cp -R ./Builds/MacOSX/build/Release/BL_STN.vst3 ../../../pack/Mac/BL_STN/vst3
+cp -R ./Builds/MacOSX/build/Release/BL_STN.component ../../../pack/Mac/BL_STN/au
+cp -R ./Builds/MacOSX/build/Release/BL_STN.aaxplugin ../../../pack/Mac/BL_STN/aax
+cp ../../../doc/air/BL_STN_manual.pdf ../../../pack/Mac/BL_STN
+cp ./Installer/BL_STN-v7.0.2-installer.pkg ../../../pack/Mac/BL_STN

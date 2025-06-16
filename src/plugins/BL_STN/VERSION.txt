@@ -1,5 +1,2 @@
-v7.0.1
+v7.0.2
 - initial version
-
-- optimized median %CPU using histograms (prev: 17%, new: 12%)
-- does not handle strong vibrato well
