@@ -32,6 +32,7 @@ class MultiOutOverlapAdd;
 class STNProcessorStep0;
 class STNProcessorStep1;
 class Delay;
+class ParamSmoother;
 
 class STNProcessor
 {
@@ -78,6 +79,10 @@ class STNProcessor
 
     vector<float> _sinesBuffer;
     vector<float> _noiseBuffer;
+
+    ParamSmoother *_sinesMixSmoother;
+    ParamSmoother *_transientsMixSmoother;
+    ParamSmoother *_noiseMixSmoother;
 };
 
 #endif

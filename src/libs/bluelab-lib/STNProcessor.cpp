@@ -20,6 +20,7 @@
 
 #include "Utils.h"
 #include "Delay.h"
+#include "ParamSmoother.h"
 #include "OverlapAdd.h"
 #include "MultiOutOverlapAdd.h"
 #include "STNProcessorStep0.h"
@@ -44,6 +45,10 @@ STNProcessor::STNProcessor()
     _processorStep1 = NULL;
 
     _step1Delay = NULL;
+
+    _sinesMixSmoother = NULL;
+    _transientsMixSmoother = NULL;
+    _noiseMixSmoother = NULL;
 }
 
 STNProcessor::~STNProcessor()
@@ -62,6 +67,15 @@ STNProcessor::~STNProcessor()
 
     if (_step1Delay != NULL)
         delete _step1Delay;
+
+    if (_sinesMixSmoother != NULL)
+        delete _sinesMixSmoother;
+
+    if (_transientsMixSmoother != NULL)
+        delete _transientsMixSmoother;
+
+    if (_noiseMixSmoother != NULL)
+        delete _noiseMixSmoother;
 }
 
 void
@@ -108,6 +122,21 @@ STNProcessor::prepareToPlay(double sampleRate)
         _step1Delay = new Delay(step1Latency);
     _step1Delay->reset();
     _step1Delay->setDelay(step1Latency);
+
+    if (_sinesMixSmoother == NULL)
+        _sinesMixSmoother = new ParamSmoother(sampleRate, _sinesMix);
+    _sinesMixSmoother->resetToTargetValue(_sinesMix);
+    _sinesMixSmoother->reset(sampleRate);
+
+    if (_transientsMixSmoother == NULL)
+        _transientsMixSmoother = new ParamSmoother(sampleRate, _transientsMix);
+    _transientsMixSmoother->resetToTargetValue(_transientsMix);
+    _transientsMixSmoother->reset(sampleRate);
+
+    if (_noiseMixSmoother == NULL)
+        _noiseMixSmoother = new ParamSmoother(sampleRate, _noiseMix);
+    _noiseMixSmoother->resetToTargetValue(_noiseMix);
+    _noiseMixSmoother->reset(sampleRate);
 }
 
 int
@@ -142,18 +171,27 @@ void
 STNProcessor::setSinesMix(float mix)
 {
     _sinesMix = mix;
+
+    if (_sinesMixSmoother != NULL)
+        _sinesMixSmoother->setTargetValue(_sinesMix);
 }
 
 void
 STNProcessor::setTransientsMix(float mix)
 {
     _transientsMix = mix;
+
+    if (_transientsMixSmoother != NULL)
+        _transientsMixSmoother->setTargetValue(_transientsMix);
 }
 
 void
 STNProcessor::setNoiseMix(float mix)
 {
     _noiseMix = mix;
+
+    if (_noiseMixSmoother != NULL)
+        _noiseMixSmoother->setTargetValue(_noiseMix);
 }
 
 void
@@ -211,20 +249,29 @@ STNProcessor::process(const vector<float> input, vector<float> *output)
     if (_muteSines)
         Utils::multValue(&xs, 0.0);
     else
-        Utils::multValue(&xs, _sinesMix);
-
+    {
+        if (_sinesMixSmoother != NULL)
+            Utils::applyGain(xs, &xs, _sinesMixSmoother);
+    }
+    
 #if EXTRACT_TRANSIENTS
     if (_muteTransients)
         Utils::multValue(&xt, 0.0);
     else
-        Utils::multValue(&xt, _transientsMix);
+    {
+        if (_transientsMixSmoother != NULL)
+            Utils::applyGain(xt, &xt, _transientsMixSmoother);
+    }
 #endif
     
     if (_muteNoise)
         Utils::multValue(&xn, 0.0);
     else
-        Utils::multValue(&xn, _noiseMix);
-
+    {
+        if (_noiseMixSmoother != NULL)
+            Utils::applyGain(xn, &xn, _noiseMixSmoother);
+    }
+    
     // Sum
     output->resize(input.size());
     for (int i = 0; i < output->size(); i++)
