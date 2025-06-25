@@ -100,7 +100,7 @@ STNProcessor::prepareToPlay(double sampleRate)
 
     // Step 1
     int fftSizeStep1 = Utils::nearestPowerOfTwo(sampleRate/FFT_SIZE_COEFF_STEP1);
-
+    
     if (_overlapAddStep1 == NULL)
         _overlapAddStep1 = new MultiOutOverlapAdd(fftSizeStep1, OVERLAP_STEP1, 2, true, true);
 
@@ -113,7 +113,7 @@ STNProcessor::prepareToPlay(double sampleRate)
         _overlapAddStep1->addProcessor(_processorStep1);
     }
     
-    _processorStep1->reset(fftSizeStep1, OVERLAP_STEP0, sampleRate);
+    _processorStep1->reset(fftSizeStep1, OVERLAP_STEP1, sampleRate);
 
     // Delay
     int step1Latency = fftSizeStep1 + _processorStep1->getLatency();

@@ -97,8 +97,6 @@ STNProcessorStep1::processFFT(const vector<complex<float> > &inBuffer,
     int nMedianH;
     int nMedianV;
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
-
-    //fprintf(stderr, "Step1: (%d %d)\n", nMedianH, nMedianV);
     
     _X.push_pop(inBuffer);
     _XMagn.push_pop(magns);
@@ -137,7 +135,7 @@ STNProcessorStep1::getLatency()
     int nMedianV;
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
     
-    int latency = (nMedianH / 2)*(_bufferSize/_overlap);
-
+    int latency = (nMedianH / 2 - 1)*(_bufferSize/_overlap);
+    
     return latency;
 }

@@ -138,6 +138,6 @@ STNProcessorStep0::getLatency()
     STNAlgo::computeNMedian(_bufferSize, _overlap, _sampleRate, &nMedianH, &nMedianV);
     
     int latency = (nMedianH / 2 - 1)*(_bufferSize/_overlap);
-
+    
     return latency;
 }

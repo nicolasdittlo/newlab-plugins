@@ -356,6 +356,9 @@ STNAlgo::computeNMedian(int fftSize, int overlap, float sampleRate, int *nMedian
 
     int nHop = fftSize/overlap;
     *nMedianH = round(filter_length_t * sampleRate / nHop);
+    if (*nMedianH % 2 != 0)
+        *nMedianH = *nMedianH + 1;
+    
     *nMedianV = round(filter_length_f * fftSize / sampleRate);
 }
 
