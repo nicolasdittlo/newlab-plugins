@@ -26,6 +26,7 @@ using namespace std;
 class OverlapAdd;
 class DenoiserProcessor;
 class TransientShaperProcessor;
+class Delay;
 class BLDenoiserAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -43,6 +44,8 @@ public:
         
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
+    void processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
@@ -95,6 +98,8 @@ private:
 
     vector<vector<float> > _nativeNoiseProfiles;
     bool _mustSetNativeNoiseProfiles = false;
+
+    vector<Delay*> _bypassDelays;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BLDenoiserAudioProcessor)
 };

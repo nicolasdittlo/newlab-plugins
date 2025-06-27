@@ -46,6 +46,8 @@ public:
         
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
+    void processBlockBypassed(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
@@ -97,6 +99,8 @@ private:
     vector<ParamSmoother *> _wetGainSmoothers;
 
     vector<Delay *> _inputDelays;
+
+    vector<Delay*> _bypassDelays;
     
     double _sampleRate = 0.0;
     SampleRateChangeListener _sampleRateChangeListener = nullptr;

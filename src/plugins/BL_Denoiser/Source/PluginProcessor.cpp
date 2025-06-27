@@ -20,6 +20,7 @@
 #include <DenoiserProcessor.h>
 #include <TransientShaperProcessor.h>
 #include <Utils.h>
+#include "Delay.h"
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -78,6 +79,9 @@ BLDenoiserAudioProcessor::~BLDenoiserAudioProcessor()
 
     for (int i = 0; i < _transientProcessors.size(); i++)
         delete _transientProcessors[i];
+
+    for (int i = 0; i < _bypassDelays.size(); i++)
+        delete _bypassDelays[i];
 }
 
 const juce::String
@@ -185,6 +189,10 @@ BLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         for (int i = 0; i < _transientProcessors.size(); i++)
             delete _transientProcessors[i];
         _transientProcessors.clear();
+
+        for (int i = 0; i < _bypassDelays.size(); i++)
+            delete _bypassDelays[i];
+        _bypassDelays.clear();
         
         for (int i = 0; i < numInputChannels; i++)
         {
@@ -198,7 +206,13 @@ BLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             overlapAdd->addProcessor(processor);
             overlapAdd->addProcessor(transientProcessor);
             _overlapAdds.push_back(overlapAdd);
-        } 
+        }
+
+        for (int i = 0; i < numInputChannels; i++)
+        {
+            Delay* delay = new Delay(fftSize);
+            _bypassDelays.push_back(delay);
+        }
     }
 
     if (_mustSetNativeNoiseProfiles)
@@ -228,6 +242,9 @@ BLDenoiserAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     int latency = getLatency();
     setLatencySamples(latency);
     updateHostDisplay();
+
+    for (int i = 0; i < _bypassDelays.size(); i++)
+        _bypassDelays[i]->setDelay(latency);
 }
 
 void
@@ -340,11 +357,14 @@ BLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     {
         auto* channelData = buffer.getWritePointer(channel);
         
-        vector<float> vecBuf;
-        vecBuf.resize(buffer.getNumSamples());
-        memcpy(vecBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
+        vector<float> inBuf;
+        inBuf.resize(buffer.getNumSamples());
+        memcpy(inBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
+
+        vector<float> inBufCopy = inBuf;
+        _bypassDelays[channel]->processSamples(&inBufCopy);
         
-        _overlapAdds[channel]->feed(vecBuf);
+        _overlapAdds[channel]->feed(inBuf);
         
         vector<float> outBuf;
         int numSamplesToFlush = _overlapAdds[channel]->getOutSamples(&outBuf, buffer.getNumSamples());
@@ -367,6 +387,25 @@ BLDenoiserAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
             
             _processors[0]->touchNewCurves();
         }
+    }
+}
+
+void
+BLDenoiserAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    auto totalNumInputChannels = getTotalNumInputChannels();
+
+    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+
+        vector<float> inBuf;
+        inBuf.resize(buffer.getNumSamples());
+        memcpy(inBuf.data(), channelData, buffer.getNumSamples() * sizeof(float));
+
+        _bypassDelays[channel]->processSamples(&inBuf);
+
+        memcpy(channelData, inBuf.data(), buffer.getNumSamples() * sizeof(float));
     }
 }
 

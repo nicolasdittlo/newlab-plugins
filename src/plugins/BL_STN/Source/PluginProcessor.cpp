@@ -125,6 +125,9 @@ BLSTNAudioProcessor::~BLSTNAudioProcessor()
         
     for (int i = 0; i < _inputDelays.size(); i++)
         delete _inputDelays[i];
+
+    for (int i = 0; i < _bypassDelays.size(); i++)
+        delete _bypassDelays[i];
 }
 
 const juce::String
@@ -232,6 +235,10 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             delete _inputDelays[i];
         _inputDelays.clear();
 
+        for (int i = 0; i < _bypassDelays.size(); i++)
+            delete _bypassDelays[i];
+        _bypassDelays.clear();
+
         for (int i = 0; i < _outGainSmoothers.size(); i++)
             delete _outGainSmoothers[i];
         _outGainSmoothers.clear();
@@ -323,6 +330,12 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
         for (int i = 0; i < numInputChannels; i++)
         {
+            Delay* delay = new Delay(fftSize);
+            _bypassDelays.push_back(delay);
+        }
+
+        for (int i = 0; i < numInputChannels; i++)
+        {
             float defaultOutGain = 1.0;
             ParamSmoother *outGainSmoother = new ParamSmoother(sampleRate, defaultOutGain);
             _outGainSmoothers.push_back(outGainSmoother); 
@@ -387,6 +400,9 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     for (int i = 0; i < _inputDelays.size(); i++)
         _inputDelays[i]->setDelay(latency);
     
+    for (int i = 0; i < _bypassDelays.size(); i++)
+        _bypassDelays[i]->setDelay(latency);
+
     for (int i = 0; i < _bandSplittersIn.size(); i++)
         _bandSplittersIn[i]->reset(sampleRate);
     
@@ -505,6 +521,9 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         inBuf.resize(buffer.getNumSamples());
         memcpy(inBuf.data(), channelData, buffer.getNumSamples()*sizeof(float));
 
+        vector<float> inBufCopy = inBuf;
+        _bypassDelays[channel]->processSamples(&inBufCopy);
+
         vector<float> outBuf;
         _processors[channel]->process(inBuf, &outBuf);
 
@@ -573,6 +592,25 @@ BLSTNAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         _displayOutProcessors[0]->getMagnsBuffer(&_sumBuffer);
 
         _newBuffersAvailable = true;
+    }
+}
+
+void
+BLSTNAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+{
+    auto totalNumInputChannels = getTotalNumInputChannels();
+
+    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+
+        vector<float> inBuf;
+        inBuf.resize(buffer.getNumSamples());
+        memcpy(inBuf.data(), channelData, buffer.getNumSamples() * sizeof(float));
+
+        _bypassDelays[channel]->processSamples(&inBuf);
+
+        memcpy(channelData, inBuf.data(), buffer.getNumSamples() * sizeof(float));
     }
 }
 
