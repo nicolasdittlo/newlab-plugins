@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="hXDGna" name="BL_STN" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="7.0.1"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="7.0.2"
               companyName="BlueLab | Audio Plugins" companyCopyright="BlueLab | Audio Plugins (c) 2025"
               companyWebsite="www.bluelab-plugins.com" companyEmail="contact@bluelab-plugins.com"
               pluginFormats="buildAAX,buildAU,buildLV2,buildVST,buildVST3"
