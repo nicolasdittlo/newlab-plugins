@@ -69,7 +69,7 @@ Source: "..\Builds\VisualStudio2019\x64\Release\AAX\BL_STN.aaxplugin\*"; Exclude
 ;Source: "..\build-win\BL_STN.aaxplugin\Desktop.ini"; DestDir: "{cf64}\Avid\Audio\Plug-Ins\BL_STN.aaxplugin\"; Check: Is64BitInstallMode; Components:aax_64; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 ;Source: "..\build-win\BL_STN.aaxplugin\PlugIn.ico"; DestDir: "{cf64}\Avid\Audio\Plug-Ins\BL_STN.aaxplugin\"; Check: Is64BitInstallMode; Components:aax_64; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 
-Source: "..\..\..\..\doc\air\BL_STN_manual.pdf"; DestDir: "{app}"
+Source: "..\..\..\..\doc\STN\BL_STN_manual.pdf"; DestDir: "{app}"
 Source: "readme-win.rtf"; DestDir: "{app}"; DestName: "readme.rtf"; Flags: isreadme
 Source: "license.rtf"; DestDir: "{app}"; DestName: "license.rtf"
 
