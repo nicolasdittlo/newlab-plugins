@@ -49,6 +49,14 @@ STNProcessor::STNProcessor()
     _sinesMixSmoother = NULL;
     _transientsMixSmoother = NULL;
     _noiseMixSmoother = NULL;
+
+    _sinesMix = 1.0;
+    _transientsMix = 1.0;
+    _noiseMix = 1.0;
+
+    _muteSines = false;
+    _muteTransients = false;
+    _muteNoise = false;
 }
 
 STNProcessor::~STNProcessor()
@@ -211,7 +219,7 @@ STNProcessor::setMuteNoise(bool mute)
 {
     _muteNoise = mute;
 }
-    
+
 void
 STNProcessor::process(const vector<float> input, vector<float> *output)
 {

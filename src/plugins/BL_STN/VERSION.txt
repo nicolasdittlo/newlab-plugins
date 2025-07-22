@@ -1,2 +1,5 @@
+v7.0.3
+- fixed high volume bursts sometimes when inserting the plugin while already playing
+
 v7.0.2
 - initial version
