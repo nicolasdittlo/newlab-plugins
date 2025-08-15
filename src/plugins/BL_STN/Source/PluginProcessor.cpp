@@ -91,31 +91,26 @@ BLSTNAudioProcessor::BLSTNAudioProcessor()
 
 BLSTNAudioProcessor::~BLSTNAudioProcessor()
 {
-    for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
-        delete _displaySinesOverlapAdds[i];
+    for (int i = 0; i < _processors.size(); i++)
+        delete _processors[i];
 
     for (int i = 0; i < _displaySinesProcessors.size(); i++)
         delete _displaySinesProcessors[i];
+    
+    for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
+        delete _displaySinesOverlapAdds[i];
+
+    for (int i = 0; i < _displayNoiseProcessors.size(); i++)
+        delete _displayNoiseProcessors[i];
 
     for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
         delete _displayNoiseOverlapAdds[i];
 
-    for (int i = 0; i < _displayNoiseProcessors.size(); i++)
-        delete _displayNoiseProcessors[i];
-    
-    for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
-        delete _displayOutOverlapAdds[i];
-
     for (int i = 0; i < _displayOutProcessors.size(); i++)
         delete _displayOutProcessors[i];
 
-    for (int i = 0; i < _outGainSmoothers.size(); i++)
-        delete _outGainSmoothers[i];
-
-    for (int i = 0; i < _wetGainSmoothers.size(); i++)
-        delete _wetGainSmoothers[i];
-
-    delete _splitFreqSmoother;
+    for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
+        delete _displayOutOverlapAdds[i];
         
     for (int i = 0; i < _bandSplittersIn.size(); i++)
         delete _bandSplittersIn[i];
@@ -128,6 +123,14 @@ BLSTNAudioProcessor::~BLSTNAudioProcessor()
 
     for (int i = 0; i < _bypassDelays.size(); i++)
         delete _bypassDelays[i];
+
+    for (int i = 0; i < _outGainSmoothers.size(); i++)
+        delete _outGainSmoothers[i];
+
+    for (int i = 0; i < _wetGainSmoothers.size(); i++)
+        delete _wetGainSmoothers[i];
+
+    delete _splitFreqSmoother;
 }
 
 const juce::String
