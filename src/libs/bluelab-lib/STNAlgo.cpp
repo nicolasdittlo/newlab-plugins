@@ -318,6 +318,8 @@ STNAlgo::reset()
     _hWins.clear();
     _hValuesHistories.clear();
 
+    for (int i = 0; i < _hFilters.size(); i++)
+        delete _hFilters[i];
     _hFilters.clear();
 }
 
