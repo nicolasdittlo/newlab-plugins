@@ -217,12 +217,37 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             _sampleRateChangeListener(sampleRate, fftSize/2 + 1);
     }
 
-    for (int i = 0; i < _processors.size(); i++)
-        _processors[i]->prepareToPlay(sampleRate);
-    
     // Number of channels changed?
     if (_bandSplittersIn.size() != numInputChannels)
     {
+        for (int i = 0; i < _processors.size(); i++)
+            delete _processors[i];
+        _processors.clear();
+
+        for (int i = 0; i < _displaySinesProcessors.size(); i++)
+            delete _displaySinesProcessors[i];
+        _displaySinesProcessors.clear();
+
+        for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
+            delete _displaySinesOverlapAdds[i];
+        _displaySinesOverlapAdds.clear();
+
+        for (int i = 0; i < _displayNoiseProcessors.size(); i++)
+            delete _displayNoiseProcessors[i];
+        _displayNoiseProcessors.clear();
+
+        for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
+            delete _displayNoiseOverlapAdds[i];
+        _displayNoiseOverlapAdds.clear();
+
+        for (int i = 0; i < _displayOutProcessors.size(); i++)
+            delete _displayOutProcessors[i];
+        _displayOutProcessors.clear();
+
+        for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
+            delete _displayOutOverlapAdds[i];
+        _displayOutOverlapAdds.clear();
+        
         for (int i = 0; i < _bandSplittersIn.size(); i++)
             delete _bandSplittersIn[i];
         _bandSplittersIn.clear();
@@ -247,33 +272,6 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
             delete _wetGainSmoothers[i];
         _wetGainSmoothers.clear();
 
-        // Sines
-        for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
-            delete _displaySinesOverlapAdds[i];
-        _displaySinesOverlapAdds.clear();
-        
-        for (int i = 0; i < _displaySinesProcessors.size(); i++)
-            delete _displaySinesProcessors[i];
-        _displaySinesProcessors.clear();
-
-        // Noise
-        for (int i = 0; i < _displayNoiseOverlapAdds.size(); i++)
-            delete _displayNoiseOverlapAdds[i];
-        _displayNoiseOverlapAdds.clear();
-        
-        for (int i = 0; i < _displayNoiseProcessors.size(); i++)
-            delete _displayNoiseProcessors[i];
-        _displayNoiseProcessors.clear();
-        
-        // Out
-        for (int i = 0; i < _displayOutOverlapAdds.size(); i++)
-            delete _displayOutOverlapAdds[i];
-        _displayOutOverlapAdds.clear();
-        
-        for (int i = 0; i < _displayOutProcessors.size(); i++)
-            delete _displayOutProcessors[i];
-        _displayOutProcessors.clear();
-        
         for (int i = 0; i < numInputChannels; i++)
         {
             STNProcessor *stnProcessor = new STNProcessor();
@@ -349,6 +347,9 @@ BLSTNAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         }
     }
 
+    for (int i = 0; i < _processors.size(); i++)
+        _processors[i]->prepareToPlay(sampleRate);
+    
     // Sines
     for (int i = 0; i < _displaySinesOverlapAdds.size(); i++)
     {
