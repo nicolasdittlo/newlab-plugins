@@ -25,7 +25,7 @@
 #include <DemoTextDrawer.h>
 #include <STNProcessor.h>
 
-#define VERSION_STR "7.0.3"
+#define VERSION_STR "7.0.4"
 
 #define PLUGIN_WIDTH 464
 #define PLUGIN_HEIGHT 553
