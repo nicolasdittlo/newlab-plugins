@@ -159,35 +159,35 @@ OverlapAdd::feed(const vector<float> &samples)
             float resynthCoeff = 0.66*_fftSize / 2.0;
             for (int k = 0; k < _tmpSampBufIn.size(); k++)
                 _tmpSampBufIn[k] *= resynthCoeff;
-        }
         
-        processSamples(&_tmpSampBufIn);
+            processSamples(&_tmpSampBufIn);
             
-        // Apply synthesis window
-        for (int k = 0; k < _tmpSampBufIn.size(); k++)
-            _tmpSampBufIn[k] *= _synthWin[k];
+            // Apply synthesis window
+            for (int k = 0; k < _tmpSampBufIn.size(); k++)
+                _tmpSampBufIn[k] *= _synthWin[k];
             
-        // Output
-        _circSampBufsOut.peek(_tmpSampBufOut.data(),
-                              _synthWin.size());
+            // Output
+            _circSampBufsOut.peek(_tmpSampBufOut.data(),
+                                  _synthWin.size());
 
-        for (int k = 0; k < _tmpSampBufIn.size(); k++)
-            _tmpSampBufIn[k] += _tmpSampBufOut[k];
+            for (int k = 0; k < _tmpSampBufIn.size(); k++)
+                _tmpSampBufIn[k] += _tmpSampBufOut[k];
         
-        _circSampBufsOut.poke(_tmpSampBufIn.data(),
-                              _synthWin.size());
+            _circSampBufsOut.poke(_tmpSampBufIn.data(),
+                                  _synthWin.size());
         
-        _circSampBufsOut.pop(_fftSize / _overlap);
+            _circSampBufsOut.pop(_fftSize / _overlap);
         
-        _tmpSynthZeroBuf.resize(_fftSize / _overlap);
-        memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
+            _tmpSynthZeroBuf.resize(_fftSize / _overlap);
+            memset(_tmpSynthZeroBuf.data(), 0, _tmpSynthZeroBuf.size() * sizeof(float));
         
-        _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
-                              _tmpSynthZeroBuf.size());
+            _circSampBufsOut.push(_tmpSynthZeroBuf.data(),
+                                  _tmpSynthZeroBuf.size());
         
-        int size = _outSamples.size();
-        _outSamples.resize(size + _fftSize / _overlap);
-        memcpy(&_outSamples.data()[size], _tmpSampBufIn.data(), _fftSize / _overlap * sizeof(float));
+            int size = _outSamples.size();
+            _outSamples.resize(size + _fftSize / _overlap);
+            memcpy(&_outSamples.data()[size], _tmpSampBufIn.data(), _fftSize / _overlap * sizeof(float));
+        }
     }
 }
 
