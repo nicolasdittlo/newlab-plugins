@@ -20,14 +20,21 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 class HelpButton : public juce::Component, public juce::SettableTooltipClient
 {
 public:
     HelpButton()
     {
         // Load the images from BinaryData
+#if !UPSCALE
         _bitmap = juce::ImageFileFormat::loadFrom(BinaryData::help_button_png, BinaryData::help_button_pngSize);
         _bitmapOver = juce::ImageFileFormat::loadFrom(BinaryData::help_button_over_png, BinaryData::help_button_over_pngSize);
+#else
+        _bitmap = juce::ImageFileFormat::loadFrom(BinaryData::help_button_upscale_png, BinaryData::help_button_upscale_pngSize);
+        _bitmapOver = juce::ImageFileFormat::loadFrom(BinaryData::help_button_over_upscale_png, BinaryData::help_button_over_upscale_pngSize);
+#endif
 
         // Ensure the images loaded successfully
         jassert(_bitmap.isValid());
@@ -57,7 +64,7 @@ public:
         _isMouseOver = false;
         repaint(); // Trigger a redraw
     }
-    
+
     void mouseUp(const juce::MouseEvent& event) override
     {
         // Notify listeners of the change

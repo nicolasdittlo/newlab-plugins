@@ -20,6 +20,8 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 class VersionTextDrawer
 {
  public:
@@ -32,7 +34,12 @@ class VersionTextDrawer
         // Set the text attributes
         attributedString.setText(text);
         attributedString.setColour(juce::Colour(0xff939393));
+
+#if !UPSCALE
         attributedString.setFont(FontManager::getInstance()->getFont("Roboto-Bold", 13.0));
+#else
+        attributedString.setFont(FontManager::getInstance()->getFont("Roboto-Bold", 26.0));
+#endif
 
         // Create the layout
         textLayout.createLayout(attributedString, editor.getWidth());
@@ -46,8 +53,13 @@ class VersionTextDrawer
         auto textHeight = textLayout.getHeight();
 
         // Calculate the position for bottom-right alignment
+#if !UPSCALE
         auto x = width - textWidth - 48;
         auto y = height - textHeight - 7;
+#else
+        auto x = width - textWidth - 48*2;
+        auto y = height - textHeight - 7*2;
+#endif
 
         // Draw the text layout
         textLayout.draw(g, juce::Rectangle<float>(x, y, textWidth, textHeight));

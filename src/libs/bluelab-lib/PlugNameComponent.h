@@ -20,13 +20,19 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 class PlugNameComponent : public juce::Component
 {
 public:
     PlugNameComponent()
     {
         // Load the image from the binary resources
+#if !UPSCALE
         auto imageFile = juce::ImageFileFormat::loadFrom(BinaryData::plugname_png, BinaryData::plugname_pngSize);
+#else
+        auto imageFile = juce::ImageFileFormat::loadFrom(BinaryData::plugname_upscale_png, BinaryData::plugname_upscale_pngSize);
+#endif
 
         if (imageFile.isValid())
         {

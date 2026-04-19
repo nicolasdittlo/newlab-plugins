@@ -20,6 +20,8 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 #include "FontManager.h"
 
 enum class SliderSize
@@ -118,6 +120,11 @@ public:
     void resized() override
     {
         int size = (_sliderSize == SliderSize::BigSlider) ? 72 : 36;
+
+#if UPSCALE
+        size *= 2;
+#endif
+
         setSize(size, size); // Ensure the size matches the specified size
     }
 
@@ -152,7 +159,13 @@ public:
 
         // Value label setup
         _valueLabel.setEditable(true);
+
+#if !UPSCALE
         _valueLabel.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 19.0f));
+#else
+        _valueLabel.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 38.0f));
+#endif
+
         _valueLabel.setColour(juce::Label::textColourId, juce::Colour::fromString("#ff939393"));
         _valueLabel.setJustificationType(juce::Justification::centred);
         _valueLabel.onTextChange = [this]() { updateSliderFromLabel(); };
@@ -170,14 +183,29 @@ public:
     void resized() override
     {
         int sliderDimension = (_sliderSize == SliderSize::BigSlider) ? 72 : 36;
+
+#if UPSCALE
+        sliderDimension *= 2;
+#endif
+
         // Define fixed bounds for the slider within this component
         auto sliderX = (getWidth() - sliderDimension) / 2; // Center the slider horizontally
         auto sliderY = 0; // Start at the top of the component
         _slider.setBounds(sliderX, sliderY, sliderDimension, sliderDimension);
 
         // Position the value label below the slider
+#if !UPSCALE
         int labelWidth = (_sliderSize == SliderSize::BigSlider) ? sliderDimension : 72; // Allow label to exceed for small sliders
+#else
+        int labelWidth = (_sliderSize == SliderSize::BigSlider) ? sliderDimension : 72*2; // Allow label to exceed for small sliders
+#endif
+
+#if !UPSCALE
         auto valueLabelArea = juce::Rectangle<int>(sliderX - (labelWidth - sliderDimension) / 2, _slider.getBottom() + 25, labelWidth, 20);
+#else
+        auto valueLabelArea = juce::Rectangle<int>(sliderX - (labelWidth - sliderDimension) / 2, _slider.getBottom() + 50, labelWidth, 40);
+#endif
+
         _valueLabel.setBounds(valueLabelArea);
     }
 
@@ -185,7 +213,7 @@ public:
     {
         _slider.setRange(min, max, interval);
         _interval = interval;
-        
+
         updateValueLabel();
     }
 

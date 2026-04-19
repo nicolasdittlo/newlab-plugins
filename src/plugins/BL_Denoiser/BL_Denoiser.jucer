@@ -17,6 +17,18 @@
       <FILE id="X3fyEL" name="nanovg.c" compile="1" resource="0" file="../../libs/nanovg/src/nanovg.c"/>
     </GROUP>
     <GROUP id="{8D58FD6F-05EF-BC0D-5DC6-0AAB5A9CF5F3}" name="Resources">
+      <FILE id="mahOu1" name="background_upscale.png" compile="0" resource="1"
+            file="Resources/background_upscale.png"/>
+      <FILE id="YzKo3l" name="plugname_upscale.png" compile="0" resource="1"
+            file="Resources/plugname_upscale.png"/>
+      <FILE id="j2aQ1Q" name="help_button_upscale.png" compile="0" resource="1"
+            file="Resources/help_button_upscale.png"/>
+      <FILE id="tTNfal" name="help_button_over_upscale.png" compile="0" resource="1"
+            file="Resources/help_button_over_upscale.png"/>
+      <FILE id="jl3SYN" name="checkbox_unchecked_upscale.png" compile="0"
+            resource="1" file="Resources/checkbox_unchecked_upscale.png"/>
+      <FILE id="PHtu18" name="checkbox_checked_upscale.png" compile="0" resource="1"
+            file="Resources/checkbox_checked_upscale.png"/>
       <FILE id="ceVi8O" name="background.png" compile="0" resource="1" file="Resources/background.png"/>
       <FILE id="SUcf4v" name="checkbox_checked.png" compile="0" resource="1"
             file="Resources/checkbox_checked.png"/>

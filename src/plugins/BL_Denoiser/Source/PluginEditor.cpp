@@ -27,8 +27,13 @@
 
 #define VERSION_STR "7.0.2"
 
+#if !UPSCALE
 #define PLUGIN_WIDTH 464
 #define PLUGIN_HEIGHT 464
+#else
+#define PLUGIN_WIDTH 928
+#define PLUGIN_HEIGHT 928
+#endif
 
 BLDenoiserAudioProcessorEditor::BLDenoiserAudioProcessorEditor(BLDenoiserAudioProcessor& p)
     : AudioProcessorEditor(&p), _audioProcessor(p)
@@ -37,8 +42,12 @@ BLDenoiserAudioProcessorEditor::BLDenoiserAudioProcessorEditor(BLDenoiserAudioPr
     juce::LookAndFeel::setDefaultLookAndFeel(new CustomLookAndFeel());
     
     // Load the background image from binary resources
+#if !UPSCALE
     _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
-
+#else
+    _backgroundImage = juce::ImageCache::getFromMemory(BinaryData::background_upscale_png, BinaryData::background_upscale_pngSize);
+#endif
+    
     // Configure the ratio slider with units
     _ratioSlider = std::make_unique<RotarySliderWithValue>("", "%", SliderSize::BigSlider);
     _ratioSlider->setRange(0.0, 100.0, 0.1);
@@ -125,8 +134,12 @@ BLDenoiserAudioProcessorEditor::BLDenoiserAudioProcessorEditor(BLDenoiserAudioPr
     addAndMakeVisible(*_qualityComboBox);
 
     // Tooltip window
+#if !UPSCALE
     _tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 500);
-
+#else
+    _tooltipWindow = std::make_unique<juce::TooltipWindow>(this, 1000);
+#endif
+    
     // Plugin name
     _plugNameComponent = std::make_unique<PlugNameComponent>();
     addAndMakeVisible(*_plugNameComponent);
@@ -207,6 +220,7 @@ void BLDenoiserAudioProcessorEditor::paint(juce::Graphics& g)
     }
 }
 
+#if !UPSCALE
 void BLDenoiserAudioProcessorEditor::resized()
 {
     if ((getWidth() != PLUGIN_WIDTH) || (getHeight() != PLUGIN_HEIGHT))
@@ -253,6 +267,54 @@ void BLDenoiserAudioProcessorEditor::resized()
     
     _spectrumComponent->setBounds(0, 0, 464, 198);
 }
+#else
+void BLDenoiserAudioProcessorEditor::resized()
+{
+    if ((getWidth() != PLUGIN_WIDTH) || (getHeight() != PLUGIN_HEIGHT))
+    {
+        setSize(PLUGIN_WIDTH, PLUGIN_HEIGHT);
+        return;
+    }
+    
+    auto bigSliderWidth = 72*2;
+    auto bigSliderHeight = (72 + 25 + 20)*2; // 72 for slider, 25 for spacing, 20 for label height
+    _ratioSlider->setBounds(172*2, 282*2, bigSliderWidth, bigSliderHeight);
+
+    auto smallSliderWidth = 72*2; // Updated width to match the label width for small sliders
+    auto smallSliderHeight = (36 + 25 + 20)*2; // 36 for slider, 25 for spacing, 20 for label height
+    _thresholdSlider->setBounds(281*2 - (smallSliderWidth - 36*2) / 2, // Center the slider
+                                316*2,
+                                smallSliderWidth,
+                                smallSliderHeight);
+
+    _transBoostSlider->setBounds(281*2 - (smallSliderWidth - 36*2) / 2, // Center the slider
+                                 218*2,
+                                 smallSliderWidth,
+                                 smallSliderHeight);
+
+    _resNoiseThrsSlider->setBounds(372*2 - (smallSliderWidth - 36*2) / 2, // Center the slider
+                                   316*2,
+                                   smallSliderWidth,
+                                   smallSliderHeight);
+
+    _learnCheckBox.setBounds(32*2, 234*2, 20*2, 20*2);
+
+    _noiseOnlyCheckBox.setBounds(32*2, 283*2, 20*2, 20*2);
+
+    _autoResNoiseCheckBox.setBounds(32*2, 332*2, 20*2, 20*2);
+
+    _qualityComboBox->setBounds(348*2, 255*2, 90*2, 20*2);
+
+    _plugNameComponent->setBounds(getWidth()/2 - _plugNameComponent->getWidth()/2,
+                                  getHeight() - _plugNameComponent->getHeight() - 15.0*2,
+                                  _plugNameComponent->getWidth(),
+                                  _plugNameComponent->getHeight());
+
+    _helpButton->setBounds(getWidth() - 20*2 - 14*2, getHeight() - 20*2 - 10*2, 20*2, 20*2);
+    
+    _spectrumComponent->setBounds(0, 0, 464*2, 198*2);
+}
+#endif
 
 void BLDenoiserAudioProcessorEditor::setScaleFactor(float newScale)
 {
@@ -301,4 +363,3 @@ BLDenoiserAudioProcessorEditor::timerCallback()
     _spectrumComponent->repaint();
 #endif
 }
-

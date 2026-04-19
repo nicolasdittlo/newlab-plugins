@@ -20,14 +20,21 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 class BitmapCheckBox : public juce::Component, public juce::SettableTooltipClient
 {
 public:
     BitmapCheckBox()
     {
         // Load the images from BinaryData
+#if !UPSCALE
         _uncheckedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_unchecked_png, BinaryData::checkbox_unchecked_pngSize);
         _checkedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_checked_png, BinaryData::checkbox_checked_pngSize);
+#else
+        _uncheckedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_unchecked_upscale_png, BinaryData::checkbox_unchecked_upscale_pngSize);
+        _checkedBitmap = juce::ImageFileFormat::loadFrom(BinaryData::checkbox_checked_upscale_png, BinaryData::checkbox_checked_upscale_pngSize);
+#endif
 
         // Ensure the images loaded successfully
         jassert(_uncheckedBitmap.isValid());
@@ -99,8 +106,8 @@ private:
 class BitmapCheckBoxAttachment : public juce::AudioProcessorValueTreeState::Listener
 {
 public:
-    BitmapCheckBoxAttachment(juce::AudioProcessorValueTreeState& stateToUse, 
-                             const juce::String& parameterID, 
+    BitmapCheckBoxAttachment(juce::AudioProcessorValueTreeState& stateToUse,
+                             const juce::String& parameterID,
                              BitmapCheckBox& checkBox)
         : _apvts(stateToUse), _paramID(parameterID), _checkBox(checkBox)
     {

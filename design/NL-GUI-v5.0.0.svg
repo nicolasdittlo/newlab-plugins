@@ -470,11 +470,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.9399648"
-     inkscape:cx="20517.249"
-     inkscape:cy="-734.9123"
+     inkscape:zoom="2.1572338"
+     inkscape:cx="-145.0225"
+     inkscape:cy="-287.6211"
      inkscape:document-units="px"
-     inkscape:current-layer="layer161"
+     inkscape:current-layer="g10992"
      inkscape:document-rotation="0"
      showgrid="true"
      inkscape:window-width="1920"
@@ -2529,14 +2529,15 @@
   <g
      inkscape:groupmode="layer"
      id="layer13"
-     inkscape:label="Help button">
+     inkscape:label="Help button"
+     style="display:inline">
     <rect
        style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.279294;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect10048"
        width="20.637501"
        height="18.520832"
-       x="-21.695833"
-       y="-18.520832" />
+       x="-22.225"
+       y="-17.4625" />
     <g
        id="use10061"
        transform="matrix(0.71643313,0,0,0.71643313,166.06102,-33.899961)">
@@ -2559,58 +2560,52 @@
          r="3.179714" />
     </g>
     <g
-       id="g6894"
-       inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Elements/help-button.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96">
-      <g
-         id="g10720"
-         transform="translate(0,-0.85930653)"
-         inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Elements/help-button.png"
-         inkscape:export-xdpi="96"
-         inkscape:export-ydpi="96">
-        <circle
-           style="fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-           id="path10054"
-           cx="-14.552088"
-           cy="-10.080771"
-           r="2.2780523" />
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:7.58223px;line-height:1.25;font-family:sans-serif;fill:#f8f8f8;fill-opacity:1;stroke:none;stroke-width:0.189556"
+       id="g10720"
+       transform="translate(0,-0.85930653)"
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/help_button_upscale.png"
+       inkscape:export-xdpi="189.91171"
+       inkscape:export-ydpi="189.91171">
+      <circle
+         style="fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="path10054"
+         cx="-14.552088"
+         cy="-10.080771"
+         r="2.2780523" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:7.58223px;line-height:1.25;font-family:sans-serif;fill:#f8f8f8;fill-opacity:1;stroke:none;stroke-width:0.189556"
+         x="-15.531461"
+         y="-8.6354074"
+         id="text10052"><tspan
+           sodipodi:role="line"
+           id="tspan10050"
            x="-15.531461"
            y="-8.6354074"
-           id="text10052"><tspan
-             sodipodi:role="line"
-             id="tspan10050"
-             x="-15.531461"
-             y="-8.6354074"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.04386px;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke-width:0.189556">?</tspan></text>
-      </g>
-      <g
-         id="g10725"
-         transform="translate(0.03717613,-0.52916667)"
-         inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Elements/help-button.png"
-         inkscape:export-xdpi="96"
-         inkscape:export-ydpi="96">
-        <circle
-           style="fill:#6a6aff;fill-opacity:1;stroke:#939393;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-           id="circle10475"
-           cx="-14.589264"
-           cy="-5.0515776"
-           r="2.2780523" />
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:7.58223px;line-height:1.25;font-family:sans-serif;fill:#d1d8df;fill-opacity:1;stroke:none;stroke-width:0.189556;"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.04386px;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#939393;fill-opacity:1;stroke-width:0.189556">?</tspan></text>
+    </g>
+    <g
+       id="g10725"
+       transform="translate(0.03717613,-0.52916667)"
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/help_button_over_upscale.png"
+       inkscape:export-xdpi="189.91171"
+       inkscape:export-ydpi="189.91171">
+      <circle
+         style="fill:#6a6aff;fill-opacity:1;stroke:#939393;stroke-width:0.79375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+         id="circle10475"
+         cx="-14.589264"
+         cy="-5.0515776"
+         r="2.2780523" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:7.58223px;line-height:1.25;font-family:sans-serif;fill:#d1d8df;fill-opacity:1;stroke:none;stroke-width:0.189556"
+         x="-15.568637"
+         y="-3.6062133"
+         id="text10473"><tspan
+           sodipodi:role="line"
+           id="tspan10471"
            x="-15.568637"
            y="-3.6062133"
-           id="text10473"><tspan
-             sodipodi:role="line"
-             id="tspan10471"
-             x="-15.568637"
-             y="-3.6062133"
-             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.04386px;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#d1d8df;fill-opacity:1;stroke-width:0.189556;">?</tspan></text>
-      </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.04386px;font-family:Roboto;-inkscape-font-specification:'Roboto, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#d1d8df;fill-opacity:1;stroke-width:0.189556">?</tspan></text>
     </g>
   </g>
   <g
@@ -2937,8 +2932,8 @@
        id="rect10972"
        width="50.799999"
        height="39.687496"
-       x="-54.504166"
-       y="-80.962494" />
+       x="-54.239582"
+       y="-75.935417" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
@@ -2959,15 +2954,15 @@
        y="-58.737499"
        ry="0.16582941"
        rx="0.14314246"
-       inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Elements/checkbox.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/checkbox_unchecked_upscale.png"
+       inkscape:export-xdpi="192.00015"
+       inkscape:export-ydpi="192.00015" />
     <g
        id="g2318"
        transform="translate(-3.0541115e-6,-0.22612287)"
-       inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Elements/checkbox.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96">
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/checkbox_checked_upscale.png"
+       inkscape:export-xdpi="192.00015"
+       inkscape:export-ydpi="192.00015">
       <rect
          style="fill:#19193b;fill-opacity:1;stroke:#939393;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
          id="rect10980"
@@ -7972,9 +7967,9 @@
        height="122.78761"
        x="667.80835"
        y="-334.45428"
-       inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Denoiser/background.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/background_upscale.png"
+       inkscape:export-xdpi="191.96722"
+       inkscape:export-ydpi="191.96722" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -7996,7 +7991,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer48"
-     inkscape:label="Denoiser-GUI">
+     inkscape:label="Denoiser-GUI"
+     style="display:inline">
     <use
        x="0"
        y="0"
@@ -8123,9 +8119,9 @@
     <g
        id="g5734"
        transform="translate(-46.047946)"
-       inkscape:export-filename="/home/niko/Documents/Dev/plugs-dev/bluelab/Design/GUI/Exports/v3.38.0/Denoiser/plugname.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96">
+       inkscape:export-filename="/home/zebrafish/apps/newlab-plugins/newlab-plugins/src/plugins/BL_Denoiser/Resources/plugname_upscale.png"
+       inkscape:export-xdpi="186.06383"
+       inkscape:export-ydpi="186.06383">
       <use
          x="0"
          y="0"
@@ -8317,23 +8313,23 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="731.54047"
-       y="-208.96677"
+       y="-202.61685"
        id="text5699-7"><tspan
          sodipodi:role="line"
          id="tspan5697-5"
          x="731.54047"
-         y="-208.96677"
+         y="-202.61685"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ebf2fa;fill-opacity:1;stroke-width:0.264583">denoiser</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="706.13672"
-       y="-208.96677"
+       y="-202.61685"
        id="text1089-3"><tspan
          sodipodi:role="line"
          id="tspan1087-5"
          x="706.13672"
-         y="-208.96677"
+         y="-202.61685"
          style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:4.93889px;font-family:Poppins;-inkscape-font-specification:'Poppins, Ultra-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#5252ff;fill-opacity:1;stroke-width:0.264583">NewLab</tspan></text>
     <g
        id="g10093"
@@ -8342,7 +8338,7 @@
        inkscape:export-ydpi="96">
       <text
          xml:space="preserve"
-         style="display:inline;font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="199.49217"
          y="-200.25374"
          id="text3434-7"><tspan
@@ -25761,12 +25757,12 @@
       <image
          sodipodi:absref="/home/zebrafish/apps/bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Waterfall.png"
          xlink:href="../../../bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Waterfall.png"
-         y="-375.26642"
-         x="4880.5044"
-         id="image6009"
-         preserveAspectRatio="none"
+         width="131.03442"
          height="106.92104"
-         width="131.03442" />
+         preserveAspectRatio="none"
+         id="image6009"
+         x="4880.5044"
+         y="-375.26642" />
       <g
          id="g6583"
          transform="translate(-5.8208026,-5.8208275)">
@@ -25848,13 +25844,13 @@
       <image
          sodipodi:absref="/home/zebrafish/apps/bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Spectrogram.png"
          xlink:href="../../../bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Spectrogram.png"
-         style="display:inline"
-         y="-375.17917"
-         x="4747.1895"
-         id="image6075"
-         preserveAspectRatio="none"
+         width="131.1696"
          height="106.89167"
-         width="131.1696" />
+         preserveAspectRatio="none"
+         id="image6075"
+         x="4747.1895"
+         y="-375.17917"
+         style="display:inline" />
       <g
          id="g6570"
          transform="translate(0.01430703,2.194375)">
@@ -27981,12 +27977,12 @@
         <image
            sodipodi:absref="/home/zebrafish/apps/bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Waterfall.png"
            xlink:href="../../../bluelab-plugins-falkTX-build/bluelab-plugins/Design/GUI/Draft-Images/Morpho-Waterfall.png"
-           y="-375.26642"
-           x="4880.5044"
-           id="image5104"
-           preserveAspectRatio="none"
+           width="131.03442"
            height="106.92104"
-           width="131.03442" />
+           preserveAspectRatio="none"
+           id="image5104"
+           x="4880.5044"
+           y="-375.26642" />
         <g
            id="g5112"
            transform="translate(-5.8208026,-5.8208275)">

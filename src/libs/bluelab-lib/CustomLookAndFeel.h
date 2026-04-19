@@ -20,6 +20,8 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 class CustomLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
@@ -29,7 +31,13 @@ public:
         g.setColour(juce::Colour::fromString("#ff565667"));
         g.drawRect(0, 0, width, height, 2.0);
         g.setColour(juce::Colour::fromString("#ffd1d8df"));
+
+#if !UPSCALE
         g.setFont(juce::FontOptions(16.0f)); // Change font size
+#else
+        g.setFont(juce::FontOptions(32.0f)); // Change font size
+#endif
+
         g.drawText(text, 0, 0, width, height, juce::Justification::centred);
     }
 
@@ -39,7 +47,11 @@ public:
                                           juce::Rectangle<int> parentArea) override
     {
         // Define font for text layout
+#if !UPSCALE
         juce::Font font(juce::FontOptions(16.0f)); // Ensure the font matches the one in drawTooltip
+#else
+        juce::Font font(juce::FontOptions(32.0f)); // Ensure the font matches the one in drawTooltip
+#endif
 
         // Calculate text layout size
         juce::AttributedString attributedString;
@@ -52,16 +64,30 @@ public:
 
         // Calculate bounds from the overall text layout
         auto bounds = textLayout.getStringBounds(font, tipText);
+
+#if !UPSCALE
         int w = static_cast<int>(bounds.getWidth() + 14.0f); // Add padding
         int h = static_cast<int>(bounds.getHeight() + 10.0f);
 
         // Add more padding
         w += 10;
         h += 10;
-        
+
         // Calculate tooltip position
         int x = (screenPos.x > parentArea.getCentreX()) ? screenPos.x - (w + 12) : screenPos.x + 24;
         int y = (screenPos.y > parentArea.getCentreY()) ? screenPos.y - (h + 6) : screenPos.y + 6;
+#else
+        int w = static_cast<int>(bounds.getWidth() + 28.0f); // Add padding
+        int h = static_cast<int>(bounds.getHeight() + 20.0f);
+
+        // Add more padding
+        w += 20;
+        h += 20;
+
+        // Calculate tooltip position
+        int x = (screenPos.x > parentArea.getCentreX()) ? screenPos.x - (w + 24) : screenPos.x + 48;
+        int y = (screenPos.y > parentArea.getCentreY()) ? screenPos.y - (h + 12) : screenPos.y + 12;
+#endif
 
         // Ensure the tooltip is within the parent area
         return juce::Rectangle<int>(x, y, w, h).constrainedWithin(parentArea);

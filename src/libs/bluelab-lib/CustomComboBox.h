@@ -18,6 +18,8 @@
 
 #include <JuceHeader.h>
 
+#include <Config.h>
+
 #include "FontManager.h"
 
 class CustomComboBox : public juce::ComboBox
@@ -38,7 +40,7 @@ public:
     {
         setLookAndFeel(nullptr);
     }
-    
+
     void paint(juce::Graphics& g) override
     {
         // Draw a black background when the ComboBox is not opened
@@ -50,9 +52,17 @@ public:
         g.setColour(findColour(juce::ComboBox::arrowColourId));
         auto arrowZone = bounds.removeFromRight(getHeight()).reduced(5);
         juce::Path arrow;
+
+#if !UPSCALE
         arrow.addTriangle(arrowZone.getCentreX() - 5, arrowZone.getCentreY() - 3,
                           arrowZone.getCentreX() + 5, arrowZone.getCentreY() - 3,
                           arrowZone.getCentreX(), arrowZone.getCentreY() + 4);
+#else
+        arrow.addTriangle(arrowZone.getCentreX() - 10, arrowZone.getCentreY() - 6,
+                          arrowZone.getCentreX() + 10, arrowZone.getCentreY() - 6,
+                          arrowZone.getCentreX(), arrowZone.getCentreY() + 8);
+#endif
+
         g.fillPath(arrow);
     }
 
@@ -62,9 +72,13 @@ private:
     public:
         juce::Font getComboBoxFont(ComboBox& box) override
         {
+#if !UPSCALE
             return FontManager::getInstance()->getFont("Roboto-Bold", 16.0);
+#else
+            return FontManager::getInstance()->getFont("Roboto-Bold", 32.0);
+#endif
         }
-        
+
         void drawPopupMenuBackground(juce::Graphics& g, int width, int height) override
         {
             g.setColour(juce::Colour(0xff181838));
@@ -88,7 +102,11 @@ private:
                 return;
             }
 
+#if !UPSCALE
             auto r = area.reduced(4, 0);
+#else
+            auto r = area.reduced(8, 0);
+#endif
 
             if (isHighlighted)
             {
@@ -97,7 +115,13 @@ private:
             }
 
             g.setColour(isHighlighted ? juce::Colours::black : juce::Colours::white);
+
+#if !UPSCALE
             g.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 16.0));
+#else
+            g.setFont(FontManager::getInstance()->getFont("OpenSans-ExtraBold", 32.0));
+#endif
+
             g.drawFittedText(text, r, juce::Justification::centredLeft, 1);
 
             if (isTicked)
@@ -105,8 +129,8 @@ private:
                 auto tickBounds = r.removeFromRight(r.getHeight()).reduced(4);
                 auto tickRadius = std::min(tickBounds.getWidth(), tickBounds.getHeight()) / 2.0f;
                 g.setColour(juce::Colours::white);
-                g.fillEllipse(tickBounds.getCentreX() - tickRadius, 
-                              tickBounds.getCentreY() - tickRadius, 
+                g.fillEllipse(tickBounds.getCentreX() - tickRadius,
+                              tickBounds.getCentreY() - tickRadius,
                               2 * tickRadius, 2 * tickRadius);
             }
 
@@ -124,10 +148,15 @@ private:
 
         void positionComboBoxText (juce::ComboBox& box, juce::Label& label) override
         {
+#if !UPSCALE
             label.setBounds (15, 1,
                              box.getWidth() - 30,
                              box.getHeight() - 2);
-
+#else
+            label.setBounds (30, 2,
+                             box.getWidth() - 60,
+                             box.getHeight() - 4);
+#endif
             label.setFont (getComboBoxFont (box));
         }
     };
