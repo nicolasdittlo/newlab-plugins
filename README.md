@@ -10,7 +10,6 @@ This rework includes:
 - rewrite the code more cleanly
 
 The plugins here are for sale on the site www.bluelab-plugins.com
-So please do not build them and put the builds online.
 
 ### To build the plugins on Linux:
 
